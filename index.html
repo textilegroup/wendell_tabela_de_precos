@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Portal Fiorella</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #eef2f5;
+  }
+  .wrap {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    box-sizing: border-box;
+  }
+  .logo-dot {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #2fc6f6, #1b6ea3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 14px rgba(27, 110, 163, 0.25);
+  }
+  .logo-dot svg {
+    width: 24px;
+    height: 24px;
+  }
+  p {
+    color: #5a6b78;
+    margin: 0 0 22px;
+    font-size: 14px;
+  }
+  a.btn {
+    background: linear-gradient(135deg, #2fc6f6, #1b6ea3);
+    color: #ffffff;
+    padding: 14px 34px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    box-shadow: 0 4px 14px rgba(27, 110, 163, 0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  a.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(27, 110, 163, 0.4);
+  }
+  a.btn:active {
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo-dot">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 12h16M14 6l6 6-6 6" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <p>Você será direcionado para o portal externo em uma nova aba.</p>
+    <!-- Troque a URL abaixo pelo endereço real do portal, se mudar no futuro -->
+    <a class="btn" href="http://192.0.1.11:8501/" target="_blank" rel="noopener noreferrer">
+      Abrir Portal Fiorella
+    </a>
+  </div>
+</body>
+</html>
