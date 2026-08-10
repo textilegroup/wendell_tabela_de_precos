@@ -252,6 +252,52 @@
   .admin-msg.ok{color:#3F7A4E;}
   .admin-msg.err{color:#B02A2A;}
 
+  /* ===== Coeficientes de venda ===== */
+  .coef-tabs{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:16px;}
+  .coef-tab{
+    border:1px solid var(--input-border); background:#fff;
+    padding:7px 13px; border-radius:7px; font-size:12.5px; font-weight:600;
+    color:var(--ink-soft); cursor:pointer;
+  }
+  .coef-tab.active{background:var(--maroon); border-color:var(--maroon); color:#fff;}
+  .coef-tab:hover:not(.active){border-color:var(--maroon); color:var(--maroon);}
+
+  .coef-wrap{display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start;}
+  table.coef-table{
+    border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:8px; overflow:hidden;
+    flex:1; min-width:320px;
+  }
+  table.coef-table th, table.coef-table td{
+    border:1px solid var(--line); padding:8px 10px; font-size:12.5px; text-align:center;
+  }
+  table.coef-table thead th{
+    background:#F6F4F1; color:var(--ink-soft); font-weight:700; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  table.coef-table tbody th{
+    background:#F6F4F1; text-align:left; font-weight:700; color:var(--ink); white-space:nowrap; font-size:12px;
+  }
+  table.coef-table input{
+    width:64px; border:1px solid var(--input-border); border-radius:5px;
+    padding:5px 4px; text-align:center; font-family:'Inter',sans-serif; font-size:12.5px; color:var(--ink);
+  }
+  table.coef-table input:focus{outline:none; border-color:var(--maroon); box-shadow:0 0 0 2px rgba(124,27,41,0.12);}
+  td.coef-yellow{background:#FDF3B0;}
+  td.coef-readonly{background:#F6F4F1; color:var(--ink-soft); font-weight:600;}
+  table.coef-side{
+    border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:8px; overflow:hidden;
+    width:170px;
+  }
+  table.coef-side th, table.coef-side td{ border:1px solid var(--line); padding:9px 10px; font-size:12.5px; }
+  table.coef-side tbody th{ background:#F6F4F1; text-align:left; color:var(--ink); font-size:12px; }
+  table.coef-side td{ background:#FDF3B0; text-align:center; }
+  table.coef-side input{
+    width:70px; border:1px solid var(--input-border); border-radius:5px;
+    padding:5px 4px; text-align:center; font-family:'Inter',sans-serif; font-size:12.5px;
+  }
+  .coef-hint{font-size:11.5px; color:var(--ink-faint); margin:12px 0 0; line-height:1.5;}
+  .coef-reset{margin-top:14px;}
+
   /* ===== Content / tables ===== */
   .print-summary{display:none;}
   .cat-block{margin-bottom:20px;}
@@ -502,6 +548,18 @@
     <div class="admin-msg" id="adminMsg"></div>
   </section>
 
+  <section class="panel admin-panel no-print" id="coefPanel" style="display:none;">
+    <div class="panel-title-row"><h3 class="panel-title" id="txt-coefTitle">Coeficientes de Venda por Versão</h3></div>
+    <p class="admin-hint" id="txt-coefHint">Ajuste margem, comissão, ICMS e PIS/COFINS de cada versão. Os preços de todas as tabelas são recalculados automaticamente.</p>
+    <div class="coef-tabs" id="coefTabs"></div>
+    <div class="coef-wrap">
+      <table class="coef-table" id="coefTable"></table>
+      <table class="coef-side" id="coefSide"></table>
+    </div>
+    <p class="coef-hint" id="txt-coefAjusteHint">"Ajuste" não é aplicado na fórmula de preço atual — mantido apenas como referência da planilha original.</p>
+    <button class="btn btn-ghost coef-reset" id="coefResetBtn"><span id="txt-coefReset">Restaurar valores originais desta versão</span></button>
+  </section>
+
   <div class="print-summary" id="printSummary"></div>
 
   <div id="content"></div>
@@ -536,13 +594,21 @@ const DATA = JSON.parse(document.getElementById('app-data').textContent);
 const GERENCIA_PASSWORD = "wgi2026";
 let gerenciaUnlocked = false;
 
+// Garante campo "adjust" (uso interno, não afeta o preço) em cada versão
+// e guarda uma cópia de fábrica para permitir "restaurar valores originais".
+Object.keys(DATA.params).forEach(k=>{
+  if(!DATA.params[k].adjust){ DATA.params[k].adjust = DATA.params[k].margins.map(()=>0); }
+});
+const DEFAULT_PARAMS = JSON.parse(JSON.stringify(DATA.params));
+
 const state = {
   audience: 'representante',
   icms: '18',
   versionMode: 'vigente', // vigente | anterior (só gerência)
   category: 'Todas',
   search: '',
-  lang: 'pt'
+  lang: 'pt',
+  coefVersion: 'repr18'
 };
 
 const PARAM_KEY = {
@@ -579,7 +645,15 @@ const I18N = {
     importSuccess:(n)=> n + " custo(s) atualizado(s).",
     importError:"Não foi possível importar o arquivo. Verifique o formato do CSV.",
     printSummary:(mod,icmsTxt,dateTxt,noteTxt)=> mod+' · '+icmsTxt+' · '+dateTxt+' · '+noteTxt,
-    viewingLegacy:"Visualizando tabela anterior — Representante 18% (JAN/26)"
+    viewingLegacy:"Visualizando tabela anterior — Representante 18% (JAN/26)",
+    coefTitle:"Coeficientes de Venda por Versão",
+    coefHint:"Ajuste margem, comissão, ICMS e PIS/COFINS de cada versão. Os preços de todas as tabelas são recalculados automaticamente.",
+    coefAjuste:"Ajuste", coefMargem:"Margem", coefComissao:"Comissão", coefVartabs:"Var. entre tabelas",
+    coefIcms:"ICMS", coefPis:"PIS/COFINS",
+    coefAjusteHint:"\"Ajuste\" não é aplicado na fórmula de preço atual — mantido apenas como referência da planilha original.",
+    coefReset:"Restaurar valores originais desta versão",
+    coefResetConfirm:"Restaurar os valores originais desta versão? As alterações feitas nela serão perdidas.",
+    coefUpdated:"Coeficientes atualizados — preços recalculados."
   },
   en:{
     title:"Price Hub", subtitle:"Wendell Global Interlining",
@@ -605,7 +679,15 @@ const I18N = {
     importSuccess:(n)=> n + " cost(s) updated.",
     importError:"Could not import the file. Check the CSV format.",
     printSummary:(mod,icmsTxt,dateTxt,noteTxt)=> mod+' · '+icmsTxt+' · '+dateTxt+' · '+noteTxt,
-    viewingLegacy:"Viewing previous table — Sales rep 18% (JAN/26)"
+    viewingLegacy:"Viewing previous table — Sales rep 18% (JAN/26)",
+    coefTitle:"Sales Coefficients by Version",
+    coefHint:"Adjust margin, commission, ICMS and PIS/COFINS for each version. Every price table is recalculated automatically.",
+    coefAjuste:"Adjustment", coefMargem:"Margin", coefComissao:"Commission", coefVartabs:"Var. between tables",
+    coefIcms:"ICMS", coefPis:"PIS/COFINS",
+    coefAjusteHint:"\"Adjustment\" is not applied in the current price formula — kept only as a reference from the original spreadsheet.",
+    coefReset:"Restore this version's original values",
+    coefResetConfirm:"Restore the original values for this version? Changes made to it will be lost.",
+    coefUpdated:"Coefficients updated — prices recalculated."
   }
 };
 
@@ -640,6 +722,114 @@ function currentBlock(){
     rows, isLegacy:false
   };
 }
+
+// ---------- Coeficientes de venda (margem, comissão, ICMS, PIS/COFINS) ----------
+function computeVarTabs(key){
+  const p = DATA.params[key];
+  const base = p.icms + p.pis*(1-p.icms);
+  const denom = p.margins.map(m=>1-(base+m));
+  return denom.map((d,i)=> i===denom.length-1 ? 0 : (denom[i+1]/d)-1);
+}
+
+function versionLabelFor(key){
+  const p = DATA.params[key];
+  const lbl = state.lang==='en' ? p.label_en : p.label;
+  return lbl + ' ' + Math.round(p.icms*100) + '%';
+}
+
+function renderCoefTabs(){
+  const wrap = document.getElementById('coefTabs');
+  wrap.innerHTML = '';
+  Object.keys(DATA.params).forEach(key=>{
+    const b = document.createElement('button');
+    b.className = 'coef-tab' + (state.coefVersion === key ? ' active' : '');
+    b.textContent = versionLabelFor(key);
+    b.onclick = ()=>{ state.coefVersion = key; renderCoefPanel(); };
+    wrap.appendChild(b);
+  });
+}
+
+function coefInput(value, cls, extraAttrs){
+  return '<input type="number" step="0.01" class="'+cls+'" '+extraAttrs+' value="'+value+'">';
+}
+
+function renderCoefPanel(){
+  document.getElementById('txt-coefTitle').textContent = t('coefTitle');
+  document.getElementById('txt-coefHint').textContent = t('coefHint');
+  document.getElementById('txt-coefAjusteHint').textContent = t('coefAjusteHint');
+  document.getElementById('txt-coefReset').textContent = t('coefReset');
+
+  renderCoefTabs();
+
+  const key = state.coefVersion;
+  const p = DATA.params[key];
+  const n = p.margins.length;
+  const varTabs = computeVarTabs(key);
+  const locale = state.lang==='en' ? 'en-US' : 'pt-BR';
+  const pctFmt = v => (v*100).toLocaleString(locale, {minimumFractionDigits:2, maximumFractionDigits:2});
+  const pctInput = v => (v*100).toFixed(2); // sempre com ponto — exigido por <input type="number">
+
+  const table = document.getElementById('coefTable');
+  let thead = '<thead><tr><th></th>';
+  for(let i=0;i<n;i++){ thead += '<th>'+t('tableCol')+' '+(i+1)+'</th>'; }
+  thead += '</tr></thead>';
+
+  let rowAjuste = '<tr><th>'+t('coefAjuste')+'</th>';
+  let rowMargem = '<tr><th>'+t('coefMargem')+'</th>';
+  let rowComissao = '<tr><th>'+t('coefComissao')+'</th>';
+  let rowVarTabs = '<tr><th>'+t('coefVartabs')+'</th>';
+  for(let i=0;i<n;i++){
+    rowAjuste += '<td>'+coefInput(pctInput(p.adjust[i]), 'coef-in', 'data-field="adjust" data-index="'+i+'"')+'</td>';
+    rowMargem += '<td class="coef-yellow">'+coefInput(pctInput(p.margins[i]), 'coef-in', 'data-field="margins" data-index="'+i+'"')+'</td>';
+    rowComissao += '<td>'+coefInput(pctInput(p.commissions[i]), 'coef-in', 'data-field="commissions" data-index="'+i+'"')+'</td>';
+    rowVarTabs += '<td class="coef-readonly">'+pctFmt(varTabs[i])+'%</td>';
+  }
+  rowAjuste += '</tr>'; rowMargem += '</tr>'; rowComissao += '</tr>'; rowVarTabs += '</tr>';
+
+  table.innerHTML = thead + '<tbody>' + rowMargem + rowComissao + rowAjuste + rowVarTabs + '</tbody>';
+
+  const side = document.getElementById('coefSide');
+  side.innerHTML =
+    '<tbody>' +
+    '<tr><th>'+t('coefIcms')+'</th></tr>' +
+    '<tr><td>'+coefInput(pctInput(p.icms), 'coef-in-side', 'data-field="icms"')+'</td></tr>' +
+    '<tr><th>'+t('coefPis')+'</th></tr>' +
+    '<tr><td>'+coefInput(pctInput(p.pis), 'coef-in-side', 'data-field="pis"')+'</td></tr>' +
+    '</tbody>';
+
+  table.querySelectorAll('.coef-in').forEach(inp=>{
+    inp.addEventListener('change', onCoefChange);
+  });
+  side.querySelectorAll('.coef-in-side').forEach(inp=>{
+    inp.addEventListener('change', onCoefChange);
+  });
+}
+
+function onCoefChange(e){
+  const el = e.target;
+  const field = el.dataset.field;
+  const idx = el.dataset.index;
+  const raw = parseFloat(String(el.value).replace(',', '.'));
+  if(isNaN(raw)) return;
+  const frac = raw/100;
+  const p = DATA.params[state.coefVersion];
+  if(field === 'icms' || field === 'pis'){
+    p[field] = frac;
+  } else {
+    p[field][parseInt(idx,10)] = frac;
+  }
+  renderCoefPanel();
+  render();
+  showAdminMsg(t('coefUpdated'), true);
+}
+
+document.getElementById('coefResetBtn').onclick = ()=>{
+  if(!window.confirm(t('coefResetConfirm'))) return;
+  const key = state.coefVersion;
+  DATA.params[key] = JSON.parse(JSON.stringify(DEFAULT_PARAMS[key]));
+  renderCoefPanel();
+  render();
+};
 
 function fmtBRL(v){
   if(v === null || v === undefined) return '—';
@@ -698,6 +888,8 @@ function renderControls(){
   const isGer = state.audience === 'gerencia';
   document.getElementById('versionModeGroup').style.display = isGer ? 'flex' : 'none';
   document.getElementById('adminPanel').style.display = isGer ? 'block' : 'none';
+  document.getElementById('coefPanel').style.display = isGer ? 'block' : 'none';
+  if(isGer) renderCoefPanel();
 
   const icmsSeg = document.getElementById('icmsSeg');
   icmsSeg.classList.toggle('disabled', isGer && state.versionMode === 'anterior');
