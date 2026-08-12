@@ -235,6 +235,7 @@
   }
   .btn-primary{background:var(--maroon); color:#fff;}
   .btn-primary:hover{background:var(--maroon-dark);}
+  .btn:disabled, .btn-primary:disabled{opacity:0.45; cursor:not-allowed; pointer-events:none;}
   .btn-ghost{background:#F6F4F1; color:var(--ink-soft);}
   .btn-ghost:hover{background:var(--line);}
   .btn-outline{background:#fff; color:var(--maroon); border:1px solid var(--maroon);}
@@ -590,7 +591,11 @@
       <table class="coef-side" id="coefSide"></table>
     </div>
     <p class="coef-hint" id="txt-coefAjusteHint">"Ajuste" não é aplicado na fórmula de preço atual — mantido apenas como referência da planilha original.</p>
-    <button class="btn btn-ghost coef-reset" id="coefResetBtn"><span id="txt-coefReset">Restaurar valores originais desta versão</span></button>
+    <p class="coef-hint" id="coefDirtyMsg" style="display:none;"></p>
+    <div class="admin-actions">
+      <button class="btn btn-ghost coef-reset" id="coefResetBtn"><span id="txt-coefReset">Restaurar valores originais desta versão</span></button>
+      <button class="btn btn-primary" id="coefSaveBtn"><span id="txt-coefSave">Salvar alterações</span></button>
+    </div>
   </section>
 
   <div class="print-summary" id="printSummary"></div>
@@ -732,6 +737,10 @@ async function saveCoefficientsToSupabase(versionKey){
 
 await loadFromSupabase();
 
+// Ponto de referência ("o que está salvo no banco agora") — usado para detectar
+// alterações não salvas (simulação) por versão.
+let SAVED_PARAMS = JSON.parse(JSON.stringify(DATA.params));
+
 const state = {
   audience: 'representante',
   icms: '18',
@@ -783,8 +792,9 @@ const I18N = {
     coefIcms:"ICMS", coefPis:"PIS/COFINS",
     coefAjusteHint:"\"Ajuste\" não é aplicado na fórmula de preço atual — mantido apenas como referência da planilha original.",
     coefReset:"Restaurar valores originais desta versão",
+    coefSave:"Salvar alterações",
     coefResetConfirm:"Restaurar os valores originais desta versão? As alterações feitas nela serão perdidas.",
-    coefUpdated:"Coeficientes atualizados — preços recalculados."
+    coefUpdated:"Coeficientes salvos no Supabase — válido para todo mundo agora."
   },
   en:{
     title:"Price List", subtitle:"Wendell Global Interlining",
@@ -817,8 +827,9 @@ const I18N = {
     coefIcms:"ICMS", coefPis:"PIS/COFINS",
     coefAjusteHint:"\"Adjustment\" is not applied in the current price formula — kept only as a reference from the original spreadsheet.",
     coefReset:"Restore this version's original values",
+    coefSave:"Save changes",
     coefResetConfirm:"Restore the original values for this version? Changes made to it will be lost.",
-    coefUpdated:"Coefficients updated — prices recalculated."
+    coefUpdated:"Coefficients saved to Supabase — live for everyone now."
   }
 };
 
@@ -827,6 +838,9 @@ function t(key){ return I18N[state.lang][key]; }
 function computePrice(cost, icms, pis, margin){
   return cost / (1 - (icms + pis*(1-icms) + margin));
 }
+
+function roleOf(key){ return key.indexOf('ger') === 0 ? 'ger' : 'repr'; }
+function icmsOf(key){ return key.match(/\d+/)[0]; }
 
 function currentBlock(){
   if(state.audience === 'gerencia' && state.versionMode === 'anterior'){
@@ -839,7 +853,10 @@ function currentBlock(){
       rows: lg.rows, isLegacy:true
     };
   }
-  const key = PARAM_KEY[state.audience+'-'+state.icms];
+  // Na Gerência, a tabela em tela sempre espelha a versão selecionada no painel
+  // de Coeficientes (repr18/17/4 ou ger18/17/4) — assim dá pra simular o efeito
+  // de uma mudança antes de salvar, inclusive nas tabelas de Representante.
+  const key = state.audience === 'gerencia' ? state.coefVersion : PARAM_KEY[state.audience+'-'+state.icms];
   const p = DATA.params[key];
   const rows = DATA.products.map(prod=>({
     cat: prod.cat, code: prod.code, color: prod.color, ipi: prod.ipi,
@@ -875,7 +892,13 @@ function renderCoefTabs(){
     const b = document.createElement('button');
     b.className = 'coef-tab' + (state.coefVersion === key ? ' active' : '');
     b.textContent = versionLabelFor(key);
-    b.onclick = ()=>{ state.coefVersion = key; renderCoefPanel(); };
+    b.onclick = ()=>{
+      state.coefVersion = key;
+      state.icms = icmsOf(key);
+      state.versionMode = 'vigente';
+      document.querySelectorAll('#icmsSeg button').forEach(bb=>bb.classList.toggle('active', bb.dataset.val===state.icms));
+      render(); // atualiza também a tabela de preços em tela, não só o painel
+    };
     wrap.appendChild(b);
   });
 }
@@ -889,6 +912,7 @@ function renderCoefPanel(){
   document.getElementById('txt-coefHint').textContent = t('coefHint');
   document.getElementById('txt-coefAjusteHint').textContent = t('coefAjusteHint');
   document.getElementById('txt-coefReset').textContent = t('coefReset');
+  document.getElementById('txt-coefSave').textContent = t('coefSave');
 
   renderCoefTabs();
 
@@ -934,6 +958,29 @@ function renderCoefPanel(){
   side.querySelectorAll('.coef-in-side').forEach(inp=>{
     inp.addEventListener('change', onCoefChange);
   });
+
+  updateCoefDirtyUI();
+}
+
+function isDirty(key){
+  return JSON.stringify(DATA.params[key]) !== JSON.stringify(SAVED_PARAMS[key]);
+}
+
+function updateCoefDirtyUI(){
+  const key = state.coefVersion;
+  const dirty = isDirty(key);
+  const msg = document.getElementById('coefDirtyMsg');
+  const saveBtn = document.getElementById('coefSaveBtn');
+  if(dirty){
+    msg.style.display = 'block';
+    msg.textContent = state.lang==='en'
+      ? '● Unsaved simulation — prices below already reflect it. Click "Save changes" to apply it for everyone.'
+      : '● Simulação não salva — os preços abaixo já refletem essa mudança. Clique em "Salvar alterações" para valer pra todo mundo.';
+    saveBtn.disabled = false;
+  } else {
+    msg.style.display = 'none';
+    saveBtn.disabled = true;
+  }
 }
 
 function onCoefChange(e){
@@ -950,9 +997,7 @@ function onCoefChange(e){
     p[field][parseInt(idx,10)] = frac;
   }
   renderCoefPanel();
-  render();
-  saveCoefficientsToSupabase(state.coefVersion);
-  showAdminMsg(t('coefUpdated'), true);
+  render(); // simula: recalcula e mostra a tabela na hora, sem salvar ainda
 }
 
 document.getElementById('coefResetBtn').onclick = ()=>{
@@ -961,7 +1006,16 @@ document.getElementById('coefResetBtn').onclick = ()=>{
   DATA.params[key] = JSON.parse(JSON.stringify(DEFAULT_PARAMS[key]));
   renderCoefPanel();
   render();
-  saveCoefficientsToSupabase(key);
+};
+
+document.getElementById('coefSaveBtn').onclick = async ()=>{
+  const key = state.coefVersion;
+  const btn = document.getElementById('coefSaveBtn');
+  btn.disabled = true;
+  await saveCoefficientsToSupabase(key);
+  SAVED_PARAMS[key] = JSON.parse(JSON.stringify(DATA.params[key]));
+  updateCoefDirtyUI();
+  showAdminMsg(t('coefUpdated'), true);
 };
 
 function fmtBRL(v){
@@ -1175,6 +1229,7 @@ function setAudience(val){
   state.audience = val;
   state.category = 'Todas';
   if(val === 'representante'){ state.versionMode = 'vigente'; }
+  else { state.coefVersion = 'ger' + state.icms; } // tabela visível parte alinhada com a Gerência
   render();
 }
 
@@ -1217,6 +1272,7 @@ document.querySelectorAll('#icmsSeg button').forEach(btn=>{
     btn.classList.add('active');
     state.icms = btn.dataset.val;
     state.category = 'Todas';
+    if(state.audience==='gerencia'){ state.coefVersion = roleOf(state.coefVersion) + state.icms; }
     render();
   };
 });
