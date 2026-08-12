@@ -447,38 +447,40 @@
     .price-table thead th .tier-pct{color:#7C1B29 !important;}
     .price-table tbody tr:nth-child(even){background:#f7f7f7 !important;}
     tr{break-inside:avoid;}
-    /* Cada tabela (categoria) sempre agrupada em uma única página — o JS aplica
-       zoom para reduzir o layout quando o conteúdo não couber em uma página. */
-    .cat-block{
-      break-inside:avoid-page; break-after:page;
-      transform-origin:top left;
-    }
-    .cat-block:last-of-type{break-after:auto;}
+    /* Todas as categorias juntas cabem numa única página impressa — o JS aplica
+       zoom em #content (tabelas + aviso de frete/impostos) até tudo caber. */
+    .cat-block{ break-inside:avoid-page; }
+    #content{ transform-origin:top left; }
   }
 </style>
 </head>
 <body>
 
 <script>
-  // Encolhe cada tabela de categoria (via CSS zoom) para caber inteira em
-  // uma única página impressa, conforme solicitado. Suportado em navegadores
-  // baseados em Chromium (recomendado para "Salvar como PDF").
+  // Encolhe TODO o conteúdo (todas as categorias + o aviso de frete/impostos no
+  // rodapé) via CSS zoom para caber inteiro numa única página impressa.
+  // Suportado em navegadores baseados em Chromium (recomendado para "Salvar como PDF").
   const PRINT_PAGE_BUDGET_PX = 700; // altura útil aproximada de uma página A4 paisagem
   function prepareTablesForPrint(){
-    const blocks = document.querySelectorAll('.cat-block');
-    blocks.forEach(b=>{ b.style.zoom = ''; });
-    void document.body.offsetHeight; // força reflow antes de medir
-    blocks.forEach(b=>{
-      const natural = b.scrollHeight;
-      let scale = 1;
-      if(natural > PRINT_PAGE_BUDGET_PX){
-        scale = Math.max(0.35, PRINT_PAGE_BUDGET_PX / natural);
-      }
-      b.style.zoom = scale.toFixed(3);
-    });
+    const content = document.getElementById('content');
+    if(!content) return;
+    // Limpa qualquer zoom aplicado pela adaptação de tela (celular) nos blocos
+    // de categoria, pra não somar com o zoom do #content abaixo.
+    document.querySelectorAll('.cat-block').forEach(b=>{ b.style.zoom = ''; });
+    content.style.zoom = '';
+    void document.body.offsetHeight; // força reflow antes de medir, sem zoom aplicado
+    const natural = content.scrollHeight;
+    let scale = 1;
+    if(natural > PRINT_PAGE_BUDGET_PX){
+      scale = Math.max(0.15, PRINT_PAGE_BUDGET_PX / natural);
+    }
+    content.style.zoom = scale.toFixed(3);
   }
   function resetTablesZoom(){
-    document.querySelectorAll('.cat-block').forEach(b=>{ b.style.zoom = ''; });
+    const content = document.getElementById('content');
+    if(content) content.style.zoom = '';
+    // Restaura a adaptação de tela do celular, se aplicável.
+    if(typeof fitTablesToScreen === 'function') fitTablesToScreen();
   }
   window.addEventListener('beforeprint', prepareTablesForPrint);
   window.addEventListener('afterprint', resetTablesZoom);
