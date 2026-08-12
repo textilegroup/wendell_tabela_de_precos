@@ -261,7 +261,6 @@
   }
   .coef-tab.active{background:var(--maroon); border-color:var(--maroon); color:#fff;}
   .coef-tab:hover:not(.active){border-color:var(--maroon); color:var(--maroon);}
-  .coef-tab.dirty::after{ content:" •"; color:#C08A00; font-weight:900; }
 
   .coef-wrap{display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start;}
   table.coef-table{
@@ -297,12 +296,7 @@
     padding:5px 4px; text-align:center; font-family:'Inter',sans-serif; font-size:12.5px;
   }
   .coef-hint{font-size:11.5px; color:var(--ink-faint); margin:12px 0 0; line-height:1.5;}
-  .coef-actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px;}
-  .coef-status{font-size:12px; color:var(--ink-faint); margin-left:2px;}
-  .coef-status.dirty{color:#C08A00; font-weight:600;}
-  .coef-status.saved{color:#3F7A4E; font-weight:600;}
-  .coef-status.err{color:#B02A2A; font-weight:600;}
-  .btn:disabled{opacity:0.45; cursor:not-allowed;}
+  .coef-reset{margin-top:14px;}
 
   /* ===== Content / tables ===== */
   .print-summary{display:none;}
@@ -595,13 +589,7 @@
       <table class="coef-side" id="coefSide"></table>
     </div>
     <p class="coef-hint" id="txt-coefAjusteHint">"Ajuste" não é aplicado na fórmula de preço atual — mantido apenas como referência da planilha original.</p>
-    <div class="coef-actions">
-      <button class="btn btn-primary" id="coefApplyBtn"><span id="txt-coefApply">Aplicar</span></button>
-      <button class="btn btn-outline" id="coefSaveBtn"><span id="txt-coefSave">Salvar</span></button>
-      <button class="btn btn-ghost" id="coefUndoBtn"><span id="txt-coefUndo">Desfazer</span></button>
-      <button class="btn btn-ghost coef-reset" id="coefResetBtn"><span id="txt-coefReset">Restaurar valores originais desta versão</span></button>
-      <span class="coef-status" id="coefStatus"></span>
-    </div>
+    <button class="btn btn-ghost coef-reset" id="coefResetBtn"><span id="txt-coefReset">Restaurar valores originais desta versão</span></button>
   </section>
 
   <div class="print-summary" id="printSummary"></div>
@@ -626,13 +614,17 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-
 <script id="app-data" type="application/json">
 {"meta": {"moeda": "R$ (BRL)", "frete": "C.I.F.: SC>SC mín. R$3.000,00 | SC>Sul/Sudeste mín. R$5.000,00 | Demais regiões: F.O.B.", "impostos_inclusos": "ICMS, PIS/COFINS", "impostos_a_incluir": "IPI, quando incidir", "prazo_pgto": "60 dias (média)", "usd_brl": 5.1065}, "meta_en": {"frete": "C.I.F.: SC>SC min. R$3,000.00 | SC>South/Southeast min. R$5,000.00 | Other regions: F.O.B.", "impostos_inclusos": "ICMS, PIS/COFINS", "impostos_a_incluir": "IPI, when applicable", "prazo_pgto": "60 days (average)"}, "products": [{"cat": "8. Malhas", "code": "8J50PE 0100", "color": "Branca", "cost": 2.214, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J45PAEA9 0100", "color": "Branca", "cost": 2.106, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J45PAEA9 9800", "color": "Preta", "cost": 2.214, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I55PAEA9 0100", "color": "Branca", "cost": 2.754, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I55PAEA9 9800", "color": "Preta", "cost": 2.808, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I60PAW 0100", "color": "Branca", "cost": 2.808, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 0100", "color": "Branca", "cost": 3.14, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 9800", "color": "Preta", "cost": 3.21, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PAEA 0000", "color": "Branco Óptico", "cost": 2.268, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PAEA 9800", "color": "Preta", "cost": 2.268, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PAEA 0000", "color": "Branco Óptico", "cost": 2.538, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PAEA 9800", "color": "Preta", "cost": 2.538, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA55PAEA 0000", "color": "Branco Óptico", "cost": 2.7, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB45PAEA 0100", "color": "Branca", "cost": 2.538, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB45PAEA 9800", "color": "Preta", "cost": 2.7, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB55PAEA 0100", "color": "Branca", "cost": 2.538, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB55PAEA 9800", "color": "Preta", "cost": 2.646, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB70PAEA 0100", "color": "Branca", "cost": 3.186, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB70PAEA 9800", "color": "Preta", "cost": 3.294, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB90PA 0100", "color": "Branca", "cost": 3.672, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB90PA 9800", "color": "Preta", "cost": 3.834, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FC45PAEA 0100", "color": "Branca", "cost": 2.484, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FC45PAEA 9800", "color": "Preta", "cost": 2.592, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FE40PA 0100", "color": "Branca", "cost": 1.998, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FE40PA 9800", "color": "Preta", "cost": 2.106, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP120HP 0100", "color": "Branca", "cost": 6.318, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP140HP 0100", "color": "Branca", "cost": 6.534, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP120HPF 0100", "color": "Branca", "cost": 6.426, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP140HPF 0100", "color": "Branca", "cost": 6.588, "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A30PE 0100", "color": "Branca", "cost": 1.026, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A60PE 0100", "color": "Branca", "cost": 1.458, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A25PAEA 0100", "color": "Branca", "cost": 0.96, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A25PAEA 4800", "color": "Grafite", "cost": 0.96, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A30PAEA 0100", "color": "Branca", "cost": 1.028, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A30PAEA 4800", "color": "Grafite", "cost": 1.028, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A40PAEA 0100", "color": "Branca", "cost": 1.15, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A40PAEA 4800", "color": "Grafite", "cost": 1.15, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A60PAEA 0100", "color": "Branca", "cost": 1.62, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A60PAEA 4800", "color": "Grafite", "cost": 1.62, "ipi": 0}, {"cat": "9. Especiais", "code": "WENFUSE15 0100", "color": "Branca", "cost": 2.646, "ipi": 0}, {"cat": "9. Especiais", "code": "SOLVY 0100", "color": "Branca", "cost": 1.782, "ipi": 0}, {"cat": "9. Especiais", "code": "7FB40PAEA 0100", "color": "Branca", "cost": 0, "ipi": 0}, {"cat": "9. Especiais", "code": "7FB40PAEA 9800", "color": "Preta", "cost": 0, "ipi": 0}], "params": {"repr18": {"label": "Representante", "label_en": "Sales rep", "icms": 0.18, "pis": 0.0925, "date": "MAR/26", "note": "Tabela vigente", "note_en": "Current price list", "margins": [0.45, 0.4167, 0.3833, 0.35], "commissions": [0.06, 0.05, 0.04, 0.03]}, "ger18": {"label": "Gerência", "label_en": "Management", "icms": 0.18, "pis": 0.0925, "date": "MAR/26", "note": "Faturamento dentro do estado", "note_en": "In-state invoicing", "margins": [0.45, 0.4167, 0.3833, 0.35, 0.3], "commissions": [0.06, 0.05, 0.04, 0.03, 0.02]}, "repr17": {"label": "Representante", "label_en": "Sales rep", "icms": 0.17, "pis": 0.0925, "date": "MAR/26", "note": "Tabela vigente", "note_en": "Current price list", "margins": [0.45, 0.4167, 0.3833, 0.35], "commissions": [0.06, 0.05, 0.04, 0.03]}, "ger17": {"label": "Gerência", "label_en": "Management", "icms": 0.17, "pis": 0.0925, "date": "MAR/26", "note": "Faturamento dentro do estado", "note_en": "In-state invoicing", "margins": [0.45, 0.4167, 0.3833, 0.35, 0.3], "commissions": [0.06, 0.05, 0.04, 0.03, 0.02]}, "repr4": {"label": "Representante", "label_en": "Sales rep", "icms": 0.04, "pis": 0.0925, "date": "MAR/26", "note": "Tabela vigente", "note_en": "Current price list", "margins": [0.45, 0.4167, 0.3833, 0.35], "commissions": [0.06, 0.05, 0.04, 0.03]}, "ger4": {"label": "Gerência", "label_en": "Management", "icms": 0.04, "pis": 0.0925, "date": "MAR/26", "note": "Faturamento dentro do estado", "note_en": "In-state invoicing", "margins": [0.45, 0.4167, 0.3833, 0.35, 0.3], "commissions": [0.06, 0.05, 0.04, 0.03, 0.02]}}, "legacy": {"repr18_jan26": {"label": "Representante", "label_en": "Sales rep", "date": "JAN/26", "note": "Faturamento SP→SP (tabela anterior)", "note_en": "SP→SP invoicing (previous table)", "icms": 0.18, "margins": [0.45, 0.4167, 0.3833, 0.35], "commissions": [0.06, 0.05, 0.04, 0.03], "rows": [{"cat": "8. Malhas", "code": "8J45PAEA9 0100", "color": "Branca", "prices": [7.53, 6.76, 6.14, 5.62], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J45PAEA9 9800", "color": "Preta", "prices": [7.16, 6.43, 5.84, 5.34], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I55PAEA9 0100", "color": "Branca", "prices": [7.53, 6.76, 6.14, 5.62], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I55PAEA9 9800", "color": "Preta", "prices": [9.36, 8.41, 7.63, 6.99], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 0100", "color": "Branca", "prices": [9.55, 8.58, 7.78, 7.12], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 9800", "color": "Preta", "prices": [9.55, 8.58, 7.78, 7.12], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 0100", "color": "Branca", "prices": [12.1, 10.87, 9.86, 9.03], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 9800", "color": "Preta", "prices": [12.56, 11.28, 10.24, 9.37], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PA 0000", "color": "Branca", "prices": [7.71, 6.93, 6.29, 5.75], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PA 9800", "color": "Branca", "prices": [7.71, 6.93, 6.29, 5.75], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PA 0000", "color": "Preta", "prices": [8.63, 7.75, 7.03, 6.44], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PA 9800", "color": "Branca", "prices": [8.63, 7.75, 7.03, 6.44], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PAEA 0000", "color": "Branco Óptico", "prices": [9.18, 8.25, 7.48, 6.85], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PAEA 9800", "color": "Preta", "prices": [8.63, 7.75, 7.03, 6.44], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PAEA 0000", "color": "Branco Óptico", "prices": [9.18, 8.25, 7.48, 6.85], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PAEA 9800", "color": "Preta", "prices": [8.63, 7.75, 7.03, 6.44], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA55PAEA 0000", "color": "Branco Óptico", "prices": [9.0, 8.08, 7.33, 6.71], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB40PAEA 0100", "color": "Branca", "prices": [10.83, 9.73, 8.83, 8.08], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB40PAEA 9800", "color": "Preta", "prices": [11.2, 10.06, 9.13, 8.36], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB55PAEA 0100", "color": "Branca", "prices": [12.48, 11.21, 10.18, 9.32], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB55PAEA 9800", "color": "Preta", "prices": [13.03, 11.71, 10.62, 9.73], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB70PAEA 0100", "color": "Branca", "prices": [9.32, 8.37, 7.6, 6.96], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB70PAEA 9800", "color": "Preta", "prices": [9.67, 8.69, 7.88, 7.22], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FC45PAEA 0100", "color": "Branca", "prices": [6.79, 6.1, 5.54, 5.07], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FC45PAEA 9800", "color": "Preta", "prices": [7.16, 6.43, 5.84, 5.34], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP120HP 0100", "color": "Branco Óptico", "prices": [21.48, 19.29, 17.51, 16.03], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP140HP 0100", "color": "Preta", "prices": [22.21, 19.95, 18.11, 16.58], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP120HPF 0100", "color": "Branco Óptico", "prices": [21.85, 19.62, 17.81, 16.3], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP140HPF 0100", "color": "Preta", "prices": [22.4, 20.12, 18.26, 16.71], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A30PE 0100", "color": "Branco Óptico", "prices": [3.49, 3.13, 2.84, 2.6], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A60PE 0100", "color": "Branca", "prices": [4.96, 4.45, 4.04, 3.7], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A25PAEA 0100", "color": "Preta", "prices": [0, 0, 0, 0], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A25PAEA 4800", "color": "Branca", "prices": [4.46, 4.01, 3.64, 3.33], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A30PAEA 0100", "color": "Preta", "prices": [4.93, 4.43, 4.02, 3.68], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A30PAEA 4800", "color": "Preta", "prices": [4.93, 4.43, 4.02, 3.68], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A40PAEA 0100", "color": "Branca", "prices": [6.08, 5.46, 4.96, 4.54], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A40PAEA 4800", "color": "Preta", "prices": [6.08, 5.46, 4.96, 4.54], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A60PAEA 0100", "color": "Branca", "prices": [7.7, 6.92, 6.28, 5.75], "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A60PAEA 4800", "color": "Branca", "prices": [7.7, 6.92, 6.28, 5.75], "ipi": 0.0325}, {"cat": "9. Especiais", "code": "WENFUSE15 0100", "color": "Preta", "prices": [9.0, 8.08, 7.33, 6.71], "ipi": 0.0325}, {"cat": "9. Especiais", "code": "SOLVY 0100", "color": "Branca", "prices": [6.06, 5.44, 4.94, 4.52], "ipi": 0.0325}, {"cat": "9. Especiais", "code": "7FB40PAEA 0100", "color": "Preta", "prices": [0, 0, 0, 0], "ipi": 0.0325}, {"cat": "9. Especiais", "code": "7FB40PAEA 9800", "color": "Branca", "prices": [0, 0, 0, 0], "ipi": 0.0325}]}}}
 </script>
 
-<script>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SUPABASE_URL = 'https://eepmlsdbtcvsjxdcvimi.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_048Dv-jRALn34Ythhj9ngA_fZ1gsNI_';
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const DATA = JSON.parse(document.getElementById('app-data').textContent);
 
 // Proteção simples no navegador (não é criptografia real).
@@ -645,57 +637,69 @@ let gerenciaUnlocked = false;
 Object.keys(DATA.params).forEach(k=>{
   if(!DATA.params[k].adjust){ DATA.params[k].adjust = DATA.params[k].margins.map(()=>0); }
 });
+// Cópia de fábrica (dados embutidos no HTML) — usada pelo botão "Restaurar valores originais"
+// e como fallback caso o Supabase esteja indisponível.
 const DEFAULT_PARAMS = JSON.parse(JSON.stringify(DATA.params));
+const FACTORY_PRODUCTS = JSON.parse(JSON.stringify(DATA.products));
 
-// ---------- Persistência dos coeficientes (Supabase) ----------
-// Chave pública (publishable/anon) — segura para uso no navegador.
-// A proteção real continua sendo a senha do módulo Gerência na interface.
-const SUPABASE_URL = 'https://eepmlsdbtcvsjxdcvimi.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_048Dv-jRALn34Ythhj9ngA_fZ1gsNI_';
-const COEF_TABLE = 'wgi_price_coefficients';
-let supabaseClient = null;
-try{
-  if(window.supabase && window.supabase.createClient){
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  }
-}catch(err){ supabaseClient = null; }
+let dbConnected = false;
 
-// Última versão confirmada como salva (na nuvem). Serve de base para "Desfazer"
-// e para saber se há alterações aplicadas mas ainda não salvas.
-const SAVED_PARAMS = JSON.parse(JSON.stringify(DEFAULT_PARAMS));
-let coefEditingDirty = false; // há edição nos campos ainda não aplicada (botão "Aplicar")
-let coefSyncStatus = 'idle';  // idle | loading | ok | error
-
-function paramsEqual(a, b){
-  const norm = x => JSON.stringify({icms:x.icms, pis:x.pis, margins:x.margins, commissions:x.commissions, adjust:x.adjust});
-  return norm(a) === norm(b);
-}
-
-async function loadCoefFromSupabase(){
-  if(!supabaseClient){ coefSyncStatus = 'error'; return; }
-  coefSyncStatus = 'loading';
+// ---------- Carrega produtos e coeficientes do Supabase ----------
+async function loadFromSupabase(){
   try{
-    const { data, error } = await supabaseClient.from(COEF_TABLE).select('*');
-    if(error) throw error;
-    if(data && data.length){
-      data.forEach(row=>{
+    const [{ data: products, error: perr }, { data: coefs, error: cerr }] = await Promise.all([
+      supabase.from('wgi_products').select('*'),
+      supabase.from('wgi_price_coefficients').select('*')
+    ]);
+
+    if(perr) throw perr;
+    if(cerr) throw cerr;
+
+    if(products && products.length){
+      DATA.products = products.map(p=>({
+        cat: p.category, code: p.code, color: p.color,
+        cost: Number(p.cost), ipi: Number(p.ipi)
+      }));
+    }
+    if(coefs && coefs.length){
+      coefs.forEach(row=>{
         const key = row.version_key;
-        if(!DATA.params[key]) return;
-        DATA.params[key].icms = Number(row.icms);
-        DATA.params[key].pis = Number(row.pis);
-        DATA.params[key].margins = row.margins;
-        DATA.params[key].commissions = row.commissions;
-        DATA.params[key].adjust = row.adjust;
-        SAVED_PARAMS[key] = JSON.parse(JSON.stringify(DATA.params[key]));
+        if(DATA.params[key]){
+          DATA.params[key].icms = Number(row.icms);
+          DATA.params[key].pis = Number(row.pis);
+          DATA.params[key].margins = row.margins;
+          DATA.params[key].commissions = row.commissions;
+          DATA.params[key].adjust = row.adjust || DATA.params[key].margins.map(()=>0);
+        }
       });
     }
-    coefSyncStatus = 'ok';
+    dbConnected = true;
   }catch(err){
-    coefSyncStatus = 'error';
+    console.warn('Não foi possível carregar do Supabase, usando dados embutidos no HTML.', err);
+    dbConnected = false;
   }
-  if(document.getElementById('coefPanel').style.display !== 'none'){ renderCoefPanel(); }
-  render();
 }
+
+// ---------- Grava alterações de volta no Supabase ----------
+async function saveProductsToSupabase(products){
+  if(!products || !products.length) return;
+  const rows = products.map(p=>({ code: p.code, category: p.cat, color: p.color, cost: p.cost, ipi: p.ipi, updated_at: new Date().toISOString() }));
+  const { error } = await supabase.from('wgi_products').upsert(rows, { onConflict: 'code' });
+  if(error) console.warn('Falha ao salvar produtos no Supabase:', error);
+}
+
+async function saveCoefficientsToSupabase(versionKey){
+  const p = DATA.params[versionKey];
+  if(!p) return;
+  const { error } = await supabase.from('wgi_price_coefficients').upsert({
+    version_key: versionKey,
+    icms: p.icms, pis: p.pis, margins: p.margins, commissions: p.commissions, adjust: p.adjust,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'version_key' });
+  if(error) console.warn('Falha ao salvar coeficientes no Supabase:', error);
+}
+
+await loadFromSupabase();
 
 const state = {
   audience: 'representante',
@@ -749,18 +753,7 @@ const I18N = {
     coefAjusteHint:"\"Ajuste\" não é aplicado na fórmula de preço atual — mantido apenas como referência da planilha original.",
     coefReset:"Restaurar valores originais desta versão",
     coefResetConfirm:"Restaurar os valores originais desta versão? As alterações feitas nela serão perdidas.",
-    coefUpdated:"Coeficientes atualizados — preços recalculados.",
-    coefApply:"Aplicar", coefSave:"Salvar", coefUndo:"Desfazer",
-    coefApplied:"Aplicado — preços recalculados. Clique em Salvar para manter esta alteração.",
-    coefSaving:"Salvando…",
-    coefSaved:(when)=> "Salvo em "+when+".",
-    coefSaveError:"Não foi possível salvar. Verifique a conexão e tente novamente.",
-    coefUndone:"Alterações desfeitas — voltando ao último valor salvo.",
-    coefDirty:"Há alterações não salvas nesta versão.",
-    coefNoChanges:"Nenhuma alteração pendente.",
-    coefLoadError:"Não foi possível carregar os coeficientes salvos. Usando os valores padrão da planilha.",
-    coefUndoConfirm:"Desfazer as alterações não salvas desta versão?",
-    coefLeaveConfirm:"Há coeficientes aplicados mas não salvos. Sair mesmo assim?"
+    coefUpdated:"Coeficientes atualizados — preços recalculados."
   },
   en:{
     title:"Price List", subtitle:"Wendell Global Interlining",
@@ -794,18 +787,7 @@ const I18N = {
     coefAjusteHint:"\"Adjustment\" is not applied in the current price formula — kept only as a reference from the original spreadsheet.",
     coefReset:"Restore this version's original values",
     coefResetConfirm:"Restore the original values for this version? Changes made to it will be lost.",
-    coefUpdated:"Coefficients updated — prices recalculated.",
-    coefApply:"Apply", coefSave:"Save", coefUndo:"Undo",
-    coefApplied:"Applied — prices recalculated. Click Save to keep this change.",
-    coefSaving:"Saving…",
-    coefSaved:(when)=> "Saved at "+when+".",
-    coefSaveError:"Could not save. Check your connection and try again.",
-    coefUndone:"Changes undone — back to the last saved value.",
-    coefDirty:"There are unsaved changes in this version.",
-    coefNoChanges:"No pending changes.",
-    coefLoadError:"Could not load saved coefficients. Using the spreadsheet's default values.",
-    coefUndoConfirm:"Undo the unsaved changes for this version?",
-    coefLeaveConfirm:"There are applied but unsaved coefficients. Leave anyway?"
+    coefUpdated:"Coefficients updated — prices recalculated."
   }
 };
 
@@ -860,16 +842,9 @@ function renderCoefTabs(){
   wrap.innerHTML = '';
   Object.keys(DATA.params).forEach(key=>{
     const b = document.createElement('button');
-    const unsaved = !paramsEqual(DATA.params[key], SAVED_PARAMS[key]);
-    b.className = 'coef-tab' + (state.coefVersion === key ? ' active' : '') + (unsaved ? ' dirty' : '');
+    b.className = 'coef-tab' + (state.coefVersion === key ? ' active' : '');
     b.textContent = versionLabelFor(key);
-    b.onclick = ()=>{
-      if(state.coefVersion === key) return;
-      if(coefEditingDirty && !window.confirm(t('coefLeaveConfirm'))) return;
-      state.coefVersion = key;
-      coefEditingDirty = false;
-      renderCoefPanel();
-    };
+    b.onclick = ()=>{ state.coefVersion = key; renderCoefPanel(); };
     wrap.appendChild(b);
   });
 }
@@ -878,60 +853,10 @@ function coefInput(value, cls, extraAttrs){
   return '<input type="number" step="0.01" class="'+cls+'" '+extraAttrs+' value="'+value+'">';
 }
 
-function readCoefInputsToParams(key){
-  const p = DATA.params[key];
-  document.querySelectorAll('#coefTable .coef-in, #coefSide .coef-in-side').forEach(inp=>{
-    const field = inp.dataset.field;
-    const idx = inp.dataset.index;
-    const raw = parseFloat(String(inp.value).replace(',', '.'));
-    if(isNaN(raw)) return;
-    const frac = raw/100;
-    if(field === 'icms' || field === 'pis'){
-      p[field] = frac;
-    } else {
-      p[field][parseInt(idx,10)] = frac;
-    }
-  });
-}
-
-function updateCoefButtonsState(){
-  const key = state.coefVersion;
-  const unsaved = !paramsEqual(DATA.params[key], SAVED_PARAMS[key]);
-  const statusEl = document.getElementById('coefStatus');
-  const applyBtn = document.getElementById('coefApplyBtn');
-  const saveBtn = document.getElementById('coefSaveBtn');
-  const undoBtn = document.getElementById('coefUndoBtn');
-
-  applyBtn.disabled = !coefEditingDirty;
-  saveBtn.disabled = !(coefEditingDirty || unsaved);
-  undoBtn.disabled = !(coefEditingDirty || unsaved);
-
-  if(coefEditingDirty || unsaved){
-    statusEl.textContent = t('coefDirty');
-    statusEl.className = 'coef-status dirty';
-  } else if(coefSyncStatus === 'error'){
-    statusEl.textContent = t('coefLoadError');
-    statusEl.className = 'coef-status err';
-  } else {
-    statusEl.textContent = '';
-    statusEl.className = 'coef-status';
-  }
-}
-
-function onCoefFieldInput(){
-  coefEditingDirty = true;
-  updateCoefButtonsState();
-  const activeTab = document.querySelector('#coefTabs .coef-tab.active');
-  if(activeTab) activeTab.classList.add('dirty');
-}
-
 function renderCoefPanel(){
   document.getElementById('txt-coefTitle').textContent = t('coefTitle');
   document.getElementById('txt-coefHint').textContent = t('coefHint');
   document.getElementById('txt-coefAjusteHint').textContent = t('coefAjusteHint');
-  document.getElementById('txt-coefApply').textContent = t('coefApply');
-  document.getElementById('txt-coefSave').textContent = t('coefSave');
-  document.getElementById('txt-coefUndo').textContent = t('coefUndo');
   document.getElementById('txt-coefReset').textContent = t('coefReset');
 
   renderCoefTabs();
@@ -973,87 +898,40 @@ function renderCoefPanel(){
     '</tbody>';
 
   table.querySelectorAll('.coef-in').forEach(inp=>{
-    inp.addEventListener('input', onCoefFieldInput);
+    inp.addEventListener('change', onCoefChange);
   });
   side.querySelectorAll('.coef-in-side').forEach(inp=>{
-    inp.addEventListener('input', onCoefFieldInput);
+    inp.addEventListener('change', onCoefChange);
   });
-
-  updateCoefButtonsState();
 }
 
-// ----- Aplicar: recalcula os preços com os valores digitados (ainda não salvo) -----
-function applyCoefEdits(){
-  const key = state.coefVersion;
-  readCoefInputsToParams(key);
-  coefEditingDirty = false;
+function onCoefChange(e){
+  const el = e.target;
+  const field = el.dataset.field;
+  const idx = el.dataset.index;
+  const raw = parseFloat(String(el.value).replace(',', '.'));
+  if(isNaN(raw)) return;
+  const frac = raw/100;
+  const p = DATA.params[state.coefVersion];
+  if(field === 'icms' || field === 'pis'){
+    p[field] = frac;
+  } else {
+    p[field][parseInt(idx,10)] = frac;
+  }
   renderCoefPanel();
   render();
+  saveCoefficientsToSupabase(state.coefVersion);
+  showAdminMsg(t('coefUpdated'), true);
 }
-document.getElementById('coefApplyBtn').onclick = applyCoefEdits;
 
-// ----- Desfazer: volta aos valores da última versão salva -----
-document.getElementById('coefUndoBtn').onclick = ()=>{
-  if(!window.confirm(t('coefUndoConfirm'))) return;
-  const key = state.coefVersion;
-  DATA.params[key] = JSON.parse(JSON.stringify(SAVED_PARAMS[key]));
-  coefEditingDirty = false;
-  renderCoefPanel();
-  render();
-};
-
-// ----- Restaurar valores originais desta versão (padrão de fábrica da planilha) -----
 document.getElementById('coefResetBtn').onclick = ()=>{
   if(!window.confirm(t('coefResetConfirm'))) return;
   const key = state.coefVersion;
   DATA.params[key] = JSON.parse(JSON.stringify(DEFAULT_PARAMS[key]));
-  coefEditingDirty = false;
   renderCoefPanel();
   render();
+  saveCoefficientsToSupabase(key);
 };
-
-// ----- Salvar: persiste os coeficientes desta versão no Supabase -----
-async function saveCoefToSupabase(){
-  const key = state.coefVersion;
-  if(coefEditingDirty) readCoefInputsToParams(key); // garante que salva exatamente o que está na tela
-  const p = DATA.params[key];
-  const statusEl = document.getElementById('coefStatus');
-  const saveBtn = document.getElementById('coefSaveBtn');
-  saveBtn.disabled = true;
-  statusEl.textContent = t('coefSaving');
-  statusEl.className = 'coef-status dirty';
-
-  if(!supabaseClient){
-    statusEl.textContent = t('coefSaveError');
-    statusEl.className = 'coef-status err';
-    saveBtn.disabled = false;
-    return;
-  }
-  try{
-    const { error } = await supabaseClient
-      .from(COEF_TABLE)
-      .upsert({
-        version_key: key,
-        icms: p.icms, pis: p.pis,
-        margins: p.margins, commissions: p.commissions, adjust: p.adjust,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'version_key' });
-    if(error) throw error;
-    SAVED_PARAMS[key] = JSON.parse(JSON.stringify(p));
-    coefEditingDirty = false;
-    renderCoefPanel();
-    render();
-    const now = new Date();
-    const pad = n=>String(n).padStart(2,'0');
-    document.getElementById('coefStatus').textContent = t('coefSaved')(pad(now.getHours())+':'+pad(now.getMinutes()));
-    document.getElementById('coefStatus').className = 'coef-status saved';
-  }catch(err){
-    document.getElementById('coefStatus').textContent = t('coefSaveError');
-    document.getElementById('coefStatus').className = 'coef-status err';
-  }
-  document.getElementById('coefSaveBtn').disabled = false;
-}
-document.getElementById('coefSaveBtn').onclick = saveCoefToSupabase;
 
 function fmtBRL(v){
   if(v === null || v === undefined) return '—';
@@ -1386,6 +1264,7 @@ document.getElementById('importInput').addEventListener('change', function(e){
       if(updated === 0) throw new Error('none');
       showAdminMsg(t('importSuccess')(updated), true);
       render();
+      saveProductsToSupabase(DATA.products);
     }catch(err){
       showAdminMsg(t('importError'), false);
     }
@@ -1395,7 +1274,6 @@ document.getElementById('importInput').addEventListener('change', function(e){
 });
 
 render();
-loadCoefFromSupabase();
 </script>
 </body>
 </html>
