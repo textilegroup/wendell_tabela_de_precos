@@ -578,6 +578,7 @@
       </label>
     </div>
     <div class="admin-msg" id="adminMsg"></div>
+    <div class="admin-msg" id="dbStatus" style="opacity:0.75; font-size:12px;"></div>
   </section>
 
   <section class="panel admin-panel no-print" id="coefPanel" style="display:none;">
@@ -644,6 +645,21 @@ const FACTORY_PRODUCTS = JSON.parse(JSON.stringify(DATA.products));
 
 let dbConnected = false;
 
+function describeError(err){
+  if(!err) return 'erro desconhecido';
+  if(typeof err === 'string') return err;
+  const parts = [err.message, err.details, err.hint, err.code].filter(Boolean);
+  if(parts.length) return parts.join(' | ');
+  try{ return JSON.stringify(err); }catch(e){ return String(err); }
+}
+
+function setDbStatus(msg, ok){
+  const el = document.getElementById('dbStatus');
+  if(!el) return;
+  el.textContent = msg;
+  el.style.color = ok ? '#2e7d32' : '#b3261e';
+}
+
 // ---------- Carrega produtos e coeficientes do Supabase ----------
 async function loadFromSupabase(){
   try{
@@ -674,9 +690,12 @@ async function loadFromSupabase(){
       });
     }
     dbConnected = true;
+    setDbStatus('Conectado ao Supabase — ' + (products ? products.length : 0) + ' produtos, ' + (coefs ? coefs.length : 0) + ' versões carregadas do banco.', true);
   }catch(err){
-    console.warn('Não foi possível carregar do Supabase, usando dados embutidos no HTML.', err);
+    const detail = describeError(err);
+    console.warn('Não foi possível carregar do Supabase, usando dados embutidos no HTML:', detail, err);
     dbConnected = false;
+    setDbStatus('Sem conexão com o Supabase (usando dados locais do arquivo). Detalhe: ' + detail, false);
   }
 }
 
@@ -685,7 +704,13 @@ async function saveProductsToSupabase(products){
   if(!products || !products.length) return;
   const rows = products.map(p=>({ code: p.code, category: p.cat, color: p.color, cost: p.cost, ipi: p.ipi, updated_at: new Date().toISOString() }));
   const { error } = await supabase.from('wgi_products').upsert(rows, { onConflict: 'code' });
-  if(error) console.warn('Falha ao salvar produtos no Supabase:', error);
+  if(error){
+    const detail = describeError(error);
+    console.warn('Falha ao salvar produtos no Supabase:', detail, error);
+    setDbStatus('Falha ao salvar produtos no Supabase. Detalhe: ' + detail, false);
+  } else {
+    setDbStatus('Custos salvos no Supabase com sucesso.', true);
+  }
 }
 
 async function saveCoefficientsToSupabase(versionKey){
@@ -696,7 +721,13 @@ async function saveCoefficientsToSupabase(versionKey){
     icms: p.icms, pis: p.pis, margins: p.margins, commissions: p.commissions, adjust: p.adjust,
     updated_at: new Date().toISOString()
   }, { onConflict: 'version_key' });
-  if(error) console.warn('Falha ao salvar coeficientes no Supabase:', error);
+  if(error){
+    const detail = describeError(error);
+    console.warn('Falha ao salvar coeficientes no Supabase:', detail, error);
+    setDbStatus('Falha ao salvar coeficientes no Supabase. Detalhe: ' + detail, false);
+  } else {
+    setDbStatus('Coeficientes salvos no Supabase com sucesso.', true);
+  }
 }
 
 await loadFromSupabase();
