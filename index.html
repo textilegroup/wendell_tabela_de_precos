@@ -415,6 +415,35 @@
   td.price{ text-align:right; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
   td.ipi{ text-align:right; font-size:12px; color:var(--ink-faint); white-space:nowrap; }
 
+  /* ===== Simulação (colunas 6 e 7) — só Gerência, nunca no PDF ===== */
+  .sim-col{
+    background:#FFFBEF !important;
+    border-left:2px solid var(--maroon-line) !important;
+  }
+  th.sim-col{ color:var(--maroon-dark) !important; }
+  th.sim-col + th.sim-col, td.sim-col + td.sim-col{ border-left:1px solid var(--input-border) !important; }
+  td.sim-col{ text-align:right; white-space:nowrap; }
+  input.sim-input{
+    width:104px; text-align:right;
+    border:1px solid var(--input-border); border-radius:6px;
+    padding:5px 8px; font-family:'Inter',sans-serif; font-size:13.5px;
+    font-weight:700; font-variant-numeric:tabular-nums; color:var(--ink);
+    background:#fff;
+  }
+  input.sim-input:focus{
+    outline:none; border-color:var(--maroon); box-shadow:0 0 0 3px rgba(124,27,41,0.12);
+  }
+  input.sim-input.changed{ border-color:var(--maroon); background:#FFF6F7; }
+  td.sim-margin{
+    font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink-soft);
+  }
+  td.sim-margin.changed{ color:var(--maroon-dark); }
+  td.sim-margin.negative{ color:#B02A2A; }
+  .sim-legend{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    margin:10px 0 0; font-size:11.5px; color:var(--ink-faint);
+  }
+
   .empty-state{ text-align:center; padding:50px 20px; color:var(--ink-faint); font-size:14px; }
 
   /* ===== Footer notes ===== */
@@ -535,6 +564,10 @@
     .footnote-item .flabel{ color:#555 !important; font-size:7px; margin-bottom:1px; }
     .footnote-item .fval{ color:#000 !important; font-size:8px; line-height:1.25; }
     .footnote-item.usd-item{ display:none !important; }
+    /* As colunas de simulação (6 "Simular preço" e 7 "Margem resultante")
+       existem só na tela da Gerência — nunca saem no PDF. */
+    .sim-col{ display:none !important; }
+    .sim-legend{ display:none !important; }
   }
 </style>
 </head>
@@ -843,7 +876,10 @@ const state = {
   category: 'Todas',
   search: '',
   lang: 'pt',
-  coefVersion: 'repr18'
+  coefVersion: 'repr18',
+  // Preços digitados na coluna "Simular preço" (só Gerência), por código de
+  // produto. Vazio = usa o preço da última tabela como padrão.
+  simPrices: {}
 };
 
 const PARAM_KEY = {
@@ -866,6 +902,9 @@ const I18N = {
     filtersTitle:"Filtros", icmsLabel:"ICMS", searchLabel:"Buscar código ou cor",
     searchPlaceholder:"Ex.: 8J50PE ou Branca", categoryLabel:"Categoria", allCat:"Todas",
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", itemsSuffix:"itens",
+    simPriceCol:"Simular preço", simMarginCol:"Margem resultante",
+    simResetBtn:"Limpar simulação",
+    simNote:"Colunas de simulação (6 e 7) — visíveis só na Gerência e não saem no PDF.",
     emptyState:"Nenhum item encontrado para os filtros selecionados.",
     freightLabel:"Frete", taxIncludedLabel:"Impostos inclusos", taxToAddLabel:"Impostos a incluir",
     paymentLabel:"Prazo médio de pgto", commissionsLabel:"Comissões por tabela", usdLabel:"USD/BRL (referência)",
@@ -901,6 +940,9 @@ const I18N = {
     filtersTitle:"Filters", icmsLabel:"State VAT (ICMS)", searchLabel:"Search code or color",
     searchPlaceholder:"e.g. 8J50PE or White", categoryLabel:"Category", allCat:"All",
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", itemsSuffix:"items",
+    simPriceCol:"Simulate price", simMarginCol:"Resulting margin",
+    simResetBtn:"Clear simulation",
+    simNote:"Simulation columns (6 and 7) — visible only in Management and excluded from the PDF.",
     emptyState:"No items found for the selected filters.",
     freightLabel:"Freight", taxIncludedLabel:"Taxes included", taxToAddLabel:"Taxes to add",
     paymentLabel:"Average payment term", commissionsLabel:"Commission by table", usdLabel:"USD/BRL (reference)",
@@ -933,6 +975,13 @@ function t(key){ return I18N[state.lang][key]; }
 function computePrice(cost, icms, pis, margin){
   return cost / (1 - (icms + pis*(1-icms) + margin));
 }
+// Inverso de computePrice: dado um preço simulado, qual a margem resultante?
+// price = cost / (1 - (icms + pis*(1-icms) + margem))  =>
+// margem = 1 - (icms + pis*(1-icms)) - cost/price
+function marginFromPrice(cost, icms, pis, price){
+  if(!price || price <= 0) return null;
+  return 1 - (icms + pis*(1-icms)) - (cost/price);
+}
 
 function roleOf(key){ return key.indexOf('ger') === 0 ? 'ger' : 'repr'; }
 function icmsOf(key){ return key.match(/\d+/)[0]; }
@@ -955,6 +1004,7 @@ function currentBlock(){
   const p = DATA.params[key];
   const rows = DATA.products.map(prod=>({
     cat: prod.cat, code: prod.code, color: prod.color, ipi: prod.ipi,
+    cost: prod.cost, // necessário para calcular a margem da simulação
     prices: p.margins.map(m=>computePrice(prod.cost, p.icms, p.pis, m))
   }));
   return {
@@ -962,6 +1012,7 @@ function currentBlock(){
     date: p.date,
     note: state.lang==='en' ? p.note_en : p.note,
     margins: p.margins, commissions: p.commissions,
+    icms: p.icms, pis: p.pis, // idem — usados na simulação de preço/margem
     rows, isLegacy:false
   };
 }
@@ -991,6 +1042,7 @@ function renderCoefTabs(){
       state.coefVersion = key;
       state.icms = icmsOf(key);
       state.versionMode = 'vigente';
+      state.simPrices = {}; // muda a tabela base -> zera a simulação
       document.querySelectorAll('#icmsSeg button').forEach(bb=>bb.classList.toggle('active', bb.dataset.val===state.icms));
       render(); // atualiza também a tabela de preços em tela, não só o painel
     };
@@ -1215,6 +1267,10 @@ function render(){
   document.getElementById('versionNote').textContent = block.date + ' · ' + block.note;
 
   const showMargin = state.audience === 'gerencia';
+  // Colunas 6 ("Simular preço") e 7 ("Margem resultante"): só na Gerência e só
+  // nas tabelas calculadas — a tabela anterior (JAN/26) é histórica, tem preços
+  // fixos e não guarda o custo, então não dá pra calcular margem sobre ela.
+  const showSim = showMargin && !block.isLegacy;
   const tierCount = block.margins.length;
   const tierLabels = block.margins.map((m,i)=> t('tableCol') + ' ' + (i+1));
 
@@ -1262,6 +1318,13 @@ function render(){
       for(let i=0;i<tierCount;i++){
         thead += '<th>'+tierLabels[i]+(showMargin ? '<span class="tier-pct">'+fmtPct(block.margins[i])+'</span>' : '')+'</th>';
       }
+      // Colunas 6 e 7 — simulação (só Gerência, nunca no PDF)
+      if(showSim){
+        thead += '<th class="sim-col">'+t('tableCol')+' '+(tierCount+1)
+              +  '<span class="tier-pct">'+t('simPriceCol')+'</span></th>';
+        thead += '<th class="sim-col">'+t('tableCol')+' '+(tierCount+2)
+              +  '<span class="tier-pct">'+t('simMarginCol')+'</span></th>';
+      }
       thead += '<th>'+t('ipiCol')+'</th></tr></thead>';
       table.innerHTML = thead;
 
@@ -1275,6 +1338,22 @@ function render(){
         r.prices.forEach((p,i)=>{
           tds += '<td class="price" data-label="'+tierLabels[i]+'">'+fmtBRL(p)+'</td>';
         });
+        // Colunas 6 e 7 — simulação: o preço começa igual ao da última tabela
+        // (Tabela 5 na Gerência) e a margem começa igual à margem dessa tabela.
+        if(showSim){
+          const basePrice = r.prices[r.prices.length-1];
+          const typed = state.simPrices[r.code];
+          const simPrice = (typed !== undefined && typed !== null) ? typed : basePrice;
+          const simMargin = marginFromPrice(r.cost, block.icms, block.pis, simPrice);
+          const isChanged = (typed !== undefined && typed !== null);
+          tds += '<td class="sim-col" data-label="'+t('simPriceCol')+'">'
+              +  '<input type="number" step="0.01" min="0" class="sim-input'+(isChanged?' changed':'')+'"'
+              +  ' data-code="'+r.code+'" value="'+(simPrice>0 ? simPrice.toFixed(2) : '0.00')+'"></td>';
+          tds += '<td class="sim-col sim-margin'+(isChanged?' changed':'')
+              +  ((simMargin!==null && simMargin<0)?' negative':'')+'"'
+              +  ' data-code="'+r.code+'" data-label="'+t('simMarginCol')+'">'
+              +  (simMargin!==null ? fmtPct(simMargin) : '—')+'</td>';
+        }
         tds += '<td class="ipi" data-label="'+t('ipiCol')+'">'+(r.ipi!==null && r.ipi!==undefined ? fmtPct(r.ipi) : '—')+'</td>';
         tr.innerHTML = tds;
         tbody.appendChild(tr);
@@ -1288,6 +1367,12 @@ function render(){
         const c = block.commissions[i];
         cTds += '<td class="commission-value" data-label="'+tierLabels[i]+'">'
              + (c!==null && c!==undefined ? fmtPct(c) : '—') + '</td>';
+      }
+      // As colunas de simulação não têm comissão definida — ficam vazias,
+      // mas precisam existir para o alinhamento das colunas não quebrar.
+      if(showSim){
+        cTds += '<td class="sim-col commission-value">—</td>';
+        cTds += '<td class="sim-col commission-value">—</td>';
       }
       cTds += '<td class="commission-value">—</td>';
       commissionRow.innerHTML = cTds;
@@ -1313,7 +1398,83 @@ function render(){
   `;
   document.getElementById('content').appendChild(foot);
 
+  // Legenda + botão para limpar a simulação (só quando as colunas 6 e 7 existem)
+  if(showSim){
+    const legend = document.createElement('div');
+    legend.className = 'sim-legend no-print';
+    const hasSim = Object.keys(state.simPrices).length > 0;
+    legend.innerHTML = '<span>ⓘ '+t('simNote')+'</span>';
+    if(hasSim){
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-ghost';
+      btn.style.padding = '5px 12px';
+      btn.style.fontSize = '12px';
+      btn.textContent = t('simResetBtn');
+      btn.onclick = ()=>{ state.simPrices = {}; render(); };
+      legend.appendChild(btn);
+    }
+    document.getElementById('content').appendChild(legend);
+    bindSimInputs(block);
+  }
+
   if(typeof fitTablesToScreen === 'function') fitTablesToScreen();
+}
+
+// ---------- Simulação: preço digitado -> margem resultante ----------
+// Recalcula só a célula de margem da própria linha (sem re-render), pra não
+// perder o foco enquanto o usuário digita.
+function bindSimInputs(block){
+  const byCode = {};
+  block.rows.forEach(r=>{ byCode[r.code] = r; });
+  document.querySelectorAll('input.sim-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const code = inp.dataset.code;
+      const row = byCode[code];
+      if(!row) return;
+      const basePrice = row.prices[row.prices.length-1];
+      const raw = String(inp.value).replace(',', '.').trim();
+      const val = parseFloat(raw);
+      const cell = document.querySelector('td.sim-margin[data-code="'+CSS.escape(code)+'"]');
+      if(raw === '' || isNaN(val)){
+        // Campo vazio/invalido: volta ao padrão (preço e margem da última tabela)
+        delete state.simPrices[code];
+        inp.classList.remove('changed');
+        const m = marginFromPrice(row.cost, block.icms, block.pis, basePrice);
+        if(cell){
+          cell.textContent = (m!==null ? fmtPct(m) : '—');
+          cell.classList.remove('changed','negative');
+        }
+        return;
+      }
+      state.simPrices[code] = val;
+      inp.classList.add('changed');
+      const margin = marginFromPrice(row.cost, block.icms, block.pis, val);
+      if(cell){
+        cell.textContent = (margin!==null ? fmtPct(margin) : '—');
+        cell.classList.add('changed');
+        cell.classList.toggle('negative', margin!==null && margin < 0);
+      }
+      updateSimLegend();
+    });
+  });
+}
+// Mostra/esconde o botão "Limpar simulação" conforme existam valores digitados.
+function updateSimLegend(){
+  const legend = document.querySelector('.sim-legend');
+  if(!legend) return;
+  const hasSim = Object.keys(state.simPrices).length > 0;
+  const existing = legend.querySelector('button');
+  if(hasSim && !existing){
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-ghost';
+    btn.style.padding = '5px 12px';
+    btn.style.fontSize = '12px';
+    btn.textContent = t('simResetBtn');
+    btn.onclick = ()=>{ state.simPrices = {}; render(); };
+    legend.appendChild(btn);
+  } else if(!hasSim && existing){
+    existing.remove();
+  }
 }
 
 // ---------- language ----------
@@ -1344,6 +1505,7 @@ function setAudience(val){
   document.querySelectorAll('#audienceSeg button').forEach(b=>b.classList.toggle('active', b.dataset.val===val));
   state.audience = val;
   state.category = 'Todas';
+  state.simPrices = {}; // muda a tabela base -> zera a simulação
   if(val === 'representante'){ state.versionMode = 'vigente'; }
   else { state.coefVersion = 'ger' + state.icms; } // tabela visível parte alinhada com a Gerência
   render();
@@ -1377,6 +1539,7 @@ document.querySelectorAll('#versionModeSeg button').forEach(btn=>{
     btn.classList.add('active');
     state.versionMode = btn.dataset.val;
     state.category = 'Todas';
+    state.simPrices = {}; // muda a tabela base -> zera a simulação
     render();
   };
 });
@@ -1388,6 +1551,7 @@ document.querySelectorAll('#icmsSeg button').forEach(btn=>{
     btn.classList.add('active');
     state.icms = btn.dataset.val;
     state.category = 'Todas';
+    state.simPrices = {}; // muda a tabela base -> zera a simulação
     if(state.audience==='gerencia'){ state.coefVersion = roleOf(state.coefVersion) + state.icms; }
     render();
   };
