@@ -436,6 +436,8 @@
     outline:none; border-color:var(--maroon); box-shadow:0 0 0 3px rgba(124,27,41,0.12);
   }
   input.sim-input.changed{ border-color:var(--maroon); background:#FFF6F7; }
+  input.sim-input.sim-comm{ width:76px; }
+  .sim-pct{ font-size:12px; color:var(--ink-faint); margin-left:4px; }
   td.sim-margin{
     font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink-soft);
   }
@@ -445,6 +447,16 @@
     display:flex; align-items:center; gap:10px; flex-wrap:wrap;
     margin:10px 0 0; font-size:11.5px; color:var(--ink-faint);
   }
+
+  /* ===== Seleção de itens/colunas para orçamento ===== */
+  .quote-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  .quote-count{ font-size:12.5px; font-weight:700; color:var(--maroon); }
+  th.sel-col, td.sel-col{
+    width:34px; text-align:center !important;
+    padding-left:6px !important; padding-right:6px !important;
+  }
+  input.sel-check{ width:15px; height:15px; accent-color:var(--maroon); cursor:pointer; vertical-align:middle; }
+  tr.row-selected td{ background:rgba(124,27,41,0.07) !important; }
 
   .empty-state{ text-align:center; padding:50px 20px; color:var(--ink-faint); font-size:14px; }
 
@@ -570,6 +582,9 @@
        existem só na tela da Gerência — nunca saem no PDF. */
     .sim-col{ display:none !important; }
     .sim-legend{ display:none !important; }
+    /* A coluna de marcação some no PDF — ela só serve pra montar a seleção */
+    .sel-col{ display:none !important; }
+    tr.row-selected td{ background:inherit !important; }
   }
 </style>
 </head>
@@ -693,6 +708,29 @@
         <div class="status-pill" id="versionNote"></div>
       </div>
     </div>
+  </section>
+
+  <section class="panel no-print" id="quotePanel">
+    <div class="panel-title-row">
+      <h3 class="panel-title" id="txt-quoteTitle">Orçamento — selecione itens e colunas</h3>
+      <button class="btn btn-primary" id="quoteBtn">🧾 <span id="txt-quoteBtn">Gerar orçamento (PDF)</span></button>
+    </div>
+    <div class="field-row">
+      <div class="field grow">
+        <span class="field-label" id="txt-quoteClientLabel">Cliente</span>
+        <input type="text" id="quoteClient" class="input-box" placeholder="Nome do cliente (opcional)">
+      </div>
+      <div class="field grow">
+        <span class="field-label" id="txt-quoteColsLabel">Colunas de preço no orçamento</span>
+        <div class="chipset" id="quoteColChips"></div>
+      </div>
+    </div>
+    <div class="quote-actions">
+      <button class="btn btn-ghost" id="selAllBtn"><span id="txt-selAll">Selecionar todos os itens</span></button>
+      <button class="btn btn-ghost" id="selNoneBtn"><span id="txt-selNone">Limpar seleção</span></button>
+      <span class="quote-count" id="quoteCount"></span>
+    </div>
+    <p class="admin-hint" id="txt-quoteHint" style="margin:10px 0 0;">Marque os itens na coluna ✓ das tabelas abaixo. O orçamento sai só com os itens e colunas escolhidos, sem margens nem comissões.</p>
   </section>
 
   <section class="panel admin-panel no-print" id="adminPanel" style="display:none;">
@@ -892,9 +930,16 @@ const state = {
   search: '',
   lang: 'pt',
   coefVersion: 'repr18',
-  // Preços digitados na coluna "Simular preço" (só Gerência), por código de
-  // produto. Vazio = usa o preço da última tabela como padrão.
-  simPrices: {}
+  // Preços e comissões digitados nas colunas de simulação (só Gerência), por
+  // código de produto. Vazio = usa os valores da última tabela como padrão.
+  simPrices: {},
+  simComms: {},
+  // Orçamento: itens marcados (por código) e colunas de preço escolhidas.
+  // selCols vazio = todas as colunas entram.
+  selRows: {},
+  selCols: {},
+  quoteMode: false,
+  quoteClient: ''
 };
 
 const PARAM_KEY = {
@@ -917,7 +962,15 @@ const I18N = {
     filtersTitle:"Filtros", icmsLabel:"ICMS", searchLabel:"Buscar código ou cor",
     searchPlaceholder:"Ex.: 8J50PE ou Branca", categoryLabel:"Categoria", allCat:"Todas",
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", itemsSuffix:"itens",
-    simPriceCol:"Simular preço", simMarginCol:"Margem resultante",
+    simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
+    quoteTitle:"Orçamento — selecione itens e colunas", quoteBtn:"Gerar orçamento (PDF)",
+    quoteClientLabel:"Cliente", quoteClientPlaceholder:"Nome do cliente (opcional)",
+    quoteColsLabel:"Colunas de preço no orçamento",
+    selAll:"Selecionar todos os itens", selNone:"Limpar seleção",
+    quoteHint:"Marque os itens na coluna ✓ das tabelas abaixo. O orçamento sai só com os itens e colunas escolhidos, sem margens nem comissões.",
+    quoteCount:(n,c)=> n + " item(ns) e " + c + " coluna(s) selecionado(s)",
+    quoteEmpty:"Selecione ao menos um item para gerar o orçamento.",
+    quoteDocTitle:"Orçamento", quoteClientPrefix:"Cliente:",
     simResetBtn:"Limpar simulação",
     simNote:"Colunas de simulação (6 e 7) — visíveis só na Gerência e não saem no PDF.",
     emptyState:"Nenhum item encontrado para os filtros selecionados.",
@@ -959,7 +1012,15 @@ const I18N = {
     filtersTitle:"Filters", icmsLabel:"State VAT (ICMS)", searchLabel:"Search code or color",
     searchPlaceholder:"e.g. 8J50PE or White", categoryLabel:"Category", allCat:"All",
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", itemsSuffix:"items",
-    simPriceCol:"Simulate price", simMarginCol:"Resulting margin",
+    simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
+    quoteTitle:"Quote — select items and columns", quoteBtn:"Generate quote (PDF)",
+    quoteClientLabel:"Customer", quoteClientPlaceholder:"Customer name (optional)",
+    quoteColsLabel:"Price columns in the quote",
+    selAll:"Select all items", selNone:"Clear selection",
+    quoteHint:"Tick the items in the ✓ column of the tables below. The quote includes only the selected items and columns, with no margins or commissions.",
+    quoteCount:(n,c)=> n + " item(s) and " + c + " column(s) selected",
+    quoteEmpty:"Select at least one item to generate the quote.",
+    quoteDocTitle:"Quote", quoteClientPrefix:"Customer:",
     simResetBtn:"Clear simulation",
     simNote:"Simulation columns (6 and 7) — visible only in Management and excluded from the PDF.",
     emptyState:"No items found for the selected filters.",
@@ -1001,9 +1062,13 @@ function computePrice(cost, icms, pis, margin){
 // Inverso de computePrice: dado um preço simulado, qual a margem resultante?
 // price = cost / (1 - (icms + pis*(1-icms) + margem))  =>
 // margem = 1 - (icms + pis*(1-icms)) - cost/price
-function marginFromPrice(cost, icms, pis, price){
+// A comissão entra no markup junto com os impostos, então sai da margem:
+// price = cost / (1 - (icms + pis*(1-icms) + comissao + margem))  =>
+// margem = 1 - (icms + pis*(1-icms)) - comissao - cost/price
+function marginFromPrice(cost, icms, pis, price, commission){
   if(!price || price <= 0) return null;
-  return 1 - (icms + pis*(1-icms)) - (cost/price);
+  const comm = (commission === null || commission === undefined || isNaN(commission)) ? 0 : commission;
+  return 1 - (icms + pis*(1-icms)) - comm - (cost/price);
 }
 
 function roleOf(key){ return key.indexOf('ger') === 0 ? 'ger' : 'repr'; }
@@ -1065,7 +1130,7 @@ function renderCoefTabs(){
       state.coefVersion = key;
       state.icms = icmsOf(key);
       state.versionMode = 'vigente';
-      state.simPrices = {}; // muda a tabela base -> zera a simulação
+      state.simPrices = {}; state.simComms = {}; // muda a tabela base -> zera a simulação
       document.querySelectorAll('#icmsSeg button').forEach(bb=>bb.classList.toggle('active', bb.dataset.val===state.icms));
       render(); // atualiza também a tabela de preços em tela, não só o painel
     };
@@ -1211,7 +1276,7 @@ updateClock();
 setInterval(updateClock, 1000);
 
 function applyStaticTexts(){
-  document.getElementById('txt-title').textContent = t('title');
+  document.getElementById('txt-title').textContent = state.quoteMode ? t('quoteDocTitle') : t('title');
   document.getElementById('txt-subtitle').textContent = t('subtitle');
   document.getElementById('txt-profileTitle').textContent = t('profileTitle');
   document.getElementById('txt-moduleLabel').textContent = t('moduleLabel');
@@ -1228,6 +1293,14 @@ function applyStaticTexts(){
   document.getElementById('searchInput').placeholder = t('searchPlaceholder');
   document.getElementById('txt-categoryLabel').textContent = t('categoryLabel');
   document.getElementById('txt-pdfBtn').textContent = t('pdfBtn');
+  document.getElementById('txt-quoteTitle').textContent = t('quoteTitle');
+  document.getElementById('txt-quoteBtn').textContent = t('quoteBtn');
+  document.getElementById('txt-quoteClientLabel').textContent = t('quoteClientLabel');
+  document.getElementById('quoteClient').placeholder = t('quoteClientPlaceholder');
+  document.getElementById('txt-quoteColsLabel').textContent = t('quoteColsLabel');
+  document.getElementById('txt-selAll').textContent = t('selAll');
+  document.getElementById('txt-selNone').textContent = t('selNone');
+  document.getElementById('txt-quoteHint').textContent = t('quoteHint');
   document.getElementById('txt-adminTitle').textContent = t('adminTitle');
   document.getElementById('txt-adminHint').textContent = t('adminHint') + ' ' + t('adminHintFull');
   document.getElementById('txt-exportBtn').textContent = t('exportBtn');
@@ -1272,12 +1345,67 @@ function renderCatChips(block){
   });
 }
 
+// ---------- Seleção de itens/colunas para o orçamento ----------
+function escAttr(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+// Nenhuma coluna marcada = todas entram no orçamento.
+function selectedTiers(tierCount){
+  const chosen = [];
+  for(let i=0;i<tierCount;i++){ if(state.selCols[i]) chosen.push(i); }
+  if(chosen.length === 0){ for(let i=0;i<tierCount;i++) chosen.push(i); }
+  return chosen;
+}
+function selectedRowCount(){ return Object.keys(state.selRows).filter(k=>state.selRows[k]).length; }
+
+function renderQuoteCols(block){
+  const wrap = document.getElementById('quoteColChips');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  const tierCount = block.margins.length;
+  for(let i=0;i<tierCount;i++){
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (state.selCols[i] ? ' active' : '');
+    chip.textContent = t('tableCol') + ' ' + (i+1);
+    chip.onclick = (function(idx){ return function(){
+      state.selCols[idx] = !state.selCols[idx];
+      render();
+    };})(i);
+    wrap.appendChild(chip);
+  }
+  const chosen = selectedTiers(tierCount).length;
+  const cnt = document.getElementById('quoteCount');
+  if(cnt) cnt.textContent = t('quoteCount')(selectedRowCount(), chosen);
+}
+
+// Liga os checkboxes das linhas e o "marcar tudo" do cabeçalho de cada família.
+function bindSelection(block){
+  document.querySelectorAll('input.sel-row').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const code = cb.dataset.code;
+      if(cb.checked) state.selRows[code] = true; else delete state.selRows[code];
+      render();
+    });
+  });
+  document.querySelectorAll('input.sel-cat').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const cat = cb.dataset.cat;
+      block.rows.filter(r=>r.cat === cat).forEach(r=>{
+        if(cb.checked) state.selRows[r.code] = true; else delete state.selRows[r.code];
+      });
+      render();
+    });
+  });
+}
+
 function render(){
   applyStaticTexts();
   renderControls();
 
   const block = currentBlock();
   renderCatChips(block);
+  renderQuoteCols(block);
 
   document.getElementById('versionNote').textContent = block.date + ' · ' + block.note;
 
@@ -1285,11 +1413,22 @@ function render(){
   // Colunas 6 ("Simular preço") e 7 ("Margem resultante"): só na Gerência e só
   // nas tabelas calculadas — a tabela anterior (JAN/26) é histórica, tem preços
   // fixos e não guarda o custo, então não dá pra calcular margem sobre ela.
-  const showSim = showMargin && !block.isLegacy;
+  const quote = state.quoteMode;
+  // No orçamento não entram simulação, margens nem comissões — é documento
+  // para o cliente, não material interno.
+  const showSim = showMargin && !block.isLegacy && !quote;
+  const showMarginPct = showMargin && !quote;
   const tierCount = block.margins.length;
-  const tierLabels = block.margins.map((m,i)=> t('tableCol') + ' ' + (i+1));
+  const allTierLabels = block.margins.map((m,i)=> t('tableCol') + ' ' + (i+1));
+  // Colunas de preço que vão para o orçamento (todas, se nada for escolhido)
+  const tiers = selectedTiers(tierCount);
+  const shownTiers = quote ? tiers : block.margins.map((m,i)=>i);
+  const tierLabels = allTierLabels;
 
   let rows = block.rows;
+  if(quote){
+    rows = rows.filter(r => state.selRows[r.code]);
+  }
   if(state.category !== 'Todas'){
     rows = rows.filter(r=>r.cat === state.category);
   }
@@ -1307,9 +1446,17 @@ function render(){
   // resumo para impressão
   const modTxt = state.audience==='gerencia' ? t('ger') : t('repr');
   const icmsTxt = (state.audience==='gerencia' && state.versionMode==='anterior') ? '18%' : state.icms+'%';
-  document.getElementById('printSummary').innerHTML =
-    t('title') + ' &nbsp;<span class="icms-badge">ICMS ' + icmsTxt + '</span>&nbsp; · '
-    + modTxt + ' · ' + block.date + ' · ' + block.note;
+  if(quote){
+    const cli = (state.quoteClient||'').trim();
+    document.getElementById('printSummary').innerHTML =
+      t('quoteDocTitle') + ' &nbsp;<span class="icms-badge">ICMS ' + icmsTxt + '</span>&nbsp;'
+      + (cli ? ' · ' + t('quoteClientPrefix') + ' ' + cli : '')
+      + ' · ' + new Date().toLocaleDateString(state.lang==='en'?'en-US':'pt-BR');
+  } else {
+    document.getElementById('printSummary').innerHTML =
+      t('title') + ' &nbsp;<span class="icms-badge">ICMS ' + icmsTxt + '</span>&nbsp; · '
+      + modTxt + ' · ' + block.date + ' · ' + block.note;
+  }
 
   if(rows.length === 0){
     cont.innerHTML = '<div class="panel"><div class="empty-state">'+t('emptyState')+'</div></div>';
@@ -1329,15 +1476,24 @@ function render(){
       const table = document.createElement('table');
       table.className = 'price-table';
 
-      let thead = '<thead><tr><th class="left">'+t('codeCol')+'</th><th class="left">'+t('colorCol')+'</th>';
-      for(let i=0;i<tierCount;i++){
-        thead += '<th>'+tierLabels[i]+(showMargin ? '<span class="tier-pct">'+fmtPct(block.margins[i])+'</span>' : '')+'</th>';
+      let thead = '<thead><tr>';
+      // Coluna de marcação (✓) — só na tela, some no PDF
+      if(!quote){
+        const allOn = catRows.every(r=>state.selRows[r.code]);
+        thead += '<th class="sel-col"><input type="checkbox" class="sel-check sel-cat"'
+              +  ' data-cat="'+escAttr(catName)+'"'+(allOn?' checked':'')+'></th>';
       }
-      // Colunas 6 e 7 — simulação (só Gerência, nunca no PDF)
+      thead += '<th class="left">'+t('codeCol')+'</th><th class="left">'+t('colorCol')+'</th>';
+      shownTiers.forEach(i=>{
+        thead += '<th>'+tierLabels[i]+(showMarginPct ? '<span class="tier-pct">'+fmtPct(block.margins[i])+'</span>' : '')+'</th>';
+      });
+      // Colunas 6, 7 e 8 — simulação (só Gerência, nunca no PDF)
       if(showSim){
         thead += '<th class="sim-col">'+t('tableCol')+' '+(tierCount+1)
               +  '<span class="tier-pct">'+t('simPriceCol')+'</span></th>';
         thead += '<th class="sim-col">'+t('tableCol')+' '+(tierCount+2)
+              +  '<span class="tier-pct">'+t('simCommCol')+'</span></th>';
+        thead += '<th class="sim-col">'+t('tableCol')+' '+(tierCount+3)
               +  '<span class="tier-pct">'+t('simMarginCol')+'</span></th>';
       }
       thead += '<th>'+t('ipiCol')+'</th></tr></thead>';
@@ -1348,23 +1504,39 @@ function render(){
         const tr = document.createElement('tr');
         const colorKey = (r.color||'').toLowerCase();
         const hex = COLOR_HEX[colorKey] || '#D9D6D1';
-        let tds = '<td class="code" data-label="'+t('codeCol')+'">'+r.code+'</td>';
+        let tds = '';
+        if(!quote){
+          const on = !!state.selRows[r.code];
+          if(on) tr.classList.add('row-selected');
+          tds += '<td class="sel-col"><input type="checkbox" class="sel-check sel-row"'
+              +  ' data-code="'+escAttr(r.code)+'"'+(on?' checked':'')+'></td>';
+        }
+        tds += '<td class="code" data-label="'+t('codeCol')+'">'+r.code+'</td>';
         tds += '<td class="color-cell" data-label="'+t('colorCol')+'"><span class="swatch" style="background:'+hex+'"></span>'+colorLabel(r.color||'—')+'</td>';
-        r.prices.forEach((p,i)=>{
-          tds += '<td class="price" data-label="'+tierLabels[i]+'">'+fmtBRL(p)+'</td>';
+        shownTiers.forEach(i=>{
+          tds += '<td class="price" data-label="'+tierLabels[i]+'">'+fmtBRL(r.prices[i])+'</td>';
         });
-        // Colunas 6 e 7 — simulação: o preço começa igual ao da última tabela
-        // (Tabela 5 na Gerência) e a margem começa igual à margem dessa tabela.
+        // Colunas de simulação: preço e comissão começam iguais aos da última
+        // tabela (Tabela 5 na Gerência); a margem resultante já vem líquida da
+        // comissão, porque a comissão entra no markup junto com os impostos.
         if(showSim){
           const basePrice = r.prices[r.prices.length-1];
-          const typed = state.simPrices[r.code];
-          const simPrice = (typed !== undefined && typed !== null) ? typed : basePrice;
-          const simMargin = marginFromPrice(r.cost, block.icms, block.pis, simPrice);
-          const isChanged = (typed !== undefined && typed !== null);
+          const baseComm  = block.commissions[block.commissions.length-1] || 0;
+          const typedP = state.simPrices[r.code];
+          const typedC = state.simComms[r.code];
+          const simPrice = (typedP !== undefined && typedP !== null) ? typedP : basePrice;
+          const simComm  = (typedC !== undefined && typedC !== null) ? typedC : baseComm;
+          const simMargin = marginFromPrice(r.cost, block.icms, block.pis, simPrice, simComm);
+          const pChanged = (typedP !== undefined && typedP !== null);
+          const cChanged = (typedC !== undefined && typedC !== null);
+          const anyChanged = pChanged || cChanged;
           tds += '<td class="sim-col" data-label="'+t('simPriceCol')+'">'
-              +  '<input type="number" step="0.01" min="0" class="sim-input'+(isChanged?' changed':'')+'"'
+              +  '<input type="number" step="0.01" min="0" class="sim-input'+(pChanged?' changed':'')+'"'
               +  ' data-code="'+r.code+'" value="'+(simPrice>0 ? simPrice.toFixed(2) : '0.00')+'"></td>';
-          tds += '<td class="sim-col sim-margin'+(isChanged?' changed':'')
+          tds += '<td class="sim-col" data-label="'+t('simCommCol')+'">'
+              +  '<input type="number" step="0.1" min="0" class="sim-input sim-comm'+(cChanged?' changed':'')+'"'
+              +  ' data-code="'+r.code+'" value="'+(simComm*100).toFixed(2)+'"><span class="sim-pct">%</span></td>';
+          tds += '<td class="sim-col sim-margin'+(anyChanged?' changed':'')
               +  ((simMargin!==null && simMargin<0)?' negative':'')+'"'
               +  ' data-code="'+r.code+'" data-label="'+t('simMarginCol')+'">'
               +  (simMargin!==null ? fmtPct(simMargin) : '—')+'</td>';
@@ -1377,21 +1549,28 @@ function render(){
       // às mesmas colunas (Tabela 1..N) dos respectivos percentuais.
       const commissionRow = document.createElement('tr');
       commissionRow.className = 'commission-row';
-      let cTds = '<td class="commission-label" colspan="2">'+t('commissionsLabel')+'</td>';
-      for(let i=0;i<tierCount;i++){
+      // A coluna de marcação some no PDF, então ela precisa ser uma célula
+      // própria — se entrasse no colspan do rótulo, os percentuais sairiam
+      // deslocados uma coluna na impressão.
+      let cTds = '';
+      if(!quote) cTds += '<td class="sel-col"></td>';
+      cTds += '<td class="commission-label" colspan="2">'+t('commissionsLabel')+'</td>';
+      shownTiers.forEach(i=>{
         const c = block.commissions[i];
         cTds += '<td class="commission-value" data-label="'+tierLabels[i]+'">'
              + (c!==null && c!==undefined ? fmtPct(c) : '—') + '</td>';
-      }
+      });
       // As colunas de simulação não têm comissão definida — ficam vazias,
       // mas precisam existir para o alinhamento das colunas não quebrar.
       if(showSim){
         cTds += '<td class="sim-col commission-value">—</td>';
         cTds += '<td class="sim-col commission-value">—</td>';
+        cTds += '<td class="sim-col commission-value">—</td>';
       }
       cTds += '<td class="commission-value">—</td>';
       commissionRow.innerHTML = cTds;
-      tbody.appendChild(commissionRow);
+      // Comissão é informação interna — nunca vai no orçamento do cliente
+      if(!quote) tbody.appendChild(commissionRow);
 
       table.appendChild(tbody);
       section.appendChild(table);
@@ -1414,10 +1593,12 @@ function render(){
   document.getElementById('content').appendChild(foot);
 
   // Legenda + botão para limpar a simulação (só quando as colunas 6 e 7 existem)
+  if(!state.quoteMode) bindSelection(block);
+
   if(showSim){
     const legend = document.createElement('div');
     legend.className = 'sim-legend no-print';
-    const hasSim = Object.keys(state.simPrices).length > 0;
+    const hasSim = Object.keys(state.simPrices).length > 0 || Object.keys(state.simComms).length > 0;
     legend.innerHTML = '<span>ⓘ '+t('simNote')+'</span>';
     if(hasSim){
       const btn = document.createElement('button');
@@ -1425,7 +1606,7 @@ function render(){
       btn.style.padding = '5px 12px';
       btn.style.fontSize = '12px';
       btn.textContent = t('simResetBtn');
-      btn.onclick = ()=>{ state.simPrices = {}; render(); };
+      btn.onclick = ()=>{ state.simPrices = {}; state.simComms = {}; render(); };
       legend.appendChild(btn);
     }
     document.getElementById('content').appendChild(legend);
@@ -1435,41 +1616,48 @@ function render(){
   if(typeof fitTablesToScreen === 'function') fitTablesToScreen();
 }
 
-// ---------- Simulação: preço digitado -> margem resultante ----------
+// ---------- Simulação: preço + comissão digitados -> margem resultante -------
 // Recalcula só a célula de margem da própria linha (sem re-render), pra não
 // perder o foco enquanto o usuário digita.
 function bindSimInputs(block){
   const byCode = {};
   block.rows.forEach(r=>{ byCode[r.code] = r; });
+  const baseComm = block.commissions[block.commissions.length-1] || 0;
+
+  function refreshRow(code){
+    const row = byCode[code];
+    if(!row) return;
+    const basePrice = row.prices[row.prices.length-1];
+    const tp = state.simPrices[code], tc = state.simComms[code];
+    const price = (tp !== undefined && tp !== null) ? tp : basePrice;
+    const comm  = (tc !== undefined && tc !== null) ? tc : baseComm;
+    const margin = marginFromPrice(row.cost, block.icms, block.pis, price, comm);
+    const cell = document.querySelector('td.sim-margin[data-code="'+CSS.escape(code)+'"]');
+    if(cell){
+      cell.textContent = (margin !== null ? fmtPct(margin) : '—');
+      cell.classList.toggle('changed', (tp !== undefined && tp !== null) || (tc !== undefined && tc !== null));
+      cell.classList.toggle('negative', margin !== null && margin < 0);
+    }
+    updateSimLegend();
+  }
+
   document.querySelectorAll('input.sim-input').forEach(inp=>{
+    const isComm = inp.classList.contains('sim-comm');
+    const store = isComm ? state.simComms : state.simPrices;
     inp.addEventListener('input', ()=>{
       const code = inp.dataset.code;
-      const row = byCode[code];
-      if(!row) return;
-      const basePrice = row.prices[row.prices.length-1];
       const raw = String(inp.value).replace(',', '.').trim();
       const val = parseFloat(raw);
-      const cell = document.querySelector('td.sim-margin[data-code="'+CSS.escape(code)+'"]');
       if(raw === '' || isNaN(val)){
-        // Campo vazio/invalido: volta ao padrão (preço e margem da última tabela)
-        delete state.simPrices[code];
+        // Campo vazio/inválido volta ao padrão da última tabela
+        delete store[code];
         inp.classList.remove('changed');
-        const m = marginFromPrice(row.cost, block.icms, block.pis, basePrice);
-        if(cell){
-          cell.textContent = (m!==null ? fmtPct(m) : '—');
-          cell.classList.remove('changed','negative');
-        }
-        return;
+      } else {
+        // A comissão é digitada em %, mas guardada como fração (6 -> 0.06)
+        store[code] = isComm ? (val/100) : val;
+        inp.classList.add('changed');
       }
-      state.simPrices[code] = val;
-      inp.classList.add('changed');
-      const margin = marginFromPrice(row.cost, block.icms, block.pis, val);
-      if(cell){
-        cell.textContent = (margin!==null ? fmtPct(margin) : '—');
-        cell.classList.add('changed');
-        cell.classList.toggle('negative', margin!==null && margin < 0);
-      }
-      updateSimLegend();
+      refreshRow(code);
     });
   });
 }
@@ -1477,7 +1665,7 @@ function bindSimInputs(block){
 function updateSimLegend(){
   const legend = document.querySelector('.sim-legend');
   if(!legend) return;
-  const hasSim = Object.keys(state.simPrices).length > 0;
+  const hasSim = Object.keys(state.simPrices).length > 0 || Object.keys(state.simComms).length > 0;
   const existing = legend.querySelector('button');
   if(hasSim && !existing){
     const btn = document.createElement('button');
@@ -1485,7 +1673,7 @@ function updateSimLegend(){
     btn.style.padding = '5px 12px';
     btn.style.fontSize = '12px';
     btn.textContent = t('simResetBtn');
-    btn.onclick = ()=>{ state.simPrices = {}; render(); };
+    btn.onclick = ()=>{ state.simPrices = {}; state.simComms = {}; render(); };
     legend.appendChild(btn);
   } else if(!hasSim && existing){
     existing.remove();
@@ -1520,7 +1708,7 @@ function setAudience(val){
   document.querySelectorAll('#audienceSeg button').forEach(b=>b.classList.toggle('active', b.dataset.val===val));
   state.audience = val;
   state.category = 'Todas';
-  state.simPrices = {}; // muda a tabela base -> zera a simulação
+  state.simPrices = {}; state.simComms = {}; // muda a tabela base -> zera a simulação
   if(val === 'representante'){ state.versionMode = 'vigente'; }
   else { state.coefVersion = 'ger' + state.icms; } // tabela visível parte alinhada com a Gerência
   render();
@@ -1554,7 +1742,7 @@ document.querySelectorAll('#versionModeSeg button').forEach(btn=>{
     btn.classList.add('active');
     state.versionMode = btn.dataset.val;
     state.category = 'Todas';
-    state.simPrices = {}; // muda a tabela base -> zera a simulação
+    state.simPrices = {}; state.simComms = {}; // muda a tabela base -> zera a simulação
     render();
   };
 });
@@ -1566,7 +1754,7 @@ document.querySelectorAll('#icmsSeg button').forEach(btn=>{
     btn.classList.add('active');
     state.icms = btn.dataset.val;
     state.category = 'Todas';
-    state.simPrices = {}; // muda a tabela base -> zera a simulação
+    state.simPrices = {}; state.simComms = {}; // muda a tabela base -> zera a simulação
     if(state.audience==='gerencia'){ state.coefVersion = roleOf(state.coefVersion) + state.icms; }
     render();
   };
@@ -1735,6 +1923,33 @@ document.getElementById('importInput').addEventListener('change', function(e){
     e.target.value = '';
   };
   reader.readAsArrayBuffer(file);
+});
+
+// ---------- Botões do orçamento ----------
+document.getElementById('quoteClient').addEventListener('input', (e)=>{
+  state.quoteClient = e.target.value;
+});
+document.getElementById('selAllBtn').onclick = ()=>{
+  currentBlock().rows.forEach(r=>{ state.selRows[r.code] = true; });
+  render();
+};
+document.getElementById('selNoneBtn').onclick = ()=>{
+  state.selRows = {}; state.selCols = {};
+  render();
+};
+// Gera o orçamento: entra no modo orçamento (só itens/colunas escolhidos),
+// imprime, e volta ao normal quando a caixa de impressão fecha.
+document.getElementById('quoteBtn').onclick = ()=>{
+  if(selectedRowCount() === 0){
+    window.alert(t('quoteEmpty'));
+    return;
+  }
+  state.quoteMode = true;
+  render();
+  setTimeout(()=>{ window.print(); }, 80);
+};
+window.addEventListener('afterprint', ()=>{
+  if(state.quoteMode){ state.quoteMode = false; render(); }
 });
 
 render();
