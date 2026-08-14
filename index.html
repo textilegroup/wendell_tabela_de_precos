@@ -19,6 +19,11 @@
     --line:#E7E4E0;
     --input-border:#D9D6D1;
     --shadow: 0 2px 10px rgba(38,37,42,0.06);
+    /* Faixa de cor por família de produtos */
+    --cat-6-bg:#E4F0FB; --cat-6-band:#BFDCF3; --cat-6-border:#5C93CC;
+    --cat-7-bg:#E7F6EC; --cat-7-band:#C4EAD0; --cat-7-border:#57AC74;
+    --cat-8-bg:#FDF3D2; --cat-8-band:#F8E29B; --cat-8-border:#D9AC33;
+    --cat-9-bg:#FBE7EF; --cat-9-band:#F4C6D9; --cat-9-border:#CC5B88;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -301,12 +306,24 @@
 
   /* ===== Content / tables ===== */
   .print-summary{display:none;}
-  .cat-block{margin-bottom:20px; max-width:100%; overflow-x:auto;}
+  .print-summary .icms-badge{
+    display:inline-block; background:var(--maroon); color:#fff;
+    padding:3px 14px; border-radius:6px; font-weight:800;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .cat-block{
+    margin-bottom:20px; max-width:100%; overflow-x:auto;
+    border-left:6px solid var(--maroon-line);
+  }
   .cat-heading{
     display:flex;
     align-items:baseline;
     gap:10px;
     margin:0 0 10px;
+    padding:8px 14px;
+    border-radius:6px;
+    background:#F6F4F1;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
   .cat-heading h2{
     font-family:'Manrope',sans-serif;
@@ -319,6 +336,24 @@
     font-size:12px;
     color:var(--ink-faint);
   }
+  /* Cada família de produtos ganha sua própria faixa de cor (cabeçalho da
+     categoria, cabeçalho das colunas e linha de comissão). */
+  .cat-block[data-catcolor="6"]{ border-left-color:var(--cat-6-border); }
+  .cat-block[data-catcolor="6"] .cat-heading{ background:var(--cat-6-bg); }
+  .cat-block[data-catcolor="6"] .price-table thead th{ background:var(--cat-6-band); }
+  .cat-block[data-catcolor="6"] tr.commission-row td{ background:var(--cat-6-bg); }
+  .cat-block[data-catcolor="7"]{ border-left-color:var(--cat-7-border); }
+  .cat-block[data-catcolor="7"] .cat-heading{ background:var(--cat-7-bg); }
+  .cat-block[data-catcolor="7"] .price-table thead th{ background:var(--cat-7-band); }
+  .cat-block[data-catcolor="7"] tr.commission-row td{ background:var(--cat-7-bg); }
+  .cat-block[data-catcolor="8"]{ border-left-color:var(--cat-8-border); }
+  .cat-block[data-catcolor="8"] .cat-heading{ background:var(--cat-8-bg); }
+  .cat-block[data-catcolor="8"] .price-table thead th{ background:var(--cat-8-band); }
+  .cat-block[data-catcolor="8"] tr.commission-row td{ background:var(--cat-8-bg); }
+  .cat-block[data-catcolor="9"]{ border-left-color:var(--cat-9-border); }
+  .cat-block[data-catcolor="9"] .cat-heading{ background:var(--cat-9-bg); }
+  .cat-block[data-catcolor="9"] .price-table thead th{ background:var(--cat-9-band); }
+  .cat-block[data-catcolor="9"] tr.commission-row td{ background:var(--cat-9-bg); }
 
   table.price-table{
     width:100%;
@@ -357,6 +392,20 @@
   }
   .price-table tbody tr:nth-child(even){background:#FBFAF8;}
   .price-table tbody tr:hover{background:rgba(124,27,41,0.04);}
+  /* Comissões abaixo dos produtos, na própria tabela, respeitando as colunas */
+  tr.commission-row td{
+    background:#F6F4F1;
+    border-top:2px solid var(--maroon-line);
+    font-weight:800;
+    color:var(--maroon-dark);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  tr.commission-row td.commission-label{
+    text-align:left; text-transform:uppercase; font-size:11px; letter-spacing:.04em;
+  }
+  tr.commission-row td.commission-value{
+    text-align:right; font-variant-numeric:tabular-nums;
+  }
   td.code{ font-weight:700; font-size:13px; color:var(--ink); white-space:nowrap; }
   td.color-cell{color:var(--ink-soft); white-space:nowrap;}
   td.color-cell .swatch{
@@ -423,62 +472,83 @@
   }
 
   /* ===== Print (B&W friendly) ===== */
-  @page{ size: A4 landscape; margin: 10mm; }
+  /* ===== Impressão: A4 RETRATO, tudo em UMA página, números na maior
+     fonte possível. Os tamanhos abaixo são fixos e calibrados para o
+     catálogo completo (43 produtos + 4 famílias) caber em uma folha. ===== */
+  @page{ size: A4 portrait; margin: 8mm; }
   @media print{
     body{background:#fff;}
     .no-print{display:none !important;}
-    .wgi-header{ -webkit-print-color-adjust:exact; print-color-adjust:exact; background:var(--maroon) !important; }
-    .page{padding:6px 4px;}
-    .panel{box-shadow:none; border:1px solid #ccc;}
+    .wgi-header{
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+      background:var(--maroon) !important; padding:6px 10px;
+    }
+    .logo-badge{ width:34px; height:34px; border-radius:7px; padding:3px; }
+    .brand-text h1{ font-size:15px !important; margin:0; }
+    .brand-text p{ font-size:9px; }
+    .page{padding:0;}
+    .panel{box-shadow:none; border:none; padding:0; margin:0;}
+    /* Título da tabela com o ICMS aplicável em destaque */
     .print-summary{
-      display:block; font-family:'Inter',sans-serif; font-size:12px; color:#333;
-      margin:4px 0 10px; padding:6px 0; border-bottom:1px solid #ccc;
-    }
-    .footnotes{
-      background:#fff !important; color:#000 !important;
-      border:1px solid #999; -webkit-print-color-adjust:exact; print-color-adjust:exact;
-    }
-    .footnote-item .flabel{color:#555 !important;}
-    .footnote-item .fval{color:#000 !important;}
-    table.price-table thead th{
-      background:#eee !important; color:#000 !important;
+      display:block; font-family:'Manrope',sans-serif;
+      font-size:17px; font-weight:800; color:var(--maroon-dark);
+      text-align:center; text-transform:uppercase; letter-spacing:.02em;
+      margin:4px 0 5px; padding-bottom:3px;
+      border-bottom:3px solid var(--maroon);
       -webkit-print-color-adjust:exact; print-color-adjust:exact;
     }
-    .price-table thead th .tier-pct{color:#7C1B29 !important;}
+    .print-summary .icms-badge{ font-size:17px; padding:3px 13px; }
+    /* Blocos de categoria compactos */
+    .cat-block{
+      margin:0 0 3px; break-inside:avoid-page; overflow:visible;
+      border-left-width:5px;
+    }
+    .cat-heading{ margin:0 0 1px; padding:1.5px 9px; border-radius:4px; }
+    .cat-heading h2{ font-size:12.5px; }
+    .cat-count{ font-size:9px; }
+    /* Tabelas: fonte máxima que ainda cabe numa página A4 retrato */
+    table.price-table{ border-radius:0; border-color:#bbb; }
+    .price-table thead th{
+      color:#000 !important; font-size:8.5px; padding:1.5px 4px;
+      border-bottom-width:2px; letter-spacing:0;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
+    .price-table thead th .tier-pct{ font-size:9.5px; margin-top:0; color:#7C1B29 !important; }
+    .price-table tbody td{ padding:0.7px 4px; font-size:10px; border-top-color:#ddd; }
+    td.code{ font-size:10px; }
+    td.color-cell{ font-size:9.5px; }
+    td.color-cell .swatch{ width:7px; height:7px; margin-right:4px; }
+    td.price{ font-size:11.5px; }   /* os números — maior fonte da tabela */
+    td.ipi{ font-size:9px; }
     .price-table tbody tr:nth-child(even){background:#f7f7f7 !important;}
+    tr.commission-row td{ font-size:10.5px; padding:1.2px 4px; border-top-width:2px; }
+    tr.commission-row td.commission-label{ font-size:8.5px; }
     tr{break-inside:avoid;}
-    /* Todas as categorias juntas cabem numa única página impressa — o JS aplica
-       zoom em #content (tabelas + aviso de frete/impostos) até tudo caber. */
-    .cat-block{ break-inside:avoid-page; }
-    #content{ transform-origin:top left; }
+    /* Rodapé de condições — compacto, e sem a referência em USD */
+    .footnotes{
+      background:#fff !important; color:#000 !important;
+      border:1px solid #999; border-radius:0;
+      padding:2.5px 8px; gap:2px 10px; margin-top:3px; break-inside:avoid;
+      grid-template-columns:repeat(4, 1fr);
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
+    .footnote-item .flabel{ color:#555 !important; font-size:7px; margin-bottom:1px; }
+    .footnote-item .fval{ color:#000 !important; font-size:8px; line-height:1.25; }
+    .footnote-item.usd-item{ display:none !important; }
   }
 </style>
 </head>
 <body>
 
 <script>
-  // Encolhe TODO o conteúdo (todas as categorias + o aviso de frete/impostos no
-  // rodapé) via CSS zoom para caber inteiro numa única página impressa.
-  // Suportado em navegadores baseados em Chromium (recomendado para "Salvar como PDF").
-  const PRINT_PAGE_BUDGET_PX = 700; // altura útil aproximada de uma página A4 paisagem
+  // A impressão em A4 RETRATO usa tamanhos fixos definidos no @media print do
+  // CSS (calibrados para o catálogo inteiro caber em uma página, com os números
+  // na maior fonte possível). Antes de imprimir só precisamos remover o zoom que
+  // a adaptação de tela (celular) aplica nos blocos, para não interferir.
   function prepareTablesForPrint(){
-    const content = document.getElementById('content');
-    if(!content) return;
-    // Limpa qualquer zoom aplicado pela adaptação de tela (celular) nos blocos
-    // de categoria, pra não somar com o zoom do #content abaixo.
     document.querySelectorAll('.cat-block').forEach(b=>{ b.style.zoom = ''; });
-    content.style.zoom = '';
-    void document.body.offsetHeight; // força reflow antes de medir, sem zoom aplicado
-    const natural = content.scrollHeight;
-    let scale = 1;
-    if(natural > PRINT_PAGE_BUDGET_PX){
-      scale = Math.max(0.15, PRINT_PAGE_BUDGET_PX / natural);
-    }
-    content.style.zoom = scale.toFixed(3);
   }
   function resetTablesZoom(){
-    const content = document.getElementById('content');
-    if(content) content.style.zoom = '';
     // Restaura a adaptação de tela do celular, se aplicável.
     if(typeof fitTablesToScreen === 'function') fitTablesToScreen();
   }
@@ -1166,7 +1236,9 @@ function render(){
   // resumo para impressão
   const modTxt = state.audience==='gerencia' ? t('ger') : t('repr');
   const icmsTxt = (state.audience==='gerencia' && state.versionMode==='anterior') ? '18%' : state.icms+'%';
-  document.getElementById('printSummary').textContent = t('printSummary')(modTxt, 'ICMS '+icmsTxt, block.date, block.note);
+  document.getElementById('printSummary').innerHTML =
+    t('title') + ' &nbsp;<span class="icms-badge">ICMS ' + icmsTxt + '</span>&nbsp; · '
+    + modTxt + ' · ' + block.date + ' · ' + block.note;
 
   if(rows.length === 0){
     cont.innerHTML = '<div class="panel"><div class="empty-state">'+t('emptyState')+'</div></div>';
@@ -1175,6 +1247,8 @@ function render(){
       const catRows = grouped[catName];
       const section = document.createElement('section');
       section.className = 'panel cat-block';
+      // "6. Nãotecidas" -> "6": define a cor da faixa desta família de produtos
+      section.dataset.catcolor = (catName||'').trim().charAt(0);
 
       const heading = document.createElement('div');
       heading.className = 'cat-heading';
@@ -1205,6 +1279,20 @@ function render(){
         tr.innerHTML = tds;
         tbody.appendChild(tr);
       });
+      // Comissões abaixo dos produtos, dentro da própria tabela, alinhadas
+      // às mesmas colunas (Tabela 1..N) dos respectivos percentuais.
+      const commissionRow = document.createElement('tr');
+      commissionRow.className = 'commission-row';
+      let cTds = '<td class="commission-label" colspan="2">'+t('commissionsLabel')+'</td>';
+      for(let i=0;i<tierCount;i++){
+        const c = block.commissions[i];
+        cTds += '<td class="commission-value" data-label="'+tierLabels[i]+'">'
+             + (c!==null && c!==undefined ? fmtPct(c) : '—') + '</td>';
+      }
+      cTds += '<td class="commission-value">—</td>';
+      commissionRow.innerHTML = cTds;
+      tbody.appendChild(commissionRow);
+
       table.appendChild(tbody);
       section.appendChild(table);
       cont.appendChild(section);
@@ -1213,14 +1301,15 @@ function render(){
 
   const foot = document.createElement('div');
   foot.className = 'footnotes';
-  const commissionsStr = block.commissions.map((c,i)=> tierLabels[i]+': '+fmtPct(c)).join(' · ');
+  // As comissões agora aparecem dentro de cada tabela (linha "Comissões"),
+  // por isso saíram do rodapé. A referência em USD fica só na tela — está
+  // marcada com "usd-item" e é ocultada na versão impressa.
   foot.innerHTML = `
     <div class="footnote-item"><div class="flabel">${t('freightLabel')}</div><div class="fval">${metaVal('frete')}</div></div>
     <div class="footnote-item"><div class="flabel">${t('taxIncludedLabel')}</div><div class="fval">${metaVal('impostos_inclusos')}</div></div>
     <div class="footnote-item"><div class="flabel">${t('taxToAddLabel')}</div><div class="fval">${metaVal('impostos_a_incluir')}</div></div>
     <div class="footnote-item"><div class="flabel">${t('paymentLabel')}</div><div class="fval">${metaVal('prazo_pgto')}</div></div>
-    <div class="footnote-item"><div class="flabel">${t('commissionsLabel')}</div><div class="fval">${commissionsStr}</div></div>
-    <div class="footnote-item"><div class="flabel">${t('usdLabel')}</div><div class="fval">${DATA.meta.usd_brl.toLocaleString(state.lang==='en'?'en-US':'pt-BR',{minimumFractionDigits:4})}</div></div>
+    <div class="footnote-item usd-item"><div class="flabel">${t('usdLabel')}</div><div class="fval">${DATA.meta.usd_brl.toLocaleString(state.lang==='en'?'en-US':'pt-BR',{minimumFractionDigits:4})}</div></div>
   `;
   document.getElementById('content').appendChild(foot);
 
