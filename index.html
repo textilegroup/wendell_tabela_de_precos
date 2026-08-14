@@ -114,7 +114,11 @@
     max-width:1180px;
     margin:0 auto;
     padding:22px 20px 60px;
+    transition:max-width .18s ease;
   }
+  /* Com o grupo de simulação aberto surgem 3 colunas a mais: a página se
+     alarga para aproveitar a tela antes de precisar encolher a tabela. */
+  .page.wide{ max-width:min(1800px, 98vw); padding-left:12px; padding-right:12px; }
   .panel{
     background:var(--panel);
     border:1px solid var(--line);
@@ -272,7 +276,9 @@
   .coef-tab.active{background:var(--maroon); border-color:var(--maroon); color:#fff;}
   .coef-tab:hover:not(.active){border-color:var(--maroon); color:var(--maroon);}
 
-  .coef-wrap{display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start;}
+  /* No celular esta tabela é larga demais: ela rola dentro do próprio painel
+     em vez de empurrar a página inteira para o lado. */
+  .coef-wrap{display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start; overflow-x:auto; max-width:100%;}
   table.coef-table{
     border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:8px; overflow:hidden;
     flex:1; min-width:320px;
@@ -316,7 +322,7 @@
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
   .cat-block{
-    margin-bottom:20px; max-width:100%; overflow-x:auto;
+    margin-bottom:20px; max-width:100%; overflow-x:hidden;
     border-left:6px solid var(--maroon-line);
   }
   .cat-heading{
@@ -689,23 +695,26 @@
   // Mesma técnica, agora para telas estreitas (celular): em vez de reformatar
   // a tabela em "cards" empilhados, ela mantém o layout idêntico ao desktop e
   // é encolhida (zoom) até caber na largura disponível, sem cortar colunas.
-  const MOBILE_BREAKPOINT_PX = 640;
+  // A tabela nunca precisa de rolagem lateral: em QUALQUER largura de tela
+  // (desktop, tablet ou celular) ela é encolhida até caber no espaço
+  // disponível, mantendo o mesmo layout de colunas. Isso vale especialmente
+  // quando o grupo de simulação é aberto e surgem 3 colunas a mais.
   let fitRaf = null;
   function fitTablesToScreen(){
-    const isMobile = window.innerWidth <= MOBILE_BREAKPOINT_PX;
     const blocks = document.querySelectorAll('.cat-block');
+    // Mede sempre sem zoom aplicado, senão a medida vem contaminada
     blocks.forEach(b=>{ b.style.zoom = ''; });
-    if(!isMobile) return;
-    void document.body.offsetWidth; // força reflow antes de medir, sem zoom aplicado
+    void document.body.offsetWidth; // força reflow antes de medir
     blocks.forEach(b=>{
       const table = b.querySelector('table.price-table');
       if(!table) return;
       const cs = getComputedStyle(b);
       const padX = parseFloat(cs.paddingLeft || 0) + parseFloat(cs.paddingRight || 0);
       const available = b.clientWidth - padX;
+      // scrollWidth da tabela = largura mínima que o conteúdo exige
       const natural = table.scrollWidth;
-      if(natural > available && available > 0){
-        const scale = Math.max(0.35, available / natural);
+      if(available > 0 && natural > available + 1){
+        const scale = Math.max(0.16, available / natural);
         b.style.zoom = scale.toFixed(3);
       }
     });
@@ -760,6 +769,59 @@
     </div>
   </section>
 
+  <section class="panel admin-panel no-print" id="adminPanel" style="display:none;">
+    <div class="panel-title-row"><h3 class="panel-title" id="txt-adminTitle">Administração — custos e importação</h3></div>
+    <p class="admin-hint" id="txt-adminHint">Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.</p>
+    <div class="admin-actions">
+      <button class="btn btn-outline" id="exportBtn">⬇ <span id="txt-exportBtn">Exportar custos (XLSX)</span></button>
+      <button class="btn btn-outline" id="exportFullBtn">⬇ <span id="txt-exportFullBtn">Exportar planilha completa (XLSX)</span></button>
+      <label class="btn btn-primary file-btn">⬆ <span id="txt-importBtn">Importar planilha (XLSX)</span>
+        <input type="file" id="importInput" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+      </label>
+    </div>
+    <div class="admin-msg" id="adminMsg"></div>
+    <div class="admin-msg" id="dbStatus" style="opacity:0.75; font-size:12px;"></div>
+  </section>
+
+  <section class="panel admin-panel no-print" id="coefPanel" style="display:none;">
+    <div class="panel-title-row"><h3 class="panel-title" id="txt-coefTitle">Coeficientes de Venda por Versão</h3></div>
+    <p class="admin-hint" id="txt-coefHint">Ajuste margem, comissão, ICMS e PIS/COFINS de cada versão. Os preços de todas as tabelas são recalculados automaticamente.</p>
+    <div class="coef-tabs" id="coefTabs"></div>
+    <div class="coef-wrap">
+      <table class="coef-table" id="coefTable"></table>
+      <table class="coef-side" id="coefSide"></table>
+    </div>
+    <p class="coef-hint" id="txt-coefAjusteHint">"Ajuste" não é aplicado na fórmula de preço atual — mantido apenas como referência da planilha original.</p>
+    <p class="coef-hint" id="coefDirtyMsg" style="display:none;"></p>
+    <div class="admin-actions">
+      <button class="btn btn-ghost coef-reset" id="coefResetBtn"><span id="txt-coefReset">Restaurar valores originais desta versão</span></button>
+      <button class="btn btn-primary" id="coefSaveBtn"><span id="txt-coefSave">Salvar alterações</span></button>
+    </div>
+  </section>
+
+  <section class="panel no-print" id="quotePanel">
+    <div class="panel-title-row">
+      <h3 class="panel-title" id="txt-quoteTitle">Orçamento — selecione itens e colunas</h3>
+      <button class="btn btn-primary" id="quoteBtn">🧾 <span id="txt-quoteBtn">Gerar orçamento (PDF)</span></button>
+    </div>
+    <div class="field-row">
+      <div class="field grow">
+        <span class="field-label" id="txt-quoteClientLabel">Cliente</span>
+        <input type="text" id="quoteClient" class="input-box" placeholder="Nome do cliente (opcional)">
+      </div>
+      <div class="field grow">
+        <span class="field-label" id="txt-quoteBulkLabel">Aplicar tabela a todos os itens marcados</span>
+        <select id="quoteBulkCol" class="input-box"></select>
+      </div>
+    </div>
+    <div class="quote-actions">
+      <button class="btn btn-ghost" id="selAllBtn"><span id="txt-selAll">Selecionar todos os itens</span></button>
+      <button class="btn btn-ghost" id="selNoneBtn"><span id="txt-selNone">Limpar seleção</span></button>
+      <span class="quote-count" id="quoteCount"></span>
+    </div>
+    <p class="admin-hint" id="txt-quoteHint" style="margin:10px 0 0;">Marque os itens na coluna ✓ das tabelas abaixo e escolha, item a item, de qual tabela sai o preço. O orçamento sai sem margens nem comissões.</p>
+  </section>
+
   <section class="panel no-print">
     <div class="panel-title-row">
       <h3 class="panel-title" id="txt-filtersTitle">Filtros</h3>
@@ -788,59 +850,6 @@
         <span class="field-label" id="txt-versionLabel2">Versão</span>
         <div class="status-pill" id="versionNote"></div>
       </div>
-    </div>
-  </section>
-
-  <section class="panel no-print" id="quotePanel">
-    <div class="panel-title-row">
-      <h3 class="panel-title" id="txt-quoteTitle">Orçamento — selecione itens e colunas</h3>
-      <button class="btn btn-primary" id="quoteBtn">🧾 <span id="txt-quoteBtn">Gerar orçamento (PDF)</span></button>
-    </div>
-    <div class="field-row">
-      <div class="field grow">
-        <span class="field-label" id="txt-quoteClientLabel">Cliente</span>
-        <input type="text" id="quoteClient" class="input-box" placeholder="Nome do cliente (opcional)">
-      </div>
-      <div class="field grow">
-        <span class="field-label" id="txt-quoteBulkLabel">Aplicar tabela a todos os itens marcados</span>
-        <select id="quoteBulkCol" class="input-box"></select>
-      </div>
-    </div>
-    <div class="quote-actions">
-      <button class="btn btn-ghost" id="selAllBtn"><span id="txt-selAll">Selecionar todos os itens</span></button>
-      <button class="btn btn-ghost" id="selNoneBtn"><span id="txt-selNone">Limpar seleção</span></button>
-      <span class="quote-count" id="quoteCount"></span>
-    </div>
-    <p class="admin-hint" id="txt-quoteHint" style="margin:10px 0 0;">Marque os itens na coluna ✓ das tabelas abaixo e escolha, item a item, de qual tabela sai o preço. O orçamento sai sem margens nem comissões.</p>
-  </section>
-
-  <section class="panel admin-panel no-print" id="adminPanel" style="display:none;">
-    <div class="panel-title-row"><h3 class="panel-title" id="txt-adminTitle">Administração — custos e importação</h3></div>
-    <p class="admin-hint" id="txt-adminHint">Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.</p>
-    <div class="admin-actions">
-      <button class="btn btn-outline" id="exportBtn">⬇ <span id="txt-exportBtn">Exportar custos (XLSX)</span></button>
-      <button class="btn btn-outline" id="exportFullBtn">⬇ <span id="txt-exportFullBtn">Exportar planilha completa (XLSX)</span></button>
-      <label class="btn btn-primary file-btn">⬆ <span id="txt-importBtn">Importar planilha (XLSX)</span>
-        <input type="file" id="importInput" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-      </label>
-    </div>
-    <div class="admin-msg" id="adminMsg"></div>
-    <div class="admin-msg" id="dbStatus" style="opacity:0.75; font-size:12px;"></div>
-  </section>
-
-  <section class="panel admin-panel no-print" id="coefPanel" style="display:none;">
-    <div class="panel-title-row"><h3 class="panel-title" id="txt-coefTitle">Coeficientes de Venda por Versão</h3></div>
-    <p class="admin-hint" id="txt-coefHint">Ajuste margem, comissão, ICMS e PIS/COFINS de cada versão. Os preços de todas as tabelas são recalculados automaticamente.</p>
-    <div class="coef-tabs" id="coefTabs"></div>
-    <div class="coef-wrap">
-      <table class="coef-table" id="coefTable"></table>
-      <table class="coef-side" id="coefSide"></table>
-    </div>
-    <p class="coef-hint" id="txt-coefAjusteHint">"Ajuste" não é aplicado na fórmula de preço atual — mantido apenas como referência da planilha original.</p>
-    <p class="coef-hint" id="coefDirtyMsg" style="display:none;"></p>
-    <div class="admin-actions">
-      <button class="btn btn-ghost coef-reset" id="coefResetBtn"><span id="txt-coefReset">Restaurar valores originais desta versão</span></button>
-      <button class="btn btn-primary" id="coefSaveBtn"><span id="txt-coefSave">Salvar alterações</span></button>
     </div>
   </section>
 
@@ -1419,6 +1428,10 @@ function renderControls(){
 
   const icmsSeg = document.getElementById('icmsSeg');
   icmsSeg.classList.toggle('disabled', isGer && state.versionMode === 'anterior');
+
+  // Página larga só quando as colunas de simulação estão abertas
+  const pageEl = document.querySelector('main.page');
+  if(pageEl) pageEl.classList.toggle('wide', !!state.simOpen && isGer);
 }
 
 function collectCategories(block){
@@ -1610,8 +1623,8 @@ function render(){
       let thead = '<thead><tr>';
       thead += '<th class="left">'+t('codeCol')+'</th><th class="left">'+t('colorCol')+'</th>';
       if(quote){
-        // No orçamento cada item traz só a tabela escolhida para ele
-        thead += '<th class="left">'+t('quoteColHeader')+'</th>';
+        // O orçamento traz só o preço escolhido — de qual tabela ele saiu é
+        // controle interno e não vai para o documento do cliente.
         thead += '<th>'+t('priceCol')+'</th>';
       } else {
         shownTiers.forEach(i=>{
@@ -1649,7 +1662,6 @@ function render(){
         tds += '<td class="code" data-label="'+t('codeCol')+'">'+r.code+'</td>';
         tds += '<td class="color-cell" data-label="'+t('colorCol')+'"><span class="swatch" style="background:'+hex+'"></span>'+colorLabel(r.color||'—')+'</td>';
         if(quote){
-          tds += '<td class="color-cell" data-label="'+t('quoteColHeader')+'">'+rowColLabel(r.code, block)+'</td>';
           tds += '<td class="price" data-label="'+t('priceCol')+'">'+fmtBRL(priceForRow(r, block))+'</td>';
         } else {
           shownTiers.forEach(i=>{
