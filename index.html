@@ -26,6 +26,8 @@
     --cat-7-bg:#E7F6EC; --cat-7-band:#C4EAD0; --cat-7-border:#57AC74;
     --cat-8-bg:#FDF3D2; --cat-8-band:#F8E29B; --cat-8-border:#D9AC33;
     --cat-9-bg:#FBE7EF; --cat-9-band:#F4C6D9; --cat-9-border:#CC5B88;
+    /* IPI — tom próprio, para não competir com os preços */
+    --ipi-bg:#EDF1F6; --ipi-ink:#33506E; --ipi-border:#9DB4CE;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -415,7 +417,18 @@
     margin-right:6px; border:1px solid rgba(0,0,0,0.15); vertical-align:middle;
   }
   td.price{ text-align:right; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  td.ipi{ text-align:right; font-size:12px; color:var(--ink-faint); white-space:nowrap; }
+  /* IPI em tom próprio (azul-ardósia), bem distinto dos preços em vinho */
+  td.ipi{
+    text-align:right; font-size:13px; font-weight:700; white-space:nowrap;
+    color:var(--ipi-ink); background:var(--ipi-bg);
+    border-left:2px solid var(--ipi-border);
+    font-variant-numeric:tabular-nums;
+  }
+  th.ipi-col{
+    color:var(--ipi-ink) !important; background:var(--ipi-bg) !important;
+    border-left:2px solid var(--ipi-border);
+  }
+  td.commission-value.ipi-col{ background:var(--ipi-bg) !important; color:var(--ipi-ink) !important; }
 
   /* ===== Simulação (colunas 6 e 7) — só Gerência, nunca no PDF ===== */
   .sim-col{
@@ -457,15 +470,41 @@
   }
   input.sel-check{ width:15px; height:15px; accent-color:var(--maroon); cursor:pointer; vertical-align:middle; }
   tr.row-selected td{ background:rgba(124,27,41,0.07) !important; }
-  th.selcol-col, td.selcol-col{ width:132px; text-align:left !important; }
-  select.row-col{
-    width:126px; border:1px solid var(--input-border); border-radius:6px;
-    padding:4px 6px; font-family:'Inter',sans-serif; font-size:12px;
-    color:var(--ink); background:#fff; cursor:pointer;
+  /* ===== Seleção do orçamento clicando no próprio preço ===== */
+  td.pick-cell{ cursor:pointer; position:relative; transition:background .12s ease; }
+  td.pick-cell:hover{ background:rgba(124,27,41,0.10) !important; box-shadow:inset 0 0 0 1px var(--maroon-line); }
+  td.pick-cell.picked{
+    background:var(--maroon) !important; color:#fff !important;
+    font-weight:800; box-shadow:inset 0 0 0 2px var(--maroon-dark);
   }
-  select.row-col:focus{ outline:none; border-color:var(--maroon); box-shadow:0 0 0 2px rgba(124,27,41,0.12); }
-  select.row-col.is-sim{ border-color:var(--maroon); background:#FFF6F7; font-weight:700; }
-  select.row-col:disabled{ opacity:.45; cursor:not-allowed; }
+  td.pick-cell.picked::after{
+    content:"✓"; position:absolute; left:6px; top:50%; transform:translateY(-50%);
+    font-size:11px; font-weight:800; color:#fff; opacity:.9;
+  }
+  td.sim-pick{ text-align:right; }
+  td.sim-pick.picked{ background:var(--maroon) !important; }
+  td.sim-pick.picked::after{ content:none; }
+  button.pick-dot{
+    width:20px; height:20px; margin-right:6px; vertical-align:middle;
+    border:1px solid var(--input-border); border-radius:50%;
+    background:#fff; color:transparent; font-size:11px; font-weight:800;
+    line-height:1; cursor:pointer; padding:0;
+  }
+  td.sim-pick.picked button.pick-dot{ background:#fff; border-color:#fff; color:var(--maroon); }
+  button.pick-dot:hover{ border-color:var(--maroon); color:var(--maroon-line); }
+
+  /* ===== Grupo de simulação recolhível no cabeçalho da tabela ===== */
+  th.sim-group-head.collapsed{ width:42px; padding:6px 4px !important; }
+  button.sim-group-btn{
+    border:1px solid var(--maroon-line); background:#fff; color:var(--maroon);
+    font-family:'Inter',sans-serif; font-weight:800; font-size:10.5px;
+    letter-spacing:.03em; text-transform:uppercase;
+    padding:4px 9px; border-radius:6px; cursor:pointer; white-space:nowrap;
+  }
+  button.sim-group-btn:hover{ background:var(--maroon); color:#fff; }
+  th.sim-group-head.collapsed button.sim-group-btn{
+    writing-mode:vertical-rl; transform:rotate(180deg); padding:9px 4px;
+  }
 
   /* ===== Módulo recolhível "Visualizar simulação" ===== */
   .sim-toggle{
@@ -588,7 +627,6 @@
     td.color-cell{ font-size:9.5px; }
     td.color-cell .swatch{ width:7px; height:7px; margin-right:4px; }
     td.price{ font-size:11.5px; }   /* os números — maior fonte da tabela */
-    td.ipi{ font-size:9px; }
     .price-table tbody tr:nth-child(even){background:#f7f7f7 !important;}
     tr.commission-row td{ font-size:10.5px; padding:1.2px 4px; border-top-width:2px; }
     tr.commission-row td.commission-label{ font-size:8.5px; }
@@ -608,10 +646,26 @@
        existem só na tela da Gerência — nunca saem no PDF. */
     .sim-col{ display:none !important; }
     .sim-legend{ display:none !important; }
-    /* As colunas de controle (marcação e escolha da tabela) somem no PDF —
-       elas só servem pra montar a seleção do orçamento */
-    .sel-col, .selcol-col{ display:none !important; }
+    /* Nada de destaque de seleção no PDF: o realce de escolha é só de tela */
     tr.row-selected td{ background:inherit !important; }
+    td.pick-cell.picked{
+      background:inherit !important; color:inherit !important;
+      box-shadow:none !important; font-weight:700;
+    }
+    td.pick-cell.picked::after{ content:none !important; }
+    /* IPI mantém o tom próprio na impressão */
+    td.ipi{
+      font-size:9px; font-weight:700;
+      color:#33506E !important; background:#EDF1F6 !important;
+      border-left:1px solid #9DB4CE;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
+    th.ipi-col{
+      color:#33506E !important; background:#DCE5EF !important;
+      border-left:1px solid #9DB4CE;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
+    td.commission-value.ipi-col{ background:#EDF1F6 !important; color:#33506E !important; }
   }
 </style>
 </head>
@@ -758,21 +812,6 @@
       <span class="quote-count" id="quoteCount"></span>
     </div>
     <p class="admin-hint" id="txt-quoteHint" style="margin:10px 0 0;">Marque os itens na coluna ✓ das tabelas abaixo e escolha, item a item, de qual tabela sai o preço. O orçamento sai sem margens nem comissões.</p>
-  </section>
-
-  <section class="panel no-print" id="simPanel" style="display:none;">
-    <button class="sim-toggle" id="simToggle" aria-expanded="false">
-      <span class="sim-chevron" id="simChevron">▸</span>
-      <span class="panel-title" id="txt-simPanelTitle">Visualizar simulação</span>
-      <span class="sim-state" id="simState">recolhido</span>
-    </button>
-    <div class="sim-body" id="simBody" hidden>
-      <p class="admin-hint" id="txt-simPanelHint" style="margin:12px 0 0;">Mostra as colunas de simulação na tabela: preço, comissão e a margem resultante. São visíveis só aqui na Gerência e nunca entram no PDF.</p>
-      <div class="quote-actions">
-        <button class="btn btn-ghost" id="simClearBtn"><span id="txt-simClear">Limpar simulação</span></button>
-        <span class="quote-count" id="simCount"></span>
-      </div>
-    </div>
   </section>
 
   <section class="panel admin-panel no-print" id="adminPanel" style="display:none;">
@@ -1015,10 +1054,9 @@ const I18N = {
     selAll:"Selecionar todos os itens", selNone:"Limpar seleção",
     quoteHint:"Marque os itens na coluna ✓ das tabelas abaixo e escolha, item a item, de qual tabela sai o preço. O orçamento sai sem margens nem comissões.",
     quoteCount:(n)=> n + " item(ns) selecionado(s)",
-    simPanelTitle:"Visualizar simulação",
-    simPanelHint:"Mostra as colunas de simulação na tabela: preço, comissão e a margem resultante. São visíveis só aqui na Gerência e nunca entram no PDF.",
-    simOpened:"aberto", simCollapsed:"recolhido", simClear:"Limpar simulação",
-    simCount:(n)=> n + " item(ns) com simulação",
+    pickTip:"Usar este preço no orçamento",
+    simGroupLabel:"Simulação", simGroupOpenTip:"Abrir as colunas de simulação",
+    simGroupCloseTip:"Recolher as colunas de simulação", simClear:"Limpar simulação",
     priceCol:"Preço",
     quoteEmpty:"Selecione ao menos um item para gerar o orçamento.",
     quoteDocTitle:"Orçamento", quoteClientPrefix:"Cliente:",
@@ -1072,10 +1110,9 @@ const I18N = {
     selAll:"Select all items", selNone:"Clear selection",
     quoteHint:"Tick the items in the ✓ column of the tables below and pick, item by item, which table the price comes from. The quote has no margins or commissions.",
     quoteCount:(n)=> n + " item(s) selected",
-    simPanelTitle:"View simulation",
-    simPanelHint:"Shows the simulation columns in the table: price, commission and the resulting margin. Visible only here in Management and never included in the PDF.",
-    simOpened:"open", simCollapsed:"collapsed", simClear:"Clear simulation",
-    simCount:(n)=> n + " item(s) with simulation",
+    pickTip:"Use this price in the quote",
+    simGroupLabel:"Simulation", simGroupOpenTip:"Open the simulation columns",
+    simGroupCloseTip:"Collapse the simulation columns", simClear:"Clear simulation",
     priceCol:"Price",
     quoteEmpty:"Select at least one item to generate the quote.",
     quoteDocTitle:"Quote", quoteClientPrefix:"Customer:",
@@ -1373,29 +1410,6 @@ function applyStaticTexts(){
   document.getElementById('pwSubmit').textContent = t('enter');
 }
 
-// Módulo recolhível "Visualizar simulação" (só Gerência, recolhido por padrão)
-function renderSimPanel(){
-  const isGer = state.audience === 'gerencia';
-  const legacy = (state.versionMode === 'anterior');
-  const panel = document.getElementById('simPanel');
-  if(!panel) return;
-  // A tabela anterior (JAN/26) não tem custo, então não há o que simular
-  panel.style.display = (isGer && !legacy) ? 'block' : 'none';
-  const toggle = document.getElementById('simToggle');
-  const body = document.getElementById('simBody');
-  const chevron = document.getElementById('simChevron');
-  const stateTag = document.getElementById('simState');
-  toggle.setAttribute('aria-expanded', state.simOpen ? 'true' : 'false');
-  body.hidden = !state.simOpen;
-  chevron.textContent = '▸';
-  stateTag.textContent = state.simOpen ? t('simOpened') : t('simCollapsed');
-  document.getElementById('txt-simPanelTitle').textContent = t('simPanelTitle');
-  document.getElementById('txt-simPanelHint').textContent = t('simPanelHint');
-  document.getElementById('txt-simClear').textContent = t('simClear');
-  const cnt = document.getElementById('simCount');
-  if(cnt) cnt.textContent = t('simCount')(simCount());
-}
-
 function renderControls(){
   const isGer = state.audience === 'gerencia';
   document.getElementById('versionModeGroup').style.display = isGer ? 'flex' : 'none';
@@ -1485,27 +1499,31 @@ function renderQuoteBulk(block){
   if(cnt) cnt.textContent = t('quoteCount')(selectedRowCount());
 }
 
-// Liga os checkboxes das linhas e o "marcar tudo" do cabeçalho de cada família.
+// Seleção do orçamento direto na célula: clicar no preço escolhe aquele item
+// naquela coluna; clicar de novo na mesma célula tira o item da seleção.
 function bindSelection(block){
-  document.querySelectorAll('input.sel-row').forEach(cb=>{
-    cb.addEventListener('change', ()=>{
-      const code = cb.dataset.code;
-      if(cb.checked) state.selRows[code] = true; else delete state.selRows[code];
+  document.querySelectorAll('td.pick-cell').forEach(cell=>{
+    cell.addEventListener('click', (ev)=>{
+      // Digitar no campo de preço simulado não deve mexer na seleção
+      if(ev.target.classList.contains('sim-input')) return;
+      const code = cell.dataset.code;
+      const col = cell.dataset.col;
+      const already = state.selRows[code] && rowColOf(code, block) === col;
+      if(already){
+        delete state.selRows[code];
+        delete state.rowCol[code];
+      } else {
+        state.selRows[code] = true;
+        state.rowCol[code] = col;
+      }
       render();
     });
   });
-  document.querySelectorAll('select.row-col').forEach(sel=>{
-    sel.addEventListener('change', ()=>{
-      state.rowCol[sel.dataset.code] = sel.value;
-      sel.classList.toggle('is-sim', sel.value === 'sim');
-    });
-  });
-  document.querySelectorAll('input.sel-cat').forEach(cb=>{
-    cb.addEventListener('change', ()=>{
-      const cat = cb.dataset.cat;
-      block.rows.filter(r=>r.cat === cat).forEach(r=>{
-        if(cb.checked) state.selRows[r.code] = true; else delete state.selRows[r.code];
-      });
+  // Abre/recolhe o grupo de colunas de simulação
+  document.querySelectorAll('button.sim-group-btn').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      state.simOpen = !state.simOpen;
       render();
     });
   });
@@ -1518,7 +1536,6 @@ function render(){
   const block = currentBlock();
   renderCatChips(block);
   renderQuoteBulk(block);
-  renderSimPanel();
 
   document.getElementById('versionNote').textContent = block.date + ' · ' + block.note;
 
@@ -1527,7 +1544,11 @@ function render(){
   // As colunas de simulação são da Gerência, dependem do módulo "Visualizar
   // simulação" estar aberto e não existem na tabela anterior (JAN/26), que é
   // histórica, tem preços fixos e não guarda o custo. Nunca entram no PDF.
-  const showSim = showMargin && !block.isLegacy && !quote && state.simOpen;
+  // O grupo de simulação existe (aparece recolhido no cabeçalho) sempre que
+  // for Gerência numa tabela calculada e fora do orçamento; showSim diz se as
+  // três colunas estão abertas.
+  const simAvailable = showMargin && !block.isLegacy && !quote;
+  const showSim = simAvailable && state.simOpen;
   // No orçamento não entram margens nem comissões — é documento para o
   // cliente, não material interno.
   const showMarginPct = showMargin && !quote;
@@ -1587,13 +1608,6 @@ function render(){
       table.className = 'price-table';
 
       let thead = '<thead><tr>';
-      // Colunas de marcação (✓) e de escolha da tabela por item — só na tela
-      if(!quote){
-        const allOn = catRows.every(r=>state.selRows[r.code]);
-        thead += '<th class="sel-col"><input type="checkbox" class="sel-check sel-cat"'
-              +  ' data-cat="'+escAttr(catName)+'"'+(allOn?' checked':'')+'></th>';
-        thead += '<th class="selcol-col left">'+t('quoteColHeaderShort')+'</th>';
-      }
       thead += '<th class="left">'+t('codeCol')+'</th><th class="left">'+t('colorCol')+'</th>';
       if(quote){
         // No orçamento cada item traz só a tabela escolhida para ele
@@ -1604,16 +1618,23 @@ function render(){
           thead += '<th>'+tierLabels[i]+(showMarginPct ? '<span class="tier-pct">'+fmtPct(block.margins[i])+'</span>' : '')+'</th>';
         });
       }
-      // Colunas 6, 7 e 8 — simulação (só Gerência, nunca no PDF)
-      if(showSim){
-        thead += '<th class="sim-col">'+t('tableCol')+' '+(tierCount+1)
-              +  '<span class="tier-pct">'+t('simPriceCol')+'</span></th>';
-        thead += '<th class="sim-col">'+t('tableCol')+' '+(tierCount+2)
-              +  '<span class="tier-pct">'+t('simCommCol')+'</span></th>';
-        thead += '<th class="sim-col">'+t('tableCol')+' '+(tierCount+3)
-              +  '<span class="tier-pct">'+t('simMarginCol')+'</span></th>';
+      // Grupo de simulação: fica SEMPRE visível como um grupo recolhido no
+      // cabeçalho (nunca some da tabela) e abre/fecha as três colunas no lugar.
+      if(simAvailable){
+        if(state.simOpen){
+          thead += '<th class="sim-col sim-group-head">'
+                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupCloseTip'))+'">▾ '+t('simGroupLabel')+'</button>'
+                +  '<span class="tier-pct">'+t('simPriceCol')+'</span></th>';
+          thead += '<th class="sim-col">'+t('tableCol')+' '+(tierCount+2)
+                +  '<span class="tier-pct">'+t('simCommCol')+'</span></th>';
+          thead += '<th class="sim-col">'+t('tableCol')+' '+(tierCount+3)
+                +  '<span class="tier-pct">'+t('simMarginCol')+'</span></th>';
+        } else {
+          thead += '<th class="sim-col sim-group-head collapsed">'
+                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupOpenTip'))+'">▸ '+t('simGroupLabel')+'</button></th>';
+        }
       }
-      thead += '<th>'+t('ipiCol')+'</th></tr></thead>';
+      thead += '<th class="ipi-col">'+t('ipiCol')+'</th></tr></thead>';
       table.innerHTML = thead;
 
       const tbody = document.createElement('tbody');
@@ -1622,18 +1643,9 @@ function render(){
         const colorKey = (r.color||'').toLowerCase();
         const hex = COLOR_HEX[colorKey] || '#D9D6D1';
         let tds = '';
-        if(!quote){
-          const on = !!state.selRows[r.code];
-          if(on) tr.classList.add('row-selected');
-          tds += '<td class="sel-col"><input type="checkbox" class="sel-check sel-row"'
-              +  ' data-code="'+escAttr(r.code)+'"'+(on?' checked':'')+'></td>';
-          // Cada item escolhe a própria tabela de preço para o orçamento
-          const cur = rowColOf(r.code, block);
-          const optsHtml = quoteColOptions(block).map(o=>
-            '<option value="'+o.value+'"'+(o.value===cur?' selected':'')+'>'+o.label+'</option>').join('');
-          tds += '<td class="selcol-col"><select class="row-col'+(cur==='sim'?' is-sim':'')+'"'
-              +  ' data-code="'+escAttr(r.code)+'">'+optsHtml+'</select></td>';
-        }
+        // O item entra no orçamento clicando direto no preço desejado.
+        const picked = state.selRows[r.code] ? rowColOf(r.code, block) : null;
+        if(picked !== null) tr.classList.add('row-selected');
         tds += '<td class="code" data-label="'+t('codeCol')+'">'+r.code+'</td>';
         tds += '<td class="color-cell" data-label="'+t('colorCol')+'"><span class="swatch" style="background:'+hex+'"></span>'+colorLabel(r.color||'—')+'</td>';
         if(quote){
@@ -1641,7 +1653,10 @@ function render(){
           tds += '<td class="price" data-label="'+t('priceCol')+'">'+fmtBRL(priceForRow(r, block))+'</td>';
         } else {
           shownTiers.forEach(i=>{
-            tds += '<td class="price" data-label="'+tierLabels[i]+'">'+fmtBRL(r.prices[i])+'</td>';
+            const on = (picked === String(i));
+            tds += '<td class="price pick-cell'+(on?' picked':'')+'"'
+                +  ' data-code="'+escAttr(r.code)+'" data-col="'+i+'"'
+                +  ' data-label="'+tierLabels[i]+'">'+fmtBRL(r.prices[i])+'</td>';
           });
         }
         // Colunas de simulação: preço e comissão começam iguais aos da última
@@ -1658,7 +1673,13 @@ function render(){
           const pChanged = (typedP !== undefined && typedP !== null);
           const cChanged = (typedC !== undefined && typedC !== null);
           const anyChanged = pChanged || cChanged;
-          tds += '<td class="sim-col" data-label="'+t('simPriceCol')+'">'
+          // O preço simulado também pode ser escolhido para o orçamento: o
+          // clique é no botão ✓ (o campo em si continua livre para digitação).
+          const simPicked = (picked === 'sim');
+          tds += '<td class="sim-col pick-cell sim-pick'+(simPicked?' picked':'')+'"'
+              +  ' data-code="'+escAttr(r.code)+'" data-col="sim"'
+              +  ' data-label="'+t('simPriceCol')+'">'
+              +  '<button class="pick-dot" title="'+escAttr(t('pickTip'))+'">✓</button>'
               +  '<input type="number" step="0.01" min="0" class="sim-input'+(pChanged?' changed':'')+'"'
               +  ' data-code="'+r.code+'" value="'+(simPrice>0 ? simPrice.toFixed(2) : '0.00')+'"></td>';
           tds += '<td class="sim-col" data-label="'+t('simCommCol')+'">'
@@ -1669,7 +1690,9 @@ function render(){
               +  ' data-code="'+r.code+'" data-label="'+t('simMarginCol')+'">'
               +  (simMargin!==null ? fmtPct(simMargin) : '—')+'</td>';
         }
-        tds += '<td class="ipi" data-label="'+t('ipiCol')+'">'+(r.ipi!==null && r.ipi!==undefined ? fmtPct(r.ipi) : '—')+'</td>';
+        // Grupo recolhido: uma célula vazia segura o lugar das três colunas
+        if(simAvailable && !state.simOpen){ tds += '<td class="sim-col"></td>'; }
+        tds += '<td class="ipi ipi-col" data-label="'+t('ipiCol')+'">'+(r.ipi!==null && r.ipi!==undefined ? fmtPct(r.ipi) : '—')+'</td>';
         tr.innerHTML = tds;
         tbody.appendChild(tr);
       });
@@ -1680,9 +1703,7 @@ function render(){
       // A coluna de marcação some no PDF, então ela precisa ser uma célula
       // própria — se entrasse no colspan do rótulo, os percentuais sairiam
       // deslocados uma coluna na impressão.
-      let cTds = '';
-      if(!quote){ cTds += '<td class="sel-col"></td><td class="selcol-col"></td>'; }
-      cTds += '<td class="commission-label" colspan="2">'+t('commissionsLabel')+'</td>';
+      let cTds = '<td class="commission-label" colspan="2">'+t('commissionsLabel')+'</td>';
       shownTiers.forEach(i=>{
         const c = block.commissions[i];
         cTds += '<td class="commission-value" data-label="'+tierLabels[i]+'">'
@@ -1690,12 +1711,11 @@ function render(){
       });
       // As colunas de simulação não têm comissão definida — ficam vazias,
       // mas precisam existir para o alinhamento das colunas não quebrar.
-      if(showSim){
-        cTds += '<td class="sim-col commission-value">—</td>';
-        cTds += '<td class="sim-col commission-value">—</td>';
-        cTds += '<td class="sim-col commission-value">—</td>';
+      if(simAvailable){
+        const n = state.simOpen ? 3 : 1;
+        for(let k=0;k<n;k++) cTds += '<td class="sim-col commission-value">—</td>';
       }
-      cTds += '<td class="commission-value">—</td>';
+      cTds += '<td class="commission-value ipi-col">—</td>';
       commissionRow.innerHTML = cTds;
       // Comissão é informação interna — nunca vai no orçamento do cliente
       if(!quote) tbody.appendChild(commissionRow);
@@ -1773,11 +1793,7 @@ function bindSimInputs(block){
     });
   });
 }
-// Mantém o contador do módulo de simulação em dia enquanto o usuário digita.
-function updateSimLegend(){
-  const cnt = document.getElementById('simCount');
-  if(cnt) cnt.textContent = t('simCount')(simCount());
-}
+function updateSimLegend(){ /* contador vive no cabeçalho do grupo */ }
 
 
 // ---------- language ----------
@@ -2046,15 +2062,7 @@ document.getElementById('quoteBulkCol').addEventListener('change', (e)=>{
   });
   render();
 });
-// Módulo "Visualizar simulação" — recolhido por padrão
-document.getElementById('simToggle').onclick = ()=>{
-  state.simOpen = !state.simOpen;
-  render();
-};
-document.getElementById('simClearBtn').onclick = ()=>{
-  state.simPrices = {}; state.simComms = {};
-  render();
-};
+
 // Gera o orçamento: entra no modo orçamento (só itens/colunas escolhidos),
 // imprime, e volta ao normal quando a caixa de impressão fecha.
 document.getElementById('quoteBtn').onclick = ()=>{
