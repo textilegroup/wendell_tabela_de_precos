@@ -6,6 +6,8 @@
 <title>WGI — Lista de Preços</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- SheetJS: leitura e geração dos arquivos .xlsx -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
   :root{
     --maroon:#7C1B29;
@@ -659,10 +661,6 @@
         </div>
         <span class="field-hint" id="txt-versionHint">Disponível apenas no módulo Gerência.</span>
       </div>
-      <div class="field">
-        <span class="field-label">Status</span>
-        <div class="status-pill" id="statusPill">Módulo representante — margens ocultas</div>
-      </div>
     </div>
   </section>
 
@@ -701,9 +699,10 @@
     <div class="panel-title-row"><h3 class="panel-title" id="txt-adminTitle">Administração — custos e importação</h3></div>
     <p class="admin-hint" id="txt-adminHint">Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.</p>
     <div class="admin-actions">
-      <button class="btn btn-outline" id="exportBtn">⬇ <span id="txt-exportBtn">Exportar custos (CSV)</span></button>
-      <label class="btn btn-primary file-btn">⬆ <span id="txt-importBtn">Importar custos (CSV)</span>
-        <input type="file" id="importInput" accept=".csv,text/csv">
+      <button class="btn btn-outline" id="exportBtn">⬇ <span id="txt-exportBtn">Exportar custos (XLSX)</span></button>
+      <button class="btn btn-outline" id="exportFullBtn">⬇ <span id="txt-exportFullBtn">Exportar planilha completa (XLSX)</span></button>
+      <label class="btn btn-primary file-btn">⬆ <span id="txt-importBtn">Importar planilha (XLSX)</span>
+        <input type="file" id="importInput" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
       </label>
     </div>
     <div class="admin-msg" id="adminMsg"></div>
@@ -749,7 +748,7 @@
 </div>
 
 <script id="app-data" type="application/json">
-{"meta": {"moeda": "R$ (BRL)", "frete": "C.I.F.: SC>SC mín. R$3.000,00 | SC>Sul/Sudeste mín. R$5.000,00 | Demais regiões: F.O.B.", "impostos_inclusos": "ICMS, PIS/COFINS", "impostos_a_incluir": "IPI, quando incidir", "prazo_pgto": "60 dias (média)", "usd_brl": 5.1065}, "meta_en": {"frete": "C.I.F.: SC>SC min. R$3,000.00 | SC>South/Southeast min. R$5,000.00 | Other regions: F.O.B.", "impostos_inclusos": "ICMS, PIS/COFINS", "impostos_a_incluir": "IPI, when applicable", "prazo_pgto": "60 days (average)"}, "products": [{"cat": "8. Malhas", "code": "8J50PE 0100", "color": "Branca", "cost": 2.214, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J45PAEA9 0100", "color": "Branca", "cost": 2.106, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J45PAEA9 9800", "color": "Preta", "cost": 2.214, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I55PAEA9 0100", "color": "Branca", "cost": 2.754, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I55PAEA9 9800", "color": "Preta", "cost": 2.808, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I60PAW 0100", "color": "Branca", "cost": 2.808, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 0100", "color": "Branca", "cost": 3.14, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 9800", "color": "Preta", "cost": 3.21, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PAEA 0000", "color": "Branco Óptico", "cost": 2.268, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PAEA 9800", "color": "Preta", "cost": 2.268, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PAEA 0000", "color": "Branco Óptico", "cost": 2.538, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PAEA 9800", "color": "Preta", "cost": 2.538, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA55PAEA 0000", "color": "Branco Óptico", "cost": 2.7, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB45PAEA 0100", "color": "Branca", "cost": 2.538, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB45PAEA 9800", "color": "Preta", "cost": 2.7, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB55PAEA 0100", "color": "Branca", "cost": 2.538, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB55PAEA 9800", "color": "Preta", "cost": 2.646, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB70PAEA 0100", "color": "Branca", "cost": 3.186, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB70PAEA 9800", "color": "Preta", "cost": 3.294, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB90PA 0100", "color": "Branca", "cost": 3.672, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB90PA 9800", "color": "Preta", "cost": 3.834, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FC45PAEA 0100", "color": "Branca", "cost": 2.484, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FC45PAEA 9800", "color": "Preta", "cost": 2.592, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FE40PA 0100", "color": "Branca", "cost": 1.998, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FE40PA 9800", "color": "Preta", "cost": 2.106, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP120HP 0100", "color": "Branca", "cost": 6.318, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP140HP 0100", "color": "Branca", "cost": 6.534, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP120HPF 0100", "color": "Branca", "cost": 6.426, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP140HPF 0100", "color": "Branca", "cost": 6.588, "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A30PE 0100", "color": "Branca", "cost": 1.026, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A60PE 0100", "color": "Branca", "cost": 1.458, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A25PAEA 0100", "color": "Branca", "cost": 0.96, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A25PAEA 4800", "color": "Grafite", "cost": 0.96, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A30PAEA 0100", "color": "Branca", "cost": 1.028, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A30PAEA 4800", "color": "Grafite", "cost": 1.028, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A40PAEA 0100", "color": "Branca", "cost": 1.15, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A40PAEA 4800", "color": "Grafite", "cost": 1.15, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A60PAEA 0100", "color": "Branca", "cost": 1.62, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A60PAEA 4800", "color": "Grafite", "cost": 1.62, "ipi": 0}, {"cat": "9. Especiais", "code": "WENFUSE15 0100", "color": "Branca", "cost": 2.646, "ipi": 0}, {"cat": "9. Especiais", "code": "SOLVY 0100", "color": "Branca", "cost": 1.782, "ipi": 0}, {"cat": "9. Especiais", "code": "7FB40PAEA 0100", "color": "Branca", "cost": 0, "ipi": 0}, {"cat": "9. Especiais", "code": "7FB40PAEA 9800", "color": "Preta", "cost": 0, "ipi": 0}], "params": {"repr18": {"label": "Representante", "label_en": "Sales rep", "icms": 0.18, "pis": 0.0925, "date": "MAR/26", "note": "Tabela vigente", "note_en": "Current price list", "margins": [0.45, 0.4167, 0.3833, 0.35], "commissions": [0.06, 0.05, 0.04, 0.03]}, "ger18": {"label": "Gerência", "label_en": "Management", "icms": 0.18, "pis": 0.0925, "date": "MAR/26", "note": "Faturamento dentro do estado", "note_en": "In-state invoicing", "margins": [0.45, 0.4167, 0.3833, 0.35, 0.3], "commissions": [0.06, 0.05, 0.04, 0.03, 0.02]}, "repr17": {"label": "Representante", "label_en": "Sales rep", "icms": 0.17, "pis": 0.0925, "date": "MAR/26", "note": "Tabela vigente", "note_en": "Current price list", "margins": [0.45, 0.4167, 0.3833, 0.35], "commissions": [0.06, 0.05, 0.04, 0.03]}, "ger17": {"label": "Gerência", "label_en": "Management", "icms": 0.17, "pis": 0.0925, "date": "MAR/26", "note": "Faturamento dentro do estado", "note_en": "In-state invoicing", "margins": [0.45, 0.4167, 0.3833, 0.35, 0.3], "commissions": [0.06, 0.05, 0.04, 0.03, 0.02]}, "repr4": {"label": "Representante", "label_en": "Sales rep", "icms": 0.04, "pis": 0.0925, "date": "MAR/26", "note": "Tabela vigente", "note_en": "Current price list", "margins": [0.45, 0.4167, 0.3833, 0.35], "commissions": [0.06, 0.05, 0.04, 0.03]}, "ger4": {"label": "Gerência", "label_en": "Management", "icms": 0.04, "pis": 0.0925, "date": "MAR/26", "note": "Faturamento dentro do estado", "note_en": "In-state invoicing", "margins": [0.45, 0.4167, 0.3833, 0.35, 0.3], "commissions": [0.06, 0.05, 0.04, 0.03, 0.02]}}, "legacy": {"repr18_jan26": {"label": "Representante", "label_en": "Sales rep", "date": "JAN/26", "note": "Faturamento SP→SP (tabela anterior)", "note_en": "SP→SP invoicing (previous table)", "icms": 0.18, "margins": [0.45, 0.4167, 0.3833, 0.35], "commissions": [0.06, 0.05, 0.04, 0.03], "rows": [{"cat": "8. Malhas", "code": "8J45PAEA9 0100", "color": "Branca", "prices": [7.53, 6.76, 6.14, 5.62], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J45PAEA9 9800", "color": "Preta", "prices": [7.16, 6.43, 5.84, 5.34], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I55PAEA9 0100", "color": "Branca", "prices": [7.53, 6.76, 6.14, 5.62], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I55PAEA9 9800", "color": "Preta", "prices": [9.36, 8.41, 7.63, 6.99], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 0100", "color": "Branca", "prices": [9.55, 8.58, 7.78, 7.12], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 9800", "color": "Preta", "prices": [9.55, 8.58, 7.78, 7.12], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 0100", "color": "Branca", "prices": [12.1, 10.87, 9.86, 9.03], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 9800", "color": "Preta", "prices": [12.56, 11.28, 10.24, 9.37], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PA 0000", "color": "Branca", "prices": [7.71, 6.93, 6.29, 5.75], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PA 9800", "color": "Branca", "prices": [7.71, 6.93, 6.29, 5.75], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PA 0000", "color": "Preta", "prices": [8.63, 7.75, 7.03, 6.44], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PA 9800", "color": "Branca", "prices": [8.63, 7.75, 7.03, 6.44], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PAEA 0000", "color": "Branco Óptico", "prices": [9.18, 8.25, 7.48, 6.85], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PAEA 9800", "color": "Preta", "prices": [8.63, 7.75, 7.03, 6.44], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PAEA 0000", "color": "Branco Óptico", "prices": [9.18, 8.25, 7.48, 6.85], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PAEA 9800", "color": "Preta", "prices": [8.63, 7.75, 7.03, 6.44], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA55PAEA 0000", "color": "Branco Óptico", "prices": [9.0, 8.08, 7.33, 6.71], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB40PAEA 0100", "color": "Branca", "prices": [10.83, 9.73, 8.83, 8.08], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB40PAEA 9800", "color": "Preta", "prices": [11.2, 10.06, 9.13, 8.36], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB55PAEA 0100", "color": "Branca", "prices": [12.48, 11.21, 10.18, 9.32], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB55PAEA 9800", "color": "Preta", "prices": [13.03, 11.71, 10.62, 9.73], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB70PAEA 0100", "color": "Branca", "prices": [9.32, 8.37, 7.6, 6.96], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB70PAEA 9800", "color": "Preta", "prices": [9.67, 8.69, 7.88, 7.22], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FC45PAEA 0100", "color": "Branca", "prices": [6.79, 6.1, 5.54, 5.07], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FC45PAEA 9800", "color": "Preta", "prices": [7.16, 6.43, 5.84, 5.34], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP120HP 0100", "color": "Branco Óptico", "prices": [21.48, 19.29, 17.51, 16.03], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP140HP 0100", "color": "Preta", "prices": [22.21, 19.95, 18.11, 16.58], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP120HPF 0100", "color": "Branco Óptico", "prices": [21.85, 19.62, 17.81, 16.3], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP140HPF 0100", "color": "Preta", "prices": [22.4, 20.12, 18.26, 16.71], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A30PE 0100", "color": "Branco Óptico", "prices": [3.49, 3.13, 2.84, 2.6], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A60PE 0100", "color": "Branca", "prices": [4.96, 4.45, 4.04, 3.7], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A25PAEA 0100", "color": "Preta", "prices": [0, 0, 0, 0], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A25PAEA 4800", "color": "Branca", "prices": [4.46, 4.01, 3.64, 3.33], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A30PAEA 0100", "color": "Preta", "prices": [4.93, 4.43, 4.02, 3.68], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A30PAEA 4800", "color": "Preta", "prices": [4.93, 4.43, 4.02, 3.68], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A40PAEA 0100", "color": "Branca", "prices": [6.08, 5.46, 4.96, 4.54], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A40PAEA 4800", "color": "Preta", "prices": [6.08, 5.46, 4.96, 4.54], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A60PAEA 0100", "color": "Branca", "prices": [7.7, 6.92, 6.28, 5.75], "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A60PAEA 4800", "color": "Branca", "prices": [7.7, 6.92, 6.28, 5.75], "ipi": 0.0325}, {"cat": "9. Especiais", "code": "WENFUSE15 0100", "color": "Preta", "prices": [9.0, 8.08, 7.33, 6.71], "ipi": 0.0325}, {"cat": "9. Especiais", "code": "SOLVY 0100", "color": "Branca", "prices": [6.06, 5.44, 4.94, 4.52], "ipi": 0.0325}, {"cat": "9. Especiais", "code": "7FB40PAEA 0100", "color": "Preta", "prices": [0, 0, 0, 0], "ipi": 0.0325}, {"cat": "9. Especiais", "code": "7FB40PAEA 9800", "color": "Branca", "prices": [0, 0, 0, 0], "ipi": 0.0325}]}}}
+{"meta": {"moeda": "R$ (BRL)", "frete": "C.I.F.: SC>SC mín. R$3.000,00 | SC>Sul/Sudeste mín. R$5.000,00 | Demais regiões: F.O.B.", "impostos_inclusos": "ICMS, PIS/COFINS", "impostos_a_incluir": "IPI, quando incidir", "prazo_pgto": "60 dias (média)", "usd_brl": 5.1065}, "meta_en": {"frete": "C.I.F.: SC>SC min. R$3,000.00 | SC>South/Southeast min. R$5,000.00 | Other regions: F.O.B.", "impostos_inclusos": "ICMS, PIS/COFINS", "impostos_a_incluir": "IPI, when applicable", "prazo_pgto": "60 days (average)"}, "products": [{"cat": "8. Malhas", "code": "8J50PE 0100", "color": "Branca", "cost": 2.214, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J45PAEA9 0100", "color": "Branca", "cost": 2.106, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J45PAEA9 9800", "color": "Preta", "cost": 2.214, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I55PAEA9 0100", "color": "Branca", "cost": 2.754, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I55PAEA9 9800", "color": "Preta", "cost": 2.808, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I60PAW 0100", "color": "Branca", "cost": 2.808, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 0100", "color": "Branca", "cost": 3.14, "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 9800", "color": "Preta", "cost": 3.21, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PAEA 0000", "color": "Branco Óptico", "cost": 2.268, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PAEA 9800", "color": "Preta", "cost": 2.268, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PAEA 0000", "color": "Branco Óptico", "cost": 2.538, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PAEA 9800", "color": "Preta", "cost": 2.538, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA55PAEA 0000", "color": "Branco Óptico", "cost": 2.7, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB45PAEA 0100", "color": "Branca", "cost": 2.538, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB45PAEA 9800", "color": "Preta", "cost": 2.7, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB55PAEA 0100", "color": "Branca", "cost": 2.538, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB55PAEA 9800", "color": "Preta", "cost": 2.646, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB70PAEA 0100", "color": "Branca", "cost": 3.186, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB70PAEA 9800", "color": "Preta", "cost": 3.294, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB90PA 0100", "color": "Branca", "cost": 3.672, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB90PA 9800", "color": "Preta", "cost": 3.834, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FC45PAEA 0100", "color": "Branca", "cost": 2.484, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FC45PAEA 9800", "color": "Preta", "cost": 2.592, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FE40PA 0100", "color": "Branca", "cost": 1.998, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FE40PA 9800", "color": "Preta", "cost": 2.106, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP120HP 0100", "color": "Branca", "cost": 6.318, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP140HP 0100", "color": "Branca", "cost": 6.534, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP120HPF 0100", "color": "Branca", "cost": 6.426, "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP140HPF 0100", "color": "Branca", "cost": 6.588, "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A30PE 0100", "color": "Branca", "cost": 1.026, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A60PE 0100", "color": "Branca", "cost": 1.458, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A25PAEA 0100", "color": "Branca", "cost": 0.96, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A25PAEA 4800", "color": "Grafite", "cost": 0.96, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A30PAEA 0100", "color": "Branca", "cost": 1.028, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A30PAEA 4800", "color": "Grafite", "cost": 1.028, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A40PAEA 0100", "color": "Branca", "cost": 1.15, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A40PAEA 4800", "color": "Grafite", "cost": 1.15, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A60PAEA 0100", "color": "Branca", "cost": 1.62, "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A60PAEA 4800", "color": "Grafite", "cost": 1.62, "ipi": 0}, {"cat": "9. Especiais", "code": "WENFUSE15 0100", "color": "Branca", "cost": 2.646, "ipi": 0}, {"cat": "9. Especiais", "code": "SOLVY 0100", "color": "Branca", "cost": 1.782, "ipi": 0}, {"cat": "7. Tecidas", "code": "7FB40PAEA 0100", "color": "Branca", "cost": 0, "ipi": 0}, {"cat": "7. Tecidas", "code": "7FB40PAEA 9800", "color": "Preta", "cost": 0, "ipi": 0}], "params": {"repr18": {"label": "Representante", "label_en": "Sales rep", "icms": 0.18, "pis": 0.0925, "date": "MAR/26", "note": "Tabela vigente", "note_en": "Current price list", "margins": [0.45, 0.4167, 0.3833, 0.35], "commissions": [0.06, 0.05, 0.04, 0.03]}, "ger18": {"label": "Gerência", "label_en": "Management", "icms": 0.18, "pis": 0.0925, "date": "MAR/26", "note": "Faturamento dentro do estado", "note_en": "In-state invoicing", "margins": [0.45, 0.4167, 0.3833, 0.35, 0.3], "commissions": [0.06, 0.05, 0.04, 0.03, 0.02]}, "repr17": {"label": "Representante", "label_en": "Sales rep", "icms": 0.17, "pis": 0.0925, "date": "MAR/26", "note": "Tabela vigente", "note_en": "Current price list", "margins": [0.45, 0.4167, 0.3833, 0.35], "commissions": [0.06, 0.05, 0.04, 0.03]}, "ger17": {"label": "Gerência", "label_en": "Management", "icms": 0.17, "pis": 0.0925, "date": "MAR/26", "note": "Faturamento dentro do estado", "note_en": "In-state invoicing", "margins": [0.45, 0.4167, 0.3833, 0.35, 0.3], "commissions": [0.06, 0.05, 0.04, 0.03, 0.02]}, "repr4": {"label": "Representante", "label_en": "Sales rep", "icms": 0.04, "pis": 0.0925, "date": "MAR/26", "note": "Tabela vigente", "note_en": "Current price list", "margins": [0.45, 0.4167, 0.3833, 0.35], "commissions": [0.06, 0.05, 0.04, 0.03]}, "ger4": {"label": "Gerência", "label_en": "Management", "icms": 0.04, "pis": 0.0925, "date": "MAR/26", "note": "Faturamento dentro do estado", "note_en": "In-state invoicing", "margins": [0.45, 0.4167, 0.3833, 0.35, 0.3], "commissions": [0.06, 0.05, 0.04, 0.03, 0.02]}}, "legacy": {"repr18_jan26": {"label": "Representante", "label_en": "Sales rep", "date": "JAN/26", "note": "Faturamento SP→SP (tabela anterior)", "note_en": "SP→SP invoicing (previous table)", "icms": 0.18, "margins": [0.45, 0.4167, 0.3833, 0.35], "commissions": [0.06, 0.05, 0.04, 0.03], "rows": [{"cat": "8. Malhas", "code": "8J45PAEA9 0100", "color": "Branca", "prices": [7.53, 6.76, 6.14, 5.62], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J45PAEA9 9800", "color": "Preta", "prices": [7.16, 6.43, 5.84, 5.34], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I55PAEA9 0100", "color": "Branca", "prices": [7.53, 6.76, 6.14, 5.62], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8I55PAEA9 9800", "color": "Preta", "prices": [9.36, 8.41, 7.63, 6.99], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 0100", "color": "Branca", "prices": [9.55, 8.58, 7.78, 7.12], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 9800", "color": "Preta", "prices": [9.55, 8.58, 7.78, 7.12], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 0100", "color": "Branca", "prices": [12.1, 10.87, 9.86, 9.03], "ipi": 0.0325}, {"cat": "8. Malhas", "code": "8J65PAEA9 9800", "color": "Preta", "prices": [12.56, 11.28, 10.24, 9.37], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PA 0000", "color": "Branca", "prices": [7.71, 6.93, 6.29, 5.75], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PA 9800", "color": "Branca", "prices": [7.71, 6.93, 6.29, 5.75], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PA 0000", "color": "Preta", "prices": [8.63, 7.75, 7.03, 6.44], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PA 9800", "color": "Branca", "prices": [8.63, 7.75, 7.03, 6.44], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PAEA 0000", "color": "Branco Óptico", "prices": [9.18, 8.25, 7.48, 6.85], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA30PAEA 9800", "color": "Preta", "prices": [8.63, 7.75, 7.03, 6.44], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PAEA 0000", "color": "Branco Óptico", "prices": [9.18, 8.25, 7.48, 6.85], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA45PAEA 9800", "color": "Preta", "prices": [8.63, 7.75, 7.03, 6.44], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FA55PAEA 0000", "color": "Branco Óptico", "prices": [9.0, 8.08, 7.33, 6.71], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB40PAEA 0100", "color": "Branca", "prices": [10.83, 9.73, 8.83, 8.08], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB40PAEA 9800", "color": "Preta", "prices": [11.2, 10.06, 9.13, 8.36], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB55PAEA 0100", "color": "Branca", "prices": [12.48, 11.21, 10.18, 9.32], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB55PAEA 9800", "color": "Preta", "prices": [13.03, 11.71, 10.62, 9.73], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB70PAEA 0100", "color": "Branca", "prices": [9.32, 8.37, 7.6, 6.96], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB70PAEA 9800", "color": "Preta", "prices": [9.67, 8.69, 7.88, 7.22], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FC45PAEA 0100", "color": "Branca", "prices": [6.79, 6.1, 5.54, 5.07], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FC45PAEA 9800", "color": "Preta", "prices": [7.16, 6.43, 5.84, 5.34], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP120HP 0100", "color": "Branco Óptico", "prices": [21.48, 19.29, 17.51, 16.03], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP140HP 0100", "color": "Preta", "prices": [22.21, 19.95, 18.11, 16.58], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP120HPF 0100", "color": "Branco Óptico", "prices": [21.85, 19.62, 17.81, 16.3], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7GCP140HPF 0100", "color": "Preta", "prices": [22.4, 20.12, 18.26, 16.71], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A30PE 0100", "color": "Branco Óptico", "prices": [3.49, 3.13, 2.84, 2.6], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A60PE 0100", "color": "Branca", "prices": [4.96, 4.45, 4.04, 3.7], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A25PAEA 0100", "color": "Preta", "prices": [0, 0, 0, 0], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A25PAEA 4800", "color": "Branca", "prices": [4.46, 4.01, 3.64, 3.33], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A30PAEA 0100", "color": "Preta", "prices": [4.93, 4.43, 4.02, 3.68], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A30PAEA 4800", "color": "Preta", "prices": [4.93, 4.43, 4.02, 3.68], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A40PAEA 0100", "color": "Branca", "prices": [6.08, 5.46, 4.96, 4.54], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A40PAEA 4800", "color": "Preta", "prices": [6.08, 5.46, 4.96, 4.54], "ipi": 0.0325}, {"cat": "6. Nãotecidas", "code": "6A60PAEA 0100", "color": "Branca", "prices": [7.7, 6.92, 6.28, 5.75], "ipi": 0}, {"cat": "6. Nãotecidas", "code": "6A60PAEA 4800", "color": "Branca", "prices": [7.7, 6.92, 6.28, 5.75], "ipi": 0.0325}, {"cat": "9. Especiais", "code": "WENFUSE15 0100", "color": "Preta", "prices": [9.0, 8.08, 7.33, 6.71], "ipi": 0.0325}, {"cat": "9. Especiais", "code": "SOLVY 0100", "color": "Branca", "prices": [6.06, 5.44, 4.94, 4.52], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB40PAEA 0100", "color": "Preta", "prices": [0, 0, 0, 0], "ipi": 0.0325}, {"cat": "7. Tecidas", "code": "7FB40PAEA 9800", "color": "Branca", "prices": [0, 0, 0, 0], "ipi": 0.0325}]}}}
 </script>
 
 <script type="module">
@@ -777,6 +776,21 @@ const DEFAULT_PARAMS = JSON.parse(JSON.stringify(DATA.params));
 const FACTORY_PRODUCTS = JSON.parse(JSON.stringify(DATA.products));
 
 let dbConnected = false;
+
+// O prefixo numérico do código define a família do produto (6=Nãotecidas,
+// 7=Tecidas, 8=Malhas). Produtos como "7FB40PAEA" já vieram cadastrados em
+// "9. Especiais" por engano — aqui a categoria é corrigida pelo código, tanto
+// nos dados embutidos quanto no que vier do Supabase. Códigos que começam com
+// letra (WENFUSE15, SOLVY) continuam em "9. Especiais".
+const CAT_BY_CODE_PREFIX = { '6':'6. Nãotecidas', '7':'7. Tecidas', '8':'8. Malhas' };
+function normalizeCategories(products){
+  if(!products) return;
+  products.forEach(p=>{
+    const prefix = (p.code||'').trim().charAt(0);
+    const correct = CAT_BY_CODE_PREFIX[prefix];
+    if(correct && p.cat !== correct) p.cat = correct;
+  });
+}
 
 function describeError(err){
   if(!err) return 'erro desconhecido';
@@ -809,6 +823,7 @@ async function loadFromSupabase(){
         cat: p.category, code: p.code, color: p.color,
         cost: Number(p.cost), ipi: Number(p.ipi)
       }));
+      normalizeCategories(DATA.products);
     }
     if(coefs && coefs.length){
       coefs.forEach(row=>{
@@ -915,8 +930,12 @@ const I18N = {
     pdfBtn:"Gerar PDF",
     adminTitle:"Administração — custos e importação",
     adminHint:"Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.",
-    exportBtn:"Exportar custos (CSV)", importBtn:"Importar custos (CSV)",
-    importSuccess:(n)=> n + " custo(s) atualizado(s).",
+    exportBtn:"Exportar custos (XLSX)", importBtn:"Importar planilha (XLSX)",
+    exportFullBtn:"Exportar planilha completa (XLSX)",
+    adminHintFull:"A planilha completa traz custo e todos os preços (linha = produto, colunas para a direita). Ao importar, são aplicados Código, Categoria, Cor, Custo e IPI — os preços são recalculados pelo app.",
+    importSuccess:(n)=> n + " produto(s) atualizado(s).",
+    importAdded:"novo(s)",
+    exportOk:(n)=> "Planilha gerada com " + n + " produto(s).",
     importError:"Não foi possível importar o arquivo. Verifique o formato do CSV.",
     printSummary:(mod,icmsTxt,dateTxt,noteTxt)=> mod+' · '+icmsTxt+' · '+dateTxt+' · '+noteTxt,
     viewingLegacy:"Visualizando tabela anterior — Representante 18% (JAN/26)",
@@ -953,8 +972,12 @@ const I18N = {
     pdfBtn:"Generate PDF",
     adminTitle:"Admin — costs & import",
     adminHint:"Update each product's cost and the app recalculates every price automatically. Export to edit in a spreadsheet and import it back.",
-    exportBtn:"Export costs (CSV)", importBtn:"Import costs (CSV)",
-    importSuccess:(n)=> n + " cost(s) updated.",
+    exportBtn:"Export costs (XLSX)", importBtn:"Import spreadsheet (XLSX)",
+    exportFullBtn:"Export full spreadsheet (XLSX)",
+    adminHintFull:"The full spreadsheet has cost and every price (one row per product, columns expanding to the right). On import, Code, Category, Color, Cost and IPI are applied — prices are recalculated by the app.",
+    importSuccess:(n)=> n + " product(s) updated.",
+    importAdded:"new",
+    exportOk:(n)=> "Spreadsheet generated with " + n + " product(s).",
     importError:"Could not import the file. Check the CSV format.",
     printSummary:(mod,icmsTxt,dateTxt,noteTxt)=> mod+' · '+icmsTxt+' · '+dateTxt+' · '+noteTxt,
     viewingLegacy:"Viewing previous table — Sales rep 18% (JAN/26)",
@@ -1206,8 +1229,9 @@ function applyStaticTexts(){
   document.getElementById('txt-categoryLabel').textContent = t('categoryLabel');
   document.getElementById('txt-pdfBtn').textContent = t('pdfBtn');
   document.getElementById('txt-adminTitle').textContent = t('adminTitle');
-  document.getElementById('txt-adminHint').textContent = t('adminHint');
+  document.getElementById('txt-adminHint').textContent = t('adminHint') + ' ' + t('adminHintFull');
   document.getElementById('txt-exportBtn').textContent = t('exportBtn');
+  document.getElementById('txt-exportFullBtn').textContent = t('exportFullBtn');
   document.getElementById('txt-importBtn').textContent = t('importBtn');
   document.getElementById('txt-footerNote').textContent = t('footerNote');
   document.getElementById('txt-pwTitle').textContent = t('pwTitle');
@@ -1227,15 +1251,6 @@ function renderControls(){
 
   const icmsSeg = document.getElementById('icmsSeg');
   icmsSeg.classList.toggle('disabled', isGer && state.versionMode === 'anterior');
-
-  const pill = document.getElementById('statusPill');
-  if(isGer){
-    pill.textContent = t('statusGer');
-    pill.classList.add('gerencia');
-  } else {
-    pill.textContent = t('statusRepr');
-    pill.classList.remove('gerencia');
-  }
 }
 
 function collectCategories(block){
@@ -1571,73 +1586,155 @@ function showAdminMsg(msg, ok){
   el.className = 'admin-msg ' + (ok ? 'ok' : 'err');
 }
 
+// ---------- Planilhas XLSX (SheetJS) ----------
+// Cabeçalhos aceitos na importação (a comparação ignora acentos e maiúsculas).
+const SHEET_COLS = {
+  code:   ['codigo','code'],
+  cat:    ['categoria','category','familia','família'],
+  color:  ['cor','color'],
+  cost:   ['custo','cost'],
+  ipi:    ['ipi','excise tax (ipi)','excise tax']
+};
+function normHeader(s){
+  return String(s == null ? '' : s).trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+function findCol(header, keys){
+  for(let i=0;i<header.length;i++){
+    if(keys.indexOf(normHeader(header[i])) >= 0) return i;
+  }
+  return -1;
+}
+// Aceita "2,214" e "2.214" — o Excel pt-BR grava com vírgula.
+function parseNum(v){
+  if(v === null || v === undefined || v === '') return NaN;
+  if(typeof v === 'number') return v;
+  return parseFloat(String(v).trim().replace(',', '.'));
+}
+function downloadSheet(aoa, sheetName, fileName, colWidths){
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  if(colWidths) ws['!cols'] = colWidths.map(w=>({wch:w}));
+  ws['!freeze'] = { xSplit:0, ySplit:1 };
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, fileName);
+}
+function stamp(){
+  const d = new Date(), pad = n => String(n).padStart(2,'0');
+  return d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate());
+}
+
+// ---------- Exportação 1: só custos ----------
 document.getElementById('exportBtn').onclick = ()=>{
-  const lines = ['codigo;categoria;cor;custo;ipi'];
+  const aoa = [['Codigo','Categoria','Cor','Custo','IPI']];
   DATA.products.forEach(p=>{
-    const custo = String(p.cost).replace('.', ',');
-    const ipi = p.ipi !== null && p.ipi !== undefined ? String(p.ipi).replace('.', ',') : '';
-    lines.push([p.code, p.cat, p.color, custo, ipi].join(';'));
+    aoa.push([p.code, p.cat, p.color, Number(p.cost),
+              (p.ipi !== null && p.ipi !== undefined) ? Number(p.ipi) : '']);
   });
-  const csv = lines.join('\r\n');
-  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'custos_wendell_br.csv';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  downloadSheet(aoa, 'Custos', 'wgi_custos_' + stamp() + '.xlsx', [20,16,16,12,10]);
+  showAdminMsg(t('exportOk')(DATA.products.length), true);
 };
 
+// ---------- Exportação 2: planilha completa ----------
+// Uma linha por produto; colunas crescendo para a direita:
+// Codigo | Categoria | Cor | Custo | IPI | <preço de cada versão x cada tabela>
+// Sem títulos de seção, sem linhas em branco, sem agrupamento — só grade.
+document.getElementById('exportFullBtn').onclick = ()=>{
+  const versions = Object.keys(DATA.params);
+  const header = ['Codigo','Categoria','Cor','Custo','IPI'];
+  const priceCols = [];
+  versions.forEach(key=>{
+    const v = DATA.params[key];
+    const role = (key.indexOf('ger') === 0) ? 'Gerencia' : 'Representante';
+    const icmsTxt = Math.round(v.icms*100) + '%';
+    v.margins.forEach((m,i)=>{
+      header.push(role + ' ICMS ' + icmsTxt + ' - Tabela ' + (i+1));
+      priceCols.push({ key: key, tier: i });
+    });
+  });
+  const aoa = [header];
+  DATA.products.forEach(p=>{
+    const row = [p.code, p.cat, p.color, Number(p.cost),
+                 (p.ipi !== null && p.ipi !== undefined) ? Number(p.ipi) : ''];
+    priceCols.forEach(pc=>{
+      const v = DATA.params[pc.key];
+      const price = computePrice(p.cost, v.icms, v.pis, v.margins[pc.tier]);
+      row.push(Math.round(price*100)/100);
+    });
+    aoa.push(row);
+  });
+  const widths = [20,16,16,12,10].concat(priceCols.map(()=>22));
+  downloadSheet(aoa, 'Tabela de precos', 'wgi_tabela_completa_' + stamp() + '.xlsx', widths);
+  showAdminMsg(t('exportOk')(DATA.products.length), true);
+};
+
+// ---------- Importação: aceita a planilha de custos ou a completa ----------
+// Só Codigo, Categoria, Cor, Custo e IPI são aplicados; as colunas de preço
+// são saída calculada e por isso ignoradas na leitura.
 document.getElementById('importInput').addEventListener('change', function(e){
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
   reader.onload = function(ev){
     try{
-      const text = ev.target.result;
-      const rows = text.split(/\r?\n/).filter(l=>l.trim()!=='');
-      if(rows.length < 2) throw new Error('empty');
-      const delim = rows[0].includes(';') ? ';' : ',';
-      const header = rows[0].split(delim).map(h=>h.trim().toLowerCase());
-      const idxCodigo = header.indexOf('codigo') >= 0 ? header.indexOf('codigo') : header.indexOf('código');
-      const idxCusto = header.indexOf('custo');
-      const idxIpi = header.indexOf('ipi');
-      if(idxCodigo < 0 || idxCusto < 0) throw new Error('headers');
+      const wb = XLSX.read(new Uint8Array(ev.target.result), { type:'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      if(!ws) throw new Error('empty');
+      const aoa = XLSX.utils.sheet_to_json(ws, { header:1, blankrows:false, defval:'' });
+      if(aoa.length < 2) throw new Error('empty');
+
+      const header = aoa[0];
+      const iCode  = findCol(header, SHEET_COLS.code);
+      const iCost  = findCol(header, SHEET_COLS.cost);
+      const iCat   = findCol(header, SHEET_COLS.cat);
+      const iColor = findCol(header, SHEET_COLS.color);
+      const iIpi   = findCol(header, SHEET_COLS.ipi);
+      if(iCode < 0 || iCost < 0) throw new Error('headers');
 
       const byCode = {};
-      DATA.products.forEach(p=>{ byCode[p.code.trim().toLowerCase()] = p; });
+      DATA.products.forEach(p=>{ byCode[String(p.code).trim().toLowerCase()] = p; });
 
-      let updated = 0;
-      for(let i=1;i<rows.length;i++){
-        const cols = rows[i].split(delim);
-        const code = (cols[idxCodigo]||'').trim();
+      let updated = 0, added = 0;
+      for(let r=1; r<aoa.length; r++){
+        const row = aoa[r] || [];
+        const code = String(row[iCode] == null ? '' : row[iCode]).trim();
         if(!code) continue;
-        const prod = byCode[code.toLowerCase()];
-        if(!prod) continue;
-        const rawCusto = (cols[idxCusto]||'').trim();
-        if(rawCusto !== ''){
-          const custoNum = parseFloat(rawCusto.replace(/\./g,'').replace(',', '.')) ;
-          const custoAlt = parseFloat(rawCusto.replace(',', '.'));
-          const finalCusto = !isNaN(custoAlt) ? custoAlt : custoNum;
-          if(!isNaN(finalCusto)) { prod.cost = finalCusto; updated++; }
+        const cost = parseNum(row[iCost]);
+        if(isNaN(cost)) continue;
+
+        let prod = byCode[code.toLowerCase()];
+        if(!prod){
+          // Produto novo na planilha entra no catálogo
+          prod = { code: code, cat: '9. Especiais', color: '', cost: 0, ipi: 0 };
+          DATA.products.push(prod);
+          byCode[code.toLowerCase()] = prod;
+          added++;
+        } else {
+          updated++;
         }
-        if(idxIpi >= 0){
-          const rawIpi = (cols[idxIpi]||'').trim();
-          if(rawIpi !== ''){
-            const ipiNum = parseFloat(rawIpi.replace(',', '.'));
-            if(!isNaN(ipiNum)) prod.ipi = ipiNum;
-          }
+        prod.cost = cost;
+        if(iCat   >= 0 && String(row[iCat]).trim()   !== '') prod.cat   = String(row[iCat]).trim();
+        if(iColor >= 0 && String(row[iColor]).trim() !== '') prod.color = String(row[iColor]).trim();
+        if(iIpi   >= 0){
+          const ipi = parseNum(row[iIpi]);
+          if(!isNaN(ipi)) prod.ipi = ipi;
         }
       }
-      if(updated === 0) throw new Error('none');
-      showAdminMsg(t('importSuccess')(updated), true);
+      if(updated === 0 && added === 0) throw new Error('none');
+
+      // A família continua sendo definida pelo prefixo do código
+      normalizeCategories(DATA.products);
+      showAdminMsg(t('importSuccess')(updated + added)
+        + (added ? ' (' + added + ' ' + t('importAdded') + ')' : ''), true);
       render();
       saveProductsToSupabase(DATA.products);
     }catch(err){
+      console.warn('Falha ao importar planilha:', err);
       showAdminMsg(t('importError'), false);
     }
     e.target.value = '';
   };
-  reader.readAsText(file, 'UTF-8');
+  reader.readAsArrayBuffer(file);
 });
 
 render();
