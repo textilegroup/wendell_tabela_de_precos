@@ -456,11 +456,20 @@
   }
   th.sim-col{ color:var(--maroon-dark) !important; }
   th.sim-col + th.sim-col, td.sim-col + td.sim-col{ border-left:1px solid var(--input-border) !important; }
-  td.sim-col{ text-align:right; white-space:nowrap; }
+  td.sim-col{ text-align:right; white-space:nowrap; padding-left:8px; padding-right:8px; }
+  /* Linha sem alteração/seleção na simulação: dados em cinza claro, para
+     deixar claro que aquele valor ainda não está sendo considerado.
+     Assim que a linha é editada ou o preço resultante é escolhido para o
+     orçamento, ela volta ao contraste normal (removendo a classe sim-dim). */
+  td.sim-col.sim-dim{ opacity:.5; }
+  td.sim-col.sim-dim input.sim-input{ color:var(--ink-faint); }
+  /* Linha ativa (editada ou escolhida para o orçamento): reforça o destaque
+     em relação às demais, que ficam em cinza claro. */
+  td.sim-col:not(.sim-dim){ background:#FCEFC2 !important; }
   input.sim-input{
-    width:104px; text-align:right;
+    width:82px; text-align:right;
     border:1px solid var(--input-border); border-radius:6px;
-    padding:5px 8px; font-family:'Inter',sans-serif; font-size:13.5px;
+    padding:5px 6px; font-family:'Inter',sans-serif; font-size:13px;
     font-weight:700; font-variant-numeric:tabular-nums; color:var(--ink);
     background:#fff;
   }
@@ -468,8 +477,8 @@
     outline:none; border-color:var(--maroon); box-shadow:0 0 0 3px rgba(124,27,41,0.12);
   }
   input.sim-input.changed{ border-color:var(--maroon); background:#FFF6F7; }
-  input.sim-input.sim-comm{ width:76px; }
-  .sim-pct{ font-size:12px; color:var(--ink-faint); margin-left:4px; }
+  input.sim-input.sim-comm{ width:60px; }
+  .sim-pct{ font-size:11.5px; color:var(--ink-faint); margin-left:3px; }
   td.sim-margin{
     font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink-soft);
   }
@@ -528,7 +537,8 @@
   td.sim-out{ text-align:right; font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink-soft); }
   td.sim-out.changed{ color:var(--maroon-dark); }
   td.sim-out.negative{ color:#B02A2A; font-size:11px; }
-  input.sim-input.sim-margin-in{ width:76px; }
+  td.sim-out.pick-cell::after{ left:5px; }
+  input.sim-input.sim-margin-in{ width:58px; }
   button.sim-clear{
     margin-left:5px; width:18px; height:18px; padding:0; vertical-align:middle;
     border:1px solid var(--input-border); border-radius:50%;
@@ -544,8 +554,12 @@
   .sim-ctl .sim-ctl-toggle{ font-weight:700; }
   .sim-ctl .sim-mode-switch{ margin:0; }
 
-  /* ===== Grupo de simulação recolhível no cabeçalho da tabela ===== */
-  th.sim-group-head.collapsed{ width:42px; padding:6px 4px !important; }
+  /* ===== Grupo de simulação recolhível no cabeçalho da tabela =====
+     Estado ABERTO: botão com contorno (chave "«" convida a recolher).
+     Estado RECOLHIDO: botão PREENCHIDO em bordô, para ficar óbvio que é um
+     controle fechado que precisa de clique para abrir (chave "»"). A cor
+     sólida é a principal pista visual de que a coluna está recolhida. */
+  th.sim-group-head.collapsed{ width:40px; padding:6px 3px !important; background:rgba(124,27,41,0.10) !important; }
   button.sim-group-btn{
     border:1px solid var(--maroon-line); background:#fff; color:var(--maroon);
     font-family:'Inter',sans-serif; font-weight:800; font-size:10.5px;
@@ -554,8 +568,11 @@
   }
   button.sim-group-btn:hover{ background:var(--maroon); color:#fff; }
   th.sim-group-head.collapsed button.sim-group-btn{
-    writing-mode:vertical-rl; transform:rotate(180deg); padding:9px 4px;
+    writing-mode:vertical-rl; transform:rotate(180deg); padding:10px 5px;
+    background:var(--maroon); color:#fff; border-color:var(--maroon);
+    box-shadow:0 0 0 2px rgba(124,27,41,0.18);
   }
+  th.sim-group-head.collapsed button.sim-group-btn:hover{ background:var(--maroon-dark); }
 
   /* ===== Módulo recolhível "Visualizar simulação" ===== */
   .sim-toggle{
@@ -1828,7 +1845,7 @@ function render(){
           const inLabel  = byMargin ? t('simMarginInCol') : t('simPriceCol');
           const outLabel = byMargin ? t('simPriceOutCol') : t('simMarginCol');
           thead += '<th class="sim-col sim-group-head">'
-                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupCloseTip'))+'">▾ '+t('simGroupLabel')+'</button>'
+                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupCloseTip'))+'">« '+t('simGroupLabel')+'</button>'
                 +  '<span class="sim-mode-switch" title="'+escAttr(t('simModeTip'))+'">'
                 +    '<button class="sim-mode-opt'+(!byMargin?' on':'')+'" data-mode="margemPeloPreco">'+t('simModeMarginFromPrice')+'</button>'
                 +    '<button class="sim-mode-opt'+(byMargin?' on':'')+'" data-mode="precoPelaMargem">'+t('simModePriceFromMargin')+'</button>'
@@ -1840,7 +1857,7 @@ function render(){
                 +  '<span class="tier-pct">'+outLabel+'</span></th>';
         } else {
           thead += '<th class="sim-col sim-group-head collapsed">'
-                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupOpenTip'))+'">▸ '+t('simGroupLabel')+'</button></th>';
+                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupOpenTip'))+'">» '+t('simGroupLabel')+'</button></th>';
         }
       }
       thead += '<th class="ipi-col">'+t('ipiCol')+'</th></tr></thead>';
@@ -1875,12 +1892,23 @@ function render(){
           const sv = simValues(r, block);
           const byMargin = (state.simMode === 'precoPelaMargem');
           const anyChanged = sv.pChanged || sv.cChanged || sv.mChanged;
-          // A célula de entrada também é a que pode ser escolhida no orçamento
           const simPicked = (picked === 'sim');
-          tds += '<td class="sim-col pick-cell sim-pick'+(simPicked?' picked':'')+'"'
+          // Mesmo com a margem editável, só a célula que mostra o PREÇO (em
+          // R$) pode ser escolhida para o orçamento — a de margem (%) nunca
+          // é clicável. No modo "preço pela margem" quem mostra o preço é a
+          // saída (Preço resultante); no modo "margem pelo preço" é a própria
+          // entrada (o preço é digitado direto).
+          const inputIsPrice = !byMargin;
+          const outputIsPrice = byMargin && !sv.impossible;
+          // Sem dado alterado nem escolha feita nesta linha, os valores da
+          // simulação ficam em cinza claro — só evidenciamos a linha quando
+          // ela é editada ou escolhida para o orçamento.
+          const simRowActive = anyChanged || simPicked;
+          const dimCls = simRowActive ? '' : ' sim-dim';
+          tds += '<td class="sim-col'+dimCls+(inputIsPrice ? ' pick-cell sim-pick'+(simPicked?' picked':'') : '')+'"'
               +  ' data-code="'+escAttr(r.code)+'" data-col="sim"'
               +  ' data-label="'+(byMargin ? t('simMarginInCol') : t('simPriceCol'))+'">'
-              +  '<button class="pick-dot" title="'+escAttr(t('pickTip'))+'">✓</button>';
+              +  (inputIsPrice ? '<button class="pick-dot" title="'+escAttr(t('pickTip'))+'">✓</button>' : '');
           if(byMargin){
             tds += '<input type="number" step="0.1" class="sim-input sim-margin-in'+(sv.mChanged?' changed':'')+'"'
                 +  ' data-code="'+escAttr(r.code)+'" value="'+(sv.margin*100).toFixed(2)+'">'
@@ -1892,19 +1920,25 @@ function render(){
                 +  clearBtn(r.code, 'price', sv.pChanged);
           }
           tds += '</td>';
-          tds += '<td class="sim-col" data-label="'+t('simCommCol')+'">'
+          tds += '<td class="sim-col'+dimCls+'" data-label="'+t('simCommCol')+'">'
               +  '<input type="number" step="0.1" min="0" class="sim-input sim-comm'+(sv.cChanged?' changed':'')+'"'
               +  ' data-code="'+escAttr(r.code)+'" value="'+(sv.comm*100).toFixed(2)+'"><span class="sim-pct">%</span>'
               +  clearBtn(r.code, 'comm', sv.cChanged)
               +  '</td>';
           if(byMargin){
-            // Saída: preço resultante da margem pedida
-            tds += '<td class="sim-col sim-out'+(anyChanged?' changed':'')+(sv.impossible?' negative':'')+'"'
-                +  ' data-code="'+escAttr(r.code)+'" data-label="'+t('simPriceOutCol')+'">'
+            // Saída: preço resultante da margem pedida — única célula
+            // clicável do grupo de simulação neste modo. Usa o mesmo padrão
+            // visual das demais colunas de preço (marca com ✓ via CSS), sem
+            // o botão redondo, já que aqui não há campo de digitação junto.
+            tds += '<td class="sim-col sim-out'+dimCls+(outputIsPrice ? ' pick-cell'+(simPicked?' picked':'') : '')
+                +  (anyChanged?' changed':'')+(sv.impossible?' negative':'')+'"'
+                +  ' data-code="'+escAttr(r.code)+'" data-col="sim"'
+                +  ' data-label="'+t('simPriceOutCol')+'">'
                 +  (sv.impossible ? t('simImpossible') : fmtBRL(sv.price))+'</td>';
           } else {
-            // Saída: margem resultante do preço informado
-            tds += '<td class="sim-col sim-out'+(anyChanged?' changed':'')
+            // Saída: margem resultante do preço informado — não é preço,
+            // portanto nunca é clicável.
+            tds += '<td class="sim-col sim-out'+dimCls+(anyChanged?' changed':'')
                 +  ((sv.margin!==null && sv.margin<0)?' negative':'')+'"'
                 +  ' data-code="'+escAttr(r.code)+'" data-label="'+t('simMarginCol')+'">'
                 +  (sv.margin!==null ? fmtPct(sv.margin) : '—')+'</td>';
@@ -1991,14 +2025,20 @@ function bindSimInputs(block){
     cell.classList.toggle('changed', sv.pChanged || sv.cChanged || sv.mChanged);
   }
 
-  // ✕ de cada campo: apaga só aquele valor e volta ao padrão
+  // ✕ de cada campo: apaga só aquele valor e volta ao padrão. Se o item
+  // estava escolhido no orçamento pela simulação, fechar o campo também
+  // desfaz essa escolha — o preço "resultante" que ele indicava deixa de existir.
   document.querySelectorAll('button.sim-clear').forEach(btn=>{
     btn.addEventListener('click', (ev)=>{
-      ev.stopPropagation();   // não pode mexer na seleção do orçamento
+      ev.stopPropagation();
       const code = btn.dataset.code, field = btn.dataset.field;
       if(field === 'price')  delete state.simPrices[code];
       if(field === 'margin') delete state.simMargins[code];
       if(field === 'comm')   delete state.simComms[code];
+      if(state.selRows[code] && rowColOf(code, block) === 'sim'){
+        delete state.selRows[code];
+        delete state.rowCol[code];
+      }
       render();
     });
   });
