@@ -529,6 +529,14 @@
   td.sim-out.changed{ color:var(--maroon-dark); }
   td.sim-out.negative{ color:#B02A2A; font-size:11px; }
   input.sim-input.sim-margin-in{ width:76px; }
+  button.sim-clear{
+    margin-left:5px; width:18px; height:18px; padding:0; vertical-align:middle;
+    border:1px solid var(--input-border); border-radius:50%;
+    background:#fff; color:var(--ink-faint);
+    font-size:9px; font-weight:800; line-height:1; cursor:pointer; opacity:.45;
+  }
+  button.sim-clear:hover{ opacity:1; border-color:var(--maroon); color:var(--maroon); }
+  button.sim-clear.on{ opacity:1; border-color:var(--maroon-line); color:var(--maroon); background:#FFF6F7; }
 
   /* Atalho de simulação no painel de filtros (essencial no celular) */
   .filters-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
@@ -817,7 +825,6 @@
       </label>
     </div>
     <div class="admin-msg" id="adminMsg"></div>
-    <div class="admin-msg" id="dbStatus" style="opacity:0.75; font-size:12px;"></div>
   </section>
 
   <section class="panel admin-panel no-print" id="coefPanel" style="display:none;">
@@ -974,11 +981,10 @@ function describeError(err){
   try{ return JSON.stringify(err); }catch(e){ return String(err); }
 }
 
+// O estado da conexão não é mais exibido na interface — fica só no console
+// do navegador, para diagnóstico quando necessário.
 function setDbStatus(msg, ok){
-  const el = document.getElementById('dbStatus');
-  if(!el) return;
-  el.textContent = msg;
-  el.style.color = ok ? '#2e7d32' : '#b3261e';
+  if(ok) console.info('[dados] ' + msg); else console.warn('[dados] ' + msg);
 }
 
 // ---------- Carrega produtos e coeficientes do Supabase ----------
@@ -1029,7 +1035,8 @@ async function saveProductsToSupabase(products){
   if(error){
     const detail = describeError(error);
     console.warn('Falha ao salvar produtos no Supabase:', detail, error);
-    setDbStatus('Falha ao salvar produtos no Supabase. Detalhe: ' + detail, false);
+    setDbStatus('Falha ao salvar produtos. Detalhe: ' + detail, false);
+    showAdminMsg(t('saveError'), false);
   } else {
     setDbStatus('Custos salvos no Supabase com sucesso.', true);
   }
@@ -1046,7 +1053,8 @@ async function saveCoefficientsToSupabase(versionKey){
   if(error){
     const detail = describeError(error);
     console.warn('Falha ao salvar coeficientes no Supabase:', detail, error);
-    setDbStatus('Falha ao salvar coeficientes no Supabase. Detalhe: ' + detail, false);
+    setDbStatus('Falha ao salvar coeficientes. Detalhe: ' + detail, false);
+    showAdminMsg(t('saveError'), false);
   } else {
     setDbStatus('Coeficientes salvos no Supabase com sucesso.', true);
   }
@@ -1118,6 +1126,7 @@ const I18N = {
     simMarginInCol:"Simular margem", simPriceOutCol:"Preço resultante",
     simModeTip:"Alternar entre digitar o preço (e ver a margem) ou digitar a margem (e ver o preço)",
     simImpossible:"markup impossível",
+    simClearField:"Limpar este campo",
     simGroupLabel:"Simulação", simGroupOpenTip:"Abrir as colunas de simulação",
     simGroupCloseTip:"Recolher as colunas de simulação", simClear:"Limpar simulação",
     priceCol:"Preço",
@@ -1141,7 +1150,8 @@ const I18N = {
     importSuccess:(n)=> n + " produto(s) atualizado(s).",
     importAdded:"novo(s)",
     exportOk:(n)=> "Planilha gerada com " + n + " produto(s).",
-    importError:"Não foi possível importar o arquivo. Verifique o formato do CSV.",
+    importError:"Não foi possível importar o arquivo. Verifique o formato da planilha.",
+    saveError:"Não foi possível salvar no banco. As alterações valem só nesta tela.",
     printSummary:(mod,icmsTxt,dateTxt,noteTxt)=> mod+' · '+icmsTxt+' · '+dateTxt+' · '+noteTxt,
     viewingLegacy:"Visualizando tabela anterior — Representante 18% (JAN/26)",
     coefTitle:"Coeficientes de Venda por Versão",
@@ -1178,6 +1188,7 @@ const I18N = {
     simMarginInCol:"Simulate margin", simPriceOutCol:"Resulting price",
     simModeTip:"Switch between typing the price (and seeing the margin) or typing the margin (and seeing the price)",
     simImpossible:"impossible markup",
+    simClearField:"Clear this field",
     simGroupLabel:"Simulation", simGroupOpenTip:"Open the simulation columns",
     simGroupCloseTip:"Collapse the simulation columns", simClear:"Clear simulation",
     priceCol:"Price",
@@ -1201,7 +1212,8 @@ const I18N = {
     importSuccess:(n)=> n + " product(s) updated.",
     importAdded:"new",
     exportOk:(n)=> "Spreadsheet generated with " + n + " product(s).",
-    importError:"Could not import the file. Check the CSV format.",
+    importError:"Could not import the file. Check the spreadsheet format.",
+    saveError:"Could not save to the database. Changes apply to this screen only.",
     printSummary:(mod,icmsTxt,dateTxt,noteTxt)=> mod+' · '+icmsTxt+' · '+dateTxt+' · '+noteTxt,
     viewingLegacy:"Viewing previous table — Sales rep 18% (JAN/26)",
     coefTitle:"Sales Coefficients by Version",
@@ -1610,6 +1622,14 @@ function simValues(r, block){
   };
 }
 
+// Botãozinho ✕ ao lado de cada campo de simulação: devolve aquele campo ao
+// valor padrão da última tabela. Fica apagado enquanto o campo não foi mexido.
+function clearBtn(code, field, active){
+  return '<button class="sim-clear'+(active?' on':'')+'"'
+    + ' data-code="'+escAttr(code)+'" data-field="'+field+'"'
+    + ' title="'+escAttr(t('simClearField'))+'">✕</button>';
+}
+
 function selectedRowCount(){ return Object.keys(state.selRows).filter(k=>state.selRows[k]).length; }
 function simCount(){
   const codes = {};
@@ -1864,15 +1884,19 @@ function render(){
           if(byMargin){
             tds += '<input type="number" step="0.1" class="sim-input sim-margin-in'+(sv.mChanged?' changed':'')+'"'
                 +  ' data-code="'+escAttr(r.code)+'" value="'+(sv.margin*100).toFixed(2)+'">'
-                +  '<span class="sim-pct">%</span>';
+                +  '<span class="sim-pct">%</span>'
+                +  clearBtn(r.code, 'margin', sv.mChanged);
           } else {
             tds += '<input type="number" step="0.01" min="0" class="sim-input'+(sv.pChanged?' changed':'')+'"'
-                +  ' data-code="'+escAttr(r.code)+'" value="'+(sv.price>0 ? sv.price.toFixed(2) : '0.00')+'">';
+                +  ' data-code="'+escAttr(r.code)+'" value="'+(sv.price>0 ? sv.price.toFixed(2) : '0.00')+'">'
+                +  clearBtn(r.code, 'price', sv.pChanged);
           }
           tds += '</td>';
           tds += '<td class="sim-col" data-label="'+t('simCommCol')+'">'
               +  '<input type="number" step="0.1" min="0" class="sim-input sim-comm'+(sv.cChanged?' changed':'')+'"'
-              +  ' data-code="'+escAttr(r.code)+'" value="'+(sv.comm*100).toFixed(2)+'"><span class="sim-pct">%</span></td>';
+              +  ' data-code="'+escAttr(r.code)+'" value="'+(sv.comm*100).toFixed(2)+'"><span class="sim-pct">%</span>'
+              +  clearBtn(r.code, 'comm', sv.cChanged)
+              +  '</td>';
           if(byMargin){
             // Saída: preço resultante da margem pedida
             tds += '<td class="sim-col sim-out'+(anyChanged?' changed':'')+(sv.impossible?' negative':'')+'"'
@@ -1967,6 +1991,18 @@ function bindSimInputs(block){
     cell.classList.toggle('changed', sv.pChanged || sv.cChanged || sv.mChanged);
   }
 
+  // ✕ de cada campo: apaga só aquele valor e volta ao padrão
+  document.querySelectorAll('button.sim-clear').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();   // não pode mexer na seleção do orçamento
+      const code = btn.dataset.code, field = btn.dataset.field;
+      if(field === 'price')  delete state.simPrices[code];
+      if(field === 'margin') delete state.simMargins[code];
+      if(field === 'comm')   delete state.simComms[code];
+      render();
+    });
+  });
+
   document.querySelectorAll('input.sim-input').forEach(inp=>{
     const isComm   = inp.classList.contains('sim-comm');
     const isMargin = inp.classList.contains('sim-margin-in');
@@ -1977,13 +2013,17 @@ function bindSimInputs(block){
       const code = inp.dataset.code;
       const raw = String(inp.value).replace(',', '.').trim();
       const val = parseFloat(raw);
-      if(raw === '' || isNaN(val)){
+      const changed = !(raw === '' || isNaN(val));
+      if(!changed){
         delete store[code];               // volta ao padrão da última tabela
-        inp.classList.remove('changed');
       } else {
         store[code] = isPct ? (val/100) : val;
-        inp.classList.add('changed');
       }
+      inp.classList.toggle('changed', changed);
+      // acende o ✕ do próprio campo na hora, sem esperar o re-render
+      const own = inp.parentElement.querySelector('button.sim-clear[data-field="'
+        + (isComm ? 'comm' : (isMargin ? 'margin' : 'price')) + '"]');
+      if(own) own.classList.toggle('on', changed);
       refreshRow(code);
     });
   });
@@ -2111,13 +2151,63 @@ function parseNum(v){
   if(typeof v === 'number') return v;
   return parseFloat(String(v).trim().replace(',', '.'));
 }
-function downloadSheet(aoa, sheetName, fileName, colWidths){
+// Monta uma aba a partir de uma matriz linha/coluna.
+// pctCols / numCols recebem índices de coluna que devem sair formatados como
+// porcentagem ou número com casas decimais no Excel.
+function buildSheet(aoa, colWidths, pctCols, numCols){
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   if(colWidths) ws['!cols'] = colWidths.map(w=>({wch:w}));
   ws['!freeze'] = { xSplit:0, ySplit:1 };
+  const fmt = (cols, z)=>{
+    if(!cols) return;
+    for(let r=1; r<aoa.length; r++){
+      cols.forEach(c=>{
+        const ref = XLSX.utils.encode_cell({r:r, c:c});
+        if(ws[ref] && ws[ref].t === 'n') ws[ref].z = z;
+      });
+    }
+  };
+  fmt(pctCols, '0.00%');
+  fmt(numCols, '0.0000');
+  return ws;
+}
+function downloadWorkbook(sheets, fileName){
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  sheets.forEach(s=>{ XLSX.utils.book_append_sheet(wb, s.ws, s.name); });
   XLSX.writeFile(wb, fileName);
+}
+function downloadSheet(aoa, sheetName, fileName, colWidths){
+  downloadWorkbook([{ name: sheetName, ws: buildSheet(aoa, colWidths) }], fileName);
+}
+
+// Aba "Coeficientes": a sistemática que gera cada preço das tabelas.
+// preço = custo / (1 - (ICMS + PIS/COFINS×(1-ICMS) + comissão + margem))
+// Uma linha por versão × tabela, com o multiplicador final sobre o custo.
+function buildCoefSheet(){
+  const header = ['Versao','Perfil','ICMS','PIS/COFINS','Impostos efetivos',
+                  'Tabela','Margem','Comissao','Soma no markup','Denominador',
+                  'Multiplicador sobre o custo','Preco de um custo de R$ 1,00'];
+  const aoa = [header];
+  Object.keys(DATA.params).forEach(key=>{
+    const v = DATA.params[key];
+    const perfil = (key.indexOf('ger') === 0) ? 'Gerencia' : 'Representante';
+    const impostos = v.icms + v.pis*(1 - v.icms);
+    v.margins.forEach((m,i)=>{
+      const comm = v.commissions[i] || 0;
+      const soma = impostos + comm + m;
+      const denom = 1 - soma;
+      const mult = denom > 0.0001 ? (1/denom) : null;
+      aoa.push([
+        key, perfil, v.icms, v.pis, impostos,
+        'Tabela ' + (i+1), m, comm, soma, denom,
+        mult === null ? '' : Math.round(mult*10000)/10000,
+        mult === null ? '' : Math.round(mult*100)/100
+      ]);
+    });
+  });
+  const widths = [12,15,9,12,17,10,10,10,15,13,26,26];
+  // colunas em % : ICMS, PIS, impostos, margem, comissão, soma, denominador
+  return buildSheet(aoa, widths, [2,3,4,6,7,8,9], [10,11]);
 }
 function stamp(){
   const d = new Date(), pad = n => String(n).padStart(2,'0');
@@ -2164,7 +2254,10 @@ document.getElementById('exportFullBtn').onclick = ()=>{
     aoa.push(row);
   });
   const widths = [20,16,16,12,10].concat(priceCols.map(()=>22));
-  downloadSheet(aoa, 'Tabela de precos', 'wgi_tabela_completa_' + stamp() + '.xlsx', widths);
+  downloadWorkbook([
+    { name: 'Tabela de precos', ws: buildSheet(aoa, widths, [4]) },
+    { name: 'Coeficientes',     ws: buildCoefSheet() }
+  ], 'wgi_tabela_completa_' + stamp() + '.xlsx');
   showAdminMsg(t('exportOk')(DATA.products.length), true);
 };
 
