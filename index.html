@@ -1768,21 +1768,27 @@ function render(){
 
   let rows = block.rows;
   if(quote){
+    // O orçamento traz exatamente os itens marcados pelo usuário — nada
+    // além disso. Os filtros de categoria e busca são só para NAVEGAR na
+    // tela; se ficarem ativos, não podem esconder do PDF um item que já
+    // foi selecionado (ele pode ter sido marcado numa categoria ou busca
+    // diferente da que está em tela agora).
     rows = rows.filter(r => state.selRows[r.code]);
-  }
-  const selCats = Object.keys(state.cats).filter(k=>state.cats[k]);
-  if(selCats.length > 0){
-    rows = rows.filter(r=>selCats.indexOf(r.cat) >= 0);
-  }
-  // A busca aceita vários produtos de uma vez: separe por vírgula, ponto e
-  // vírgula ou quebra de linha (ex.: "8J50PE, 7FB90PA, 6A30PE").
-  if(state.search.trim() !== ''){
-    const terms = state.search.split(/[,;\n]+/).map(s=>s.trim().toLowerCase()).filter(Boolean);
-    if(terms.length){
-      rows = rows.filter(r=>{
-        const code = r.code.toLowerCase(), color = (r.color||'').toLowerCase();
-        return terms.some(q => code.includes(q) || color.includes(q));
-      });
+  } else {
+    const selCats = Object.keys(state.cats).filter(k=>state.cats[k]);
+    if(selCats.length > 0){
+      rows = rows.filter(r=>selCats.indexOf(r.cat) >= 0);
+    }
+    // A busca aceita vários produtos de uma vez: separe por vírgula, ponto e
+    // vírgula ou quebra de linha (ex.: "8J50PE, 7FB90PA, 6A30PE").
+    if(state.search.trim() !== ''){
+      const terms = state.search.split(/[,;\n]+/).map(s=>s.trim().toLowerCase()).filter(Boolean);
+      if(terms.length){
+        rows = rows.filter(r=>{
+          const code = r.code.toLowerCase(), color = (r.color||'').toLowerCase();
+          return terms.some(q => code.includes(q) || color.includes(q));
+        });
+      }
     }
   }
 
@@ -1851,10 +1857,10 @@ function render(){
                 +    '<button class="sim-mode-opt'+(byMargin?' on':'')+'" data-mode="precoPelaMargem">'+t('simModePriceFromMargin')+'</button>'
                 +  '</span>'
                 +  '<span class="tier-pct">'+inLabel+'</span></th>';
-          thead += '<th class="sim-col">'+t('tableCol')+' '+(tierCount+2)
-                +  '<span class="tier-pct">'+t('simCommCol')+'</span></th>';
-          thead += '<th class="sim-col">'+t('tableCol')+' '+(tierCount+3)
-                +  '<span class="tier-pct">'+outLabel+'</span></th>';
+          // Sem numeração de tabela aqui — é simulação, não uma tabela fixa;
+          // só o rótulo do que a coluna representa.
+          thead += '<th class="sim-col">'+t('simCommCol')+'</th>';
+          thead += '<th class="sim-col">'+outLabel+'</th>';
         } else {
           thead += '<th class="sim-col sim-group-head collapsed">'
                 +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupOpenTip'))+'">» '+t('simGroupLabel')+'</button></th>';
@@ -1900,12 +1906,15 @@ function render(){
           // entrada (o preço é digitado direto).
           const inputIsPrice = !byMargin;
           const outputIsPrice = byMargin && !sv.impossible;
-          // Sem dado alterado nem escolha feita nesta linha, os valores da
-          // simulação ficam em cinza claro — só evidenciamos a linha quando
-          // ela é editada ou escolhida para o orçamento.
-          const simRowActive = anyChanged || simPicked;
-          const dimCls = simRowActive ? '' : ' sim-dim';
-          tds += '<td class="sim-col'+dimCls+(inputIsPrice ? ' pick-cell sim-pick'+(simPicked?' picked':'') : '')+'"'
+          // Sem alterar margem ou preço, os valores da simulação ficam em
+          // cinza claro. Só a edição de margem/preço evidencia a linha —
+          // mudar a comissão sozinha, ou apenas marcar o preço resultante
+          // sem editar nada, não tira o cinza. A célula efetivamente
+          // escolhida para o orçamento nunca fica esmaecida, mesmo assim.
+          const priceOrMarginChanged = sv.pChanged || sv.mChanged;
+          const dimCls = priceOrMarginChanged ? '' : ' sim-dim';
+          const inputDimCls = (priceOrMarginChanged || (simPicked && inputIsPrice)) ? '' : ' sim-dim';
+          tds += '<td class="sim-col'+inputDimCls+(inputIsPrice ? ' pick-cell sim-pick'+(simPicked?' picked':'') : '')+'"'
               +  ' data-code="'+escAttr(r.code)+'" data-col="sim"'
               +  ' data-label="'+(byMargin ? t('simMarginInCol') : t('simPriceCol'))+'">'
               +  (inputIsPrice ? '<button class="pick-dot" title="'+escAttr(t('pickTip'))+'">✓</button>' : '');
@@ -1925,12 +1934,13 @@ function render(){
               +  ' data-code="'+escAttr(r.code)+'" value="'+(sv.comm*100).toFixed(2)+'"><span class="sim-pct">%</span>'
               +  clearBtn(r.code, 'comm', sv.cChanged)
               +  '</td>';
+          const outputDimCls = (priceOrMarginChanged || (simPicked && outputIsPrice)) ? '' : ' sim-dim';
           if(byMargin){
             // Saída: preço resultante da margem pedida — única célula
             // clicável do grupo de simulação neste modo. Usa o mesmo padrão
             // visual das demais colunas de preço (marca com ✓ via CSS), sem
             // o botão redondo, já que aqui não há campo de digitação junto.
-            tds += '<td class="sim-col sim-out'+dimCls+(outputIsPrice ? ' pick-cell'+(simPicked?' picked':'') : '')
+            tds += '<td class="sim-col sim-out'+outputDimCls+(outputIsPrice ? ' pick-cell'+(simPicked?' picked':'') : '')
                 +  (anyChanged?' changed':'')+(sv.impossible?' negative':'')+'"'
                 +  ' data-code="'+escAttr(r.code)+'" data-col="sim"'
                 +  ' data-label="'+t('simPriceOutCol')+'">'
@@ -1938,7 +1948,7 @@ function render(){
           } else {
             // Saída: margem resultante do preço informado — não é preço,
             // portanto nunca é clicável.
-            tds += '<td class="sim-col sim-out'+dimCls+(anyChanged?' changed':'')
+            tds += '<td class="sim-col sim-out'+outputDimCls+(anyChanged?' changed':'')
                 +  ((sv.margin!==null && sv.margin<0)?' negative':'')+'"'
                 +  ' data-code="'+escAttr(r.code)+'" data-label="'+t('simMarginCol')+'">'
                 +  (sv.margin!==null ? fmtPct(sv.margin) : '—')+'</td>';
