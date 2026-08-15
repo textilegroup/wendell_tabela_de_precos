@@ -1218,8 +1218,15 @@ const I18N = {
 
 function t(key){ return I18N[state.lang][key]; }
 
-function computePrice(cost, icms, pis, margin){
-  return cost / (1 - (icms + pis*(1-icms) + margin));
+// Markup único do app: impostos + comissão + margem entram todos no
+// denominador. A comissão da tabela faz parte do preço, e não é mais um
+// desconto tirado da margem depois.
+// price = cost / (1 - (icms + pis*(1-icms) + comissao + margem))
+function computePrice(cost, icms, pis, margin, commission){
+  const comm = (commission === null || commission === undefined || isNaN(commission)) ? 0 : commission;
+  const denom = 1 - (icms + pis*(1-icms) + comm + margin);
+  if(denom <= 0.0001) return null;   // markup impossível
+  return cost / denom;
 }
 // Inverso de computePrice: dado um preço simulado, qual a margem resultante?
 // price = cost / (1 - (icms + pis*(1-icms) + margem))  =>
@@ -1266,7 +1273,7 @@ function currentBlock(){
   const rows = DATA.products.map(prod=>({
     cat: prod.cat, code: prod.code, color: prod.color, ipi: prod.ipi,
     cost: prod.cost, // necessário para calcular a margem da simulação
-    prices: p.margins.map(m=>computePrice(prod.cost, p.icms, p.pis, m))
+    prices: p.margins.map((m,i)=>computePrice(prod.cost, p.icms, p.pis, m, p.commissions[i]))
   }));
   return {
     label: state.lang==='en' ? p.label_en : p.label,
@@ -1282,7 +1289,8 @@ function currentBlock(){
 function computeVarTabs(key){
   const p = DATA.params[key];
   const base = p.icms + p.pis*(1-p.icms);
-  const denom = p.margins.map(m=>1-(base+m));
+  // mesmo denominador do preço: impostos + comissão + margem
+  const denom = p.margins.map((m,i)=>1-(base+(p.commissions[i]||0)+m));
   return denom.map((d,i)=> i===denom.length-1 ? 0 : (denom[i+1]/d)-1);
 }
 
@@ -1576,7 +1584,7 @@ function simValues(r, block){
       // herda de um preço digitado antes de trocar de modo, se houver
       m = (typedP !== undefined && typedP !== null)
         ? marginFromPrice(r.cost, block.icms, block.pis, typedP, comm)
-        : (block.margins[last] - comm);
+        : block.margins[last];
     }
     margin = m;
     const pr = priceFromMargin(r.cost, block.icms, block.pis, m, comm);
@@ -2150,8 +2158,8 @@ document.getElementById('exportFullBtn').onclick = ()=>{
                  (p.ipi !== null && p.ipi !== undefined) ? Number(p.ipi) : ''];
     priceCols.forEach(pc=>{
       const v = DATA.params[pc.key];
-      const price = computePrice(p.cost, v.icms, v.pis, v.margins[pc.tier]);
-      row.push(Math.round(price*100)/100);
+      const price = computePrice(p.cost, v.icms, v.pis, v.margins[pc.tier], v.commissions[pc.tier]);
+      row.push(price === null ? '' : Math.round(price*100)/100);
     });
     aoa.push(row);
   });
