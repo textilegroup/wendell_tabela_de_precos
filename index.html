@@ -20,8 +20,10 @@
     --ink-faint:#9B9A9E;
     --line:#E7E4E0;
     --input-border:#D9D6D1;
-    /* Cinza forte usado na opção selecionada da chave de simulação */
-    --sim-sel:#55535A;
+    /* Verde da opção selecionada na chave de simulação */
+    --sim-sel:#2E7D4F;
+    /* Coluna de custo (só Gerência) — cinza claro, informativo */
+    --cost-bg:#F4F3F1; --cost-band:#E9E7E3; --cost-border:#D5D2CD;
     --shadow: 0 2px 10px rgba(38,37,42,0.06);
     /* Faixa de cor por família de produtos */
     --cat-6-bg:#E4F0FB; --cat-6-band:#BFDCF3; --cat-6-border:#5C93CC;
@@ -461,6 +463,21 @@
   }
   td.commission-value.ipi-col{ background:var(--ipi-bg) !important; color:var(--ipi-ink) !important; }
 
+  /* ===== Custo (só Gerência) — cinza claro, meramente informativo =====
+     O custo NÃO é editável aqui: o único lugar que altera custo é a
+     "Matriz de custos" (exportar/importar planilha). */
+  td.cost-col{
+    text-align:right; white-space:nowrap;
+    font-size:12.5px; font-weight:600; font-variant-numeric:tabular-nums;
+    color:var(--ink-faint); background:var(--cost-bg);
+    border-left:1px solid var(--cost-border);
+  }
+  th.cost-col{
+    color:var(--ink-faint) !important; background:var(--cost-band) !important;
+    border-left:1px solid var(--cost-border); font-weight:600;
+  }
+  td.commission-value.cost-col{ background:var(--cost-bg) !important; color:var(--ink-faint) !important; }
+
   /* ===== Simulação (colunas 6 e 7) — só Gerência, nunca no PDF ===== */
   .sim-col{
     background:#FFFBEF !important;
@@ -798,6 +815,19 @@
       -webkit-print-color-adjust:exact; print-color-adjust:exact;
     }
     td.commission-value.ipi-col{ background:#EDF1F6 !important; color:#33506E !important; }
+    /* Custo (só Gerência) mantém o cinza claro na impressão */
+    td.cost-col{
+      font-size:9px; font-weight:600;
+      color:#6B6A6F !important; background:#F2F1EF !important;
+      border-left:1px solid #CFCCC7;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
+    th.cost-col{
+      color:#6B6A6F !important; background:#E6E4E0 !important;
+      border-left:1px solid #CFCCC7;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
+    td.commission-value.cost-col{ background:#F2F1EF !important; color:#6B6A6F !important; }
   }
 </style>
 </head>
@@ -896,7 +926,7 @@
   </section>
 
   <section class="panel admin-panel no-print" id="adminPanel" style="display:none;">
-    <div class="panel-title-row"><h3 class="panel-title" id="txt-adminTitle">Administração — custos e importação</h3></div>
+    <div class="panel-title-row"><h3 class="panel-title" id="txt-adminTitle">Matriz de custos</h3></div>
     <p class="admin-hint" id="txt-adminHint">Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.</p>
     <div class="admin-actions">
       <button class="btn btn-outline" id="exportBtn">⬇ <span id="txt-exportBtn">Exportar custos (XLSX)</span></button>
@@ -1204,7 +1234,7 @@ const I18N = {
     versionHint:"Disponível apenas no módulo Gerência.",
     filtersTitle:"Filtros", icmsLabel:"ICMS", searchLabel:"Buscar produtos (código ou cor)",
     searchPlaceholder:"Ex.: 8J50PE, 7FB90PA, Branca — separe por vírgula", categoryLabel:"Categoria", allCat:"Todas",
-    tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", itemsSuffix:"itens",
+    tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
     quoteTitle:"Orçamento — selecione itens e colunas", quoteBtn:"Gerar orçamento (PDF)",
     quoteClientLabel:"Cliente", quoteClientPlaceholder:"Nome do cliente (opcional)",
@@ -1236,7 +1266,7 @@ const I18N = {
     pwText:"Esta área contém margens comerciais sensíveis. Informe a senha do módulo de gerência para continuar.",
     pwPlaceholder:"Senha", pwError:"Senha incorreta. Tente novamente.", cancel:"Cancelar", enter:"Entrar",
     pdfBtn:"Gerar PDF",
-    adminTitle:"Administração — custos e importação",
+    adminTitle:"Matriz de custos",
     adminHint:"Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.",
     exportBtn:"Exportar custos (XLSX)", importBtn:"Importar planilha (XLSX)",
     exportFullBtn:"Exportar planilha completa (XLSX)",
@@ -1267,7 +1297,7 @@ const I18N = {
     versionHint:"Available only in the Management module.",
     filtersTitle:"Filters", icmsLabel:"State VAT (ICMS)", searchLabel:"Search products (code or color)",
     searchPlaceholder:"e.g. 8J50PE, 7FB90PA, White — comma separated", categoryLabel:"Category", allCat:"All",
-    tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", itemsSuffix:"items",
+    tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
     quoteTitle:"Quote — select items and columns", quoteBtn:"Generate quote (PDF)",
     quoteClientLabel:"Customer", quoteClientPlaceholder:"Customer name (optional)",
@@ -1299,7 +1329,7 @@ const I18N = {
     pwText:"This area contains sensitive commercial margins. Enter the management password to continue.",
     pwPlaceholder:"Password", pwError:"Incorrect password. Try again.", cancel:"Cancel", enter:"Enter",
     pdfBtn:"Generate PDF",
-    adminTitle:"Admin — costs & import",
+    adminTitle:"Cost matrix",
     adminHint:"Update each product's cost and the app recalculates every price automatically. Export to edit in a spreadsheet and import it back.",
     exportBtn:"Export costs (XLSX)", importBtn:"Import spreadsheet (XLSX)",
     exportFullBtn:"Export full spreadsheet (XLSX)",
@@ -1551,6 +1581,12 @@ function fmtBRL(v){
   if(v === null || v === undefined) return '—';
   const locale = state.lang==='en' ? 'en-US' : 'pt-BR';
   return 'R$ ' + v.toLocaleString(locale, {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+// Custo: informativo, mostrado com até 3 casas (os custos vêm com 3 na matriz)
+function fmtCost(v){
+  if(v === null || v === undefined) return '—';
+  const locale = state.lang==='en' ? 'en-US' : 'pt-BR';
+  return 'R$ ' + v.toLocaleString(locale, {minimumFractionDigits:3, maximumFractionDigits:3});
 }
 function fmtPct(v){
   const locale = state.lang==='en' ? 'en-US' : 'pt-BR';
@@ -1871,6 +1907,8 @@ function render(){
   // três colunas estão abertas.
   const simAvailable = showMargin && !block.isLegacy && !quote;
   const showSim = simAvailable && state.simOpen;
+  // Coluna de custo: informação interna da Gerência — nunca no orçamento.
+  const showCost = showMargin && !quote;
   // No orçamento não entram margens nem comissões — é documento para o
   // cliente, não material interno.
   const showMarginPct = showMargin && !quote;
@@ -1978,6 +2016,9 @@ function render(){
                 +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupOpenTip'))+'">» '+t('simGroupLabel')+'</button></th>';
         }
       }
+      // Custo: só na Gerência e nunca no orçamento do cliente. Fica logo
+      // antes do IPI, em cinza claro, porque é apenas informativo.
+      if(showCost){ thead += '<th class="cost-col">'+t('costCol')+'</th>'; }
       thead += '<th class="ipi-col">'+t('ipiCol')+'</th></tr></thead>';
       table.innerHTML = thead;
 
@@ -2068,6 +2109,9 @@ function render(){
         }
         // Grupo recolhido: uma célula vazia segura o lugar das três colunas
         if(simAvailable && !state.simOpen){ tds += '<td class="sim-col"></td>'; }
+        if(showCost){
+          tds += '<td class="cost-col" data-label="'+t('costCol')+'">'+fmtCost(r.cost)+'</td>';
+        }
         tds += '<td class="ipi ipi-col" data-label="'+t('ipiCol')+'">'+(r.ipi!==null && r.ipi!==undefined ? fmtPct(r.ipi) : '—')+'</td>';
         tr.innerHTML = tds;
         tbody.appendChild(tr);
@@ -2091,6 +2135,7 @@ function render(){
         const n = state.simOpen ? 3 : 1;
         for(let k=0;k<n;k++) cTds += '<td class="sim-col commission-value">—</td>';
       }
+      if(showCost) cTds += '<td class="commission-value cost-col">—</td>';
       cTds += '<td class="commission-value ipi-col">—</td>';
       commissionRow.innerHTML = cTds;
       // Comissão é informação interna — nunca vai no orçamento do cliente
