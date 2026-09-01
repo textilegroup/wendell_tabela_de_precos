@@ -4,831 +4,886 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WGI — Lista de Preços</title>
+<meta name="color-scheme" content="light dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@400;500;600;700&display=swap">
 <!-- SheetJS: leitura e geração dos arquivos .xlsx -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
-  :root{
-    --maroon:#7C1B29;
-    --maroon-dark:#57121C;
-    --maroon-line:#A5303F;
-    --bg:#F3F3F1;
-    --panel:#FFFFFF;
-    --ink:#26252A;
-    --ink-soft:#6B6A6F;
-    --ink-faint:#9B9A9E;
-    --line:#E7E4E0;
-    --input-border:#D9D6D1;
-    /* Verde da opção selecionada na chave de simulação */
-    --sim-sel:#2E7D4F;
-    /* Coluna de custo (só Gerência) — cinza claro, informativo */
-    --cost-bg:#F4F3F1; --cost-band:#E9E7E3; --cost-border:#D5D2CD;
-    --shadow: 0 2px 10px rgba(38,37,42,0.06);
-    /* Faixa de cor por família de produtos */
-    --cat-6-bg:#E4F0FB; --cat-6-band:#BFDCF3; --cat-6-border:#5C93CC;
-    --cat-7-bg:#E7F6EC; --cat-7-band:#C4EAD0; --cat-7-border:#57AC74;
-    --cat-8-bg:#FDF3D2; --cat-8-band:#F8E29B; --cat-8-border:#D9AC33;
-    --cat-9-bg:#FBE7EF; --cat-9-band:#F4C6D9; --cat-9-border:#CC5B88;
-    /* IPI — tom próprio, para não competir com os preços */
-    --ipi-bg:#EDF1F6; --ipi-ink:#33506E; --ipi-border:#9DB4CE;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:var(--bg);
-    color:var(--ink);
-    font-family:'Inter',sans-serif;
-    min-height:100vh;
-  }
+/* =====================================================================
+   WGI — Lista de Preços
+   ---------------------------------------------------------------------
+   Visual alinhado ao design system oficial WGI (theme.css do repositório
+   wendell-users; referência visual: painel "Vendas Wendell Brasil").
+   Paleta vinho, tipografia Archivo / Archivo Narrow, header em gradiente
+   vinho, cards com cabeçalho de linha vinho, tabelas densas com números
+   à direita e dark mode só por tokens.
 
-  /* ===== Header ===== */
+   Os tokens da primeira seção são idênticos aos de theme.css. Os tokens
+   próprios desta ferramenta (famílias de produto, IPI, custo, simulação)
+   vêm logo abaixo e sempre têm par claro/escuro, seguindo a mesma lógica.
+   Nada de cor solta no corpo do CSS: tudo sai de token.
+   ===================================================================== */
+
+/* ===== Tokens — tema claro (idênticos a theme.css) ===== */
+:root{
+  --wine:#7C1B29; --wine-deep:#5E1220; --wine-soft:#A5303F;
+  --bg:#F2F2F0; --card:#FFFFFF; --sunk:#F7F5F3;
+  --ink:#26252A; --ink-2:#5A555C; --ink-3:#8B858E;
+  --line:#E3E0DD; --line-2:#EFECE9;
+  --s1:#9E2438; --s2:#B8801F; --s3:#1E6FB8; --s4:#4E7A1E;
+  --pos:#2C6B4F; --neg:#A33A2A; --chip:#F6F4F1;
+  --shadow:0 1px 2px rgba(38,37,42,.06),0 1px 8px rgba(38,37,42,.04);
+
+  /* --- tokens próprios desta ferramenta --- */
+  /* vinho para TEXTO/contorno sobre o card: no dark o vinho cheio fica
+     escuro demais sobre fundo escuro, então lá ele vira o vinho claro.
+     Preenchimentos (botões, células escolhidas, header) continuam em --wine. */
+  --wine-ink:#7C1B29;
+  /* faixa de cor por família de produtos (derivada de --s1..--s4) */
+  --cat-6-bg:#E8F0F8; --cat-6-band:#D3E3F2; --cat-6-border:#1E6FB8;
+  --cat-7-bg:#E9F2EA; --cat-7-band:#D3E5D6; --cat-7-border:#4E7A1E;
+  --cat-8-bg:#F8F1DD; --cat-8-band:#EFE1BE; --cat-8-border:#B8801F;
+  --cat-9-bg:#F7E9ED; --cat-9-band:#EFD6DC; --cat-9-border:#9E2438;
+  /* IPI — tom próprio, para não competir com os preços */
+  --ipi-bg:#EDF1F6; --ipi-band:#DCE5EF; --ipi-ink:#1B5C99; --ipi-border:#9DB4CE;
+  /* custo (só Gerência) — cinza meramente informativo */
+  --cost-bg:#F4F3F1; --cost-band:#E9E7E3; --cost-border:#D5D2CD; --cost-ink:#8B858E;
+  /* simulação (só Gerência, nunca no PDF) */
+  --sim-bg:#FBF6EA; --sim-bg-on:#F3E8CE; --sim-sel:#2C6B4F;
+  /* campos editáveis (coeficientes) */
+  --edit-bg:#FBF0C4;
+  --overlay:rgba(38,37,42,.55);
+}
+
+/* ===== Tokens — tema escuro ===== */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --wine:#8C2334; --wine-deep:#4C0E19; --wine-soft:#C4536A;
+    --bg:#141316; --card:#1E1C21; --sunk:#26232A;
+    --ink:#F0EDEA; --ink-2:#B4ADB5; --ink-3:#847D88;
+    --line:#332F38; --line-2:#2A272F;
+    --s1:#C4536A; --s2:#B8842C; --s3:#5B92E0; --s4:#6E9430;
+    --pos:#5FA37E; --neg:#D97A62; --chip:#2A272F;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+
+    --cat-6-bg:#18222D; --cat-6-band:#20303F; --cat-6-border:#5B92E0;
+    --cat-7-bg:#1A2318; --cat-7-band:#233020; --cat-7-border:#6E9430;
+    --cat-8-bg:#282217; --cat-8-band:#37301E; --cat-8-border:#B8842C;
+    --cat-9-bg:#2A1A1F; --cat-9-band:#3A2229; --cat-9-border:#C4536A;
+    --ipi-bg:#182430; --ipi-band:#20303F; --ipi-ink:#8FBBEC; --ipi-border:#3A5670;
+    --cost-bg:#232028; --cost-band:#2C2830; --cost-border:#3A3540; --cost-ink:#847D88;
+    --sim-bg:#282217; --sim-bg-on:#3A3120; --sim-sel:#5FA37E;
+    --edit-bg:#3A3120;
+    --wine-ink:#C4536A;
+    --overlay:rgba(10,9,12,.62);
+  }
+}
+:root[data-theme="dark"]{
+  --wine:#8C2334; --wine-deep:#4C0E19; --wine-soft:#C4536A;
+  --bg:#141316; --card:#1E1C21; --sunk:#26232A;
+  --ink:#F0EDEA; --ink-2:#B4ADB5; --ink-3:#847D88;
+  --line:#332F38; --line-2:#2A272F;
+  --s1:#C4536A; --s2:#B8842C; --s3:#5B92E0; --s4:#6E9430;
+  --pos:#5FA37E; --neg:#D97A62; --chip:#2A272F;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+
+  --cat-6-bg:#18222D; --cat-6-band:#20303F; --cat-6-border:#5B92E0;
+  --cat-7-bg:#1A2318; --cat-7-band:#233020; --cat-7-border:#6E9430;
+  --cat-8-bg:#282217; --cat-8-band:#37301E; --cat-8-border:#B8842C;
+  --cat-9-bg:#2A1A1F; --cat-9-band:#3A2229; --cat-9-border:#C4536A;
+  --ipi-bg:#182430; --ipi-band:#20303F; --ipi-ink:#8FBBEC; --ipi-border:#3A5670;
+  --cost-bg:#232028; --cost-band:#2C2830; --cost-border:#3A3540; --cost-ink:#847D88;
+  --sim-bg:#282217; --sim-bg-on:#3A3120; --sim-sel:#5FA37E;
+  --edit-bg:#3A3120;
+  --wine-ink:#C4536A;
+  --overlay:rgba(10,9,12,.62);
+}
+
+/* ===== Base ===== */
+*{box-sizing:border-box;}
+/* regras de classe vencem o [hidden] do navegador */
+[hidden]{display:none !important;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;
+  font-size:13px;
+  line-height:1.4;
+  -webkit-font-smoothing:antialiased;
+  font-variant-numeric:tabular-nums;
+  min-height:100vh;
+}
+:focus-visible{outline:2px solid var(--wine-soft); outline-offset:2px;}
+
+/* ===== Header ===== */
+.wgi-header{
+  background:linear-gradient(100deg,var(--wine-deep) 0%,var(--wine) 62%,var(--wine-deep) 100%);
+  color:#fff;
+  padding:10px 16px;
+  position:sticky; top:0; z-index:40;
+}
+.header-inner{
+  max-width:1560px; margin:0 auto;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+}
+.brand{display:flex; align-items:center; gap:12px; min-width:0;}
+.logo-badge{
+  width:38px; height:38px; flex:none;
+  background:#fff; border-radius:50%;
+  border:2px solid rgba(255,255,255,.85);
+  display:grid; place-items:center;
+  padding:3px; overflow:hidden;
+}
+.logo-badge img{width:100%; height:100%; object-fit:contain;}
+.brand-text h1{
+  margin:0; font-size:19px; font-weight:700;
+  letter-spacing:-.01em; line-height:1.1; color:#fff;
+}
+.brand-text p{
+  margin:1px 0 0; font-size:11px; font-weight:400;
+  letter-spacing:.02em; color:#fff; opacity:.78;
+}
+.header-actions{
+  margin-left:auto; display:flex; align-items:center;
+  gap:8px; flex-wrap:wrap; justify-content:flex-end;
+}
+.hdr-chip{
+  font:inherit; font-size:11.5px; font-weight:600; letter-spacing:.03em;
+  border:1px solid rgba(255,255,255,.35); border-radius:8px;
+  padding:5px 10px; background:rgba(255,255,255,.07); color:#fff;
+  cursor:pointer; white-space:nowrap;
+}
+.hdr-chip:hover{background:rgba(255,255,255,.16);}
+.clock-pill{
+  font:inherit; font-size:11.5px; font-weight:600; letter-spacing:.03em;
+  border:1px solid rgba(255,255,255,.35); border-radius:8px;
+  padding:5px 10px; background:rgba(255,255,255,.07); color:#fff;
+  white-space:nowrap;
+}
+.lang-toggle{
+  display:flex; border:1px solid rgba(255,255,255,.35);
+  border-radius:8px; overflow:hidden;
+}
+.lang-toggle button{
+  font:inherit; font-size:11.5px; font-weight:700; letter-spacing:.05em;
+  padding:5px 10px; border:0; background:transparent;
+  color:rgba(255,255,255,.72); cursor:pointer;
+}
+.lang-toggle button.active,
+.lang-toggle button[aria-pressed="true"]{background:#fff; color:var(--wine-deep);}
+
+/* ===== Shell ===== */
+.page{
+  max-width:1560px; margin:0 auto;
+  padding:12px 16px 40px;
+  display:flex; flex-direction:column; gap:12px;
+  transition:max-width .18s ease;
+}
+/* Com o grupo de simulação aberto surgem colunas a mais: a página se alarga
+   para aproveitar a tela antes de precisar encolher a tabela. */
+.page.wide{ max-width:min(1800px,98vw); padding-left:12px; padding-right:12px; }
+
+/* ===== Card / painel =====
+   O cabeçalho usa margens negativas para encostar nas bordas do card, como
+   o .card-hd do design system, sem exigir um wrapper .card-bd no HTML. */
+.panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:10px;
+  box-shadow:var(--shadow);
+  padding:11px 14px 13px;
+  margin:0;
+}
+.panel-title-row{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; flex-wrap:wrap;
+  margin:-11px -14px 11px;
+  padding:9px 14px 8px;
+  border-bottom:2px solid var(--wine-soft);
+}
+.panel-title{
+  margin:0; font:inherit; font-size:12px; font-weight:700;
+  letter-spacing:.09em; text-transform:uppercase; color:var(--wine-ink);
+}
+
+/* ===== Campos ===== */
+.field-row{display:flex; flex-wrap:wrap; gap:12px 18px; align-items:flex-end;}
+.field{display:flex; flex-direction:column; gap:5px; min-width:0; flex:0 0 auto;}
+.field.grow{flex:1 1 210px;}
+.field-label{
+  font-size:10px; font-weight:700; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+.field-hint{font-size:11px; color:var(--ink-3); margin-top:1px;}
+
+.segmented{
+  display:inline-flex; background:var(--chip);
+  border:1px solid var(--line); border-radius:8px;
+  padding:2px; gap:2px;
+}
+.segmented button{
+  font:inherit; font-size:12px; font-weight:600;
+  border:0; background:transparent; color:var(--ink-2);
+  padding:5px 11px; border-radius:6px; cursor:pointer;
+  white-space:nowrap; transition:background .15s ease, color .15s ease;
+}
+.segmented button.active,
+.segmented button[aria-pressed="true"]{background:var(--wine); color:#fff;}
+.segmented button:hover:not(.active){color:var(--ink);}
+.segmented button.locked::after{content:" 🔒"; font-size:10px;}
+.segmented.disabled{opacity:.45; pointer-events:none;}
+
+.chipset{display:flex; flex-wrap:wrap; gap:6px;}
+.chip{
+  font:inherit; font-size:12px; font-weight:600;
+  border:1px solid var(--line); background:var(--chip); color:var(--ink-2);
+  padding:5px 11px; border-radius:8px; cursor:pointer;
+  white-space:nowrap; transition:background .15s ease, color .15s ease;
+}
+.chip:hover:not(.active){background:var(--sunk); color:var(--ink);}
+.chip.active{background:var(--wine); border-color:var(--wine); color:#fff;}
+
+.input-box{
+  font:inherit; font-size:12.5px; color:var(--ink);
+  background:var(--card); border:1px solid var(--line);
+  border-radius:8px; padding:6px 9px; width:100%;
+}
+.input-box::placeholder{color:var(--ink-3);}
+.input-box:focus{outline:2px solid var(--wine-soft); outline-offset:-1px; border-color:var(--wine-soft);}
+select.input-box{cursor:pointer;}
+
+.status-pill{
+  font-size:11px; font-weight:600; color:var(--ink-2);
+  background:var(--chip); border:1px solid var(--line);
+  padding:6px 11px; border-radius:8px;
+  display:inline-flex; gap:6px; align-items:center;
+}
+.status-pill.gerencia{
+  color:var(--wine-ink);
+  background:color-mix(in srgb, var(--wine) 9%, transparent);
+  border-color:color-mix(in srgb, var(--wine) 30%, transparent);
+}
+
+/* ===== Botões ===== */
+.btn{
+  font:inherit; font-size:11.5px; font-weight:700; letter-spacing:.04em;
+  border:1px solid transparent; border-radius:8px;
+  padding:7px 13px; cursor:pointer; white-space:nowrap;
+}
+.btn-primary{background:var(--wine); border-color:var(--wine); color:#fff;}
+.btn-primary:hover{background:var(--wine-soft); border-color:var(--wine-soft);}
+.btn-ghost{background:var(--chip); border-color:var(--line); color:var(--ink-2);}
+.btn-ghost:hover{background:var(--sunk); color:var(--ink);}
+.btn-outline{background:transparent; border-color:var(--wine-ink); color:var(--wine-ink);}
+.btn-outline:hover{background:var(--wine); color:#fff;}
+.btn:disabled, .btn-primary:disabled{opacity:.5; cursor:not-allowed; pointer-events:none;}
+
+/* ===== Áreas administrativas =====
+   No design system a área ADM/custos usa o âmbar (--s2) no lugar do vinho,
+   para separar visualmente do que o representante vê. */
+.admin-panel .panel-title-row{border-bottom-color:var(--s2);}
+.admin-panel .panel-title{color:var(--s2);}
+.admin-hint{font-size:11px; color:var(--ink-3); line-height:1.45; margin:0 0 11px;}
+.admin-actions{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+.file-btn{position:relative; overflow:hidden;}
+.file-btn input[type=file]{position:absolute; inset:0; opacity:0; cursor:pointer;}
+.admin-msg{font-size:11.5px; font-weight:600; margin-top:10px;}
+.admin-msg.ok{color:var(--pos);}
+.admin-msg.err{color:var(--neg);}
+
+/* ===== Coeficientes de venda ===== */
+.coef-tabs{
+  display:flex; flex-wrap:wrap; gap:3px;
+  margin:0 0 12px; border-bottom:1px solid var(--line);
+}
+.coef-tab{
+  font:inherit; font-size:11px; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; padding:7px 11px;
+  border:1px solid transparent; border-bottom:0; background:transparent;
+  color:var(--ink-3); border-radius:8px 8px 0 0; cursor:pointer; margin-bottom:-1px;
+}
+.coef-tab:hover:not(.active){color:var(--ink-2); background:var(--sunk);}
+.coef-tab.active{
+  background:var(--card); border-color:var(--line); color:var(--s2);
+  box-shadow:inset 0 2px 0 var(--s2);
+}
+
+/* ICMS e PIS/COFINS valem para a versão inteira: ficam em uma faixa ACIMA
+   da tabela (economiza largura). A tabela usa table-layout fixo e colunas
+   estreitas para caber na tela — inclusive no celular — sem rolagem. */
+.coef-wrap{display:block; max-width:100%;}
+.coef-scroll{overflow-x:auto; max-width:100%; -webkit-overflow-scrolling:touch;}
+.coef-top{
+  display:flex; flex-wrap:wrap; gap:9px 14px; align-items:flex-end;
+  margin:0 0 11px; padding:9px 11px;
+  background:var(--sunk); border:1px solid var(--line); border-radius:9px;
+}
+.coef-top-field{display:flex; flex-direction:column; gap:4px;}
+.coef-top-field > span{
+  font-size:9.5px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+.coef-top-field input{
+  width:92px; font:inherit; font-size:12.5px; font-weight:700;
+  font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  background:var(--edit-bg); color:var(--ink);
+  border:1px solid var(--line); border-radius:6px;
+  padding:5px 6px; text-align:center;
+}
+.coef-top-field input:focus{outline:2px solid var(--s2); outline-offset:-1px;}
+.coef-top-note{font-size:10.5px; color:var(--ink-3); align-self:center; margin-left:auto;}
+
+table.coef-table{
+  border-collapse:separate; border-spacing:0;
+  background:var(--card); border:1px solid var(--line);
+  border-radius:9px; overflow:hidden;
+  width:100%; min-width:0; table-layout:fixed;
+}
+table.coef-table th, table.coef-table td{
+  border-bottom:1px solid var(--line-2); border-right:1px solid var(--line-2);
+  padding:5px 3px; font-size:11.5px; text-align:center; color:var(--ink);
+}
+table.coef-table thead th{
+  background:var(--sunk); color:var(--ink-3);
+  font-weight:700; font-size:9.5px; letter-spacing:.06em;
+  text-transform:uppercase; padding:6px 2px;
+  border-bottom:1px solid var(--line);
+}
+table.coef-table tbody th{
+  background:var(--sunk); text-align:left; font-weight:700; color:var(--ink);
+  white-space:normal; font-size:10.5px; line-height:1.2; padding:5px 7px; width:86px;
+}
+table.coef-table col.coef-rowhead{width:86px;}
+table.coef-table input{
+  width:100%; max-width:120px; min-width:0; box-sizing:border-box;
+  font:inherit; font-size:11.5px;
+  font-family:"Archivo Narrow",Archivo,Arial,sans-serif; font-weight:600;
+  color:var(--ink); background:var(--card);
+  border:1px solid var(--line); border-radius:5px;
+  padding:4px 2px; text-align:center;
+}
+table.coef-table input:focus{outline:2px solid var(--s2); outline-offset:-1px;}
+td.coef-yellow{background:var(--edit-bg);}
+td.coef-yellow input{background:var(--edit-bg);}
+td.coef-readonly{background:var(--sunk); color:var(--ink-2); font-weight:600;}
+@media (max-width:560px){
+  table.coef-table th, table.coef-table td{padding:4px 2px; font-size:10.5px;}
+  table.coef-table thead th{font-size:8.5px;}
+  table.coef-table tbody th{width:64px; font-size:9.5px; padding:4px 5px;}
+  table.coef-table col.coef-rowhead{width:64px;}
+  table.coef-table input{font-size:10.5px; padding:3px 1px;}
+  .coef-top-field input{width:78px;}
+}
+.coef-hint{font-size:11px; color:var(--ink-3); margin:11px 0 0; line-height:1.45;}
+.coef-reset{margin-top:0;}
+
+/* ===== Conteúdo / tabelas ===== */
+.print-summary{display:none;}
+.print-summary .icms-badge{
+  display:inline-block; background:var(--wine); color:#fff;
+  padding:3px 14px; border-radius:6px; font-weight:700;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+.cat-block{
+  margin:0 0 12px; max-width:100%; overflow-x:hidden;
+  border-left:5px solid var(--wine-soft);
+}
+.cat-heading{
+  display:flex; align-items:baseline; gap:9px;
+  margin:0 0 6px; padding:7px 12px;
+  border-radius:0 8px 8px 0;
+  background:var(--sunk);
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+.cat-heading h2{
+  margin:0; font:inherit; font-size:12px; font-weight:700;
+  letter-spacing:.09em; text-transform:uppercase; color:var(--ink);
+}
+.cat-count{font-size:10.5px; color:var(--ink-3); letter-spacing:.03em;}
+
+/* Cada família de produtos ganha sua própria faixa de cor (cabeçalho da
+   categoria, cabeçalho das colunas e linha de comissão). */
+.cat-block[data-catcolor="6"]{border-left-color:var(--cat-6-border);}
+.cat-block[data-catcolor="6"] .cat-heading{background:var(--cat-6-bg);}
+.cat-block[data-catcolor="6"] .price-table thead th{background:var(--cat-6-band);}
+.cat-block[data-catcolor="6"] tr.commission-row td{background:var(--cat-6-bg);}
+.cat-block[data-catcolor="7"]{border-left-color:var(--cat-7-border);}
+.cat-block[data-catcolor="7"] .cat-heading{background:var(--cat-7-bg);}
+.cat-block[data-catcolor="7"] .price-table thead th{background:var(--cat-7-band);}
+.cat-block[data-catcolor="7"] tr.commission-row td{background:var(--cat-7-bg);}
+.cat-block[data-catcolor="8"]{border-left-color:var(--cat-8-border);}
+.cat-block[data-catcolor="8"] .cat-heading{background:var(--cat-8-bg);}
+.cat-block[data-catcolor="8"] .price-table thead th{background:var(--cat-8-band);}
+.cat-block[data-catcolor="8"] tr.commission-row td{background:var(--cat-8-bg);}
+.cat-block[data-catcolor="9"]{border-left-color:var(--cat-9-border);}
+.cat-block[data-catcolor="9"] .cat-heading{background:var(--cat-9-bg);}
+.cat-block[data-catcolor="9"] .price-table thead th{background:var(--cat-9-band);}
+.cat-block[data-catcolor="9"] tr.commission-row td{background:var(--cat-9-bg);}
+
+table.price-table{
+  width:100%;
+  border-collapse:separate; border-spacing:0;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:0 10px 10px 0;
+  overflow:hidden;
+  font-size:12px;
+}
+.price-table thead th{
+  background:var(--sunk); color:var(--ink-2);
+  font:inherit; font-size:10px; font-weight:700;
+  letter-spacing:.07em; text-transform:uppercase;
+  text-align:right; padding:7px 9px; white-space:nowrap;
+  border-bottom:2px solid var(--wine-soft);
+}
+.price-table thead th.left{text-align:left;}
+.price-table thead th .tier-pct{
+  display:block; font-size:11px; font-weight:700;
+  letter-spacing:.02em; color:var(--wine-ink); margin-top:1px;
+}
+.price-table tbody td{
+  padding:4px 9px; text-align:right; white-space:nowrap;
+  border-top:1px solid var(--line-2);
+  font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  font-weight:500; color:var(--ink);
+}
+.price-table tbody td.code,
+.price-table tbody td.color-cell,
+.price-table tbody td.commission-label{text-align:left;}
+.price-table tbody tr:nth-child(even) td{background:var(--sunk);}
+.price-table tbody tr:hover td{background:color-mix(in srgb, var(--wine) 7%, transparent);}
+
+/* Comissões abaixo dos produtos, na própria tabela, respeitando as colunas */
+/* especificidade acima da faixa zebrada, mas abaixo da cor da família */
+.price-table tbody tr.commission-row td{
+  background:var(--chip);
+  border-top:2px solid var(--wine-soft);
+  font-weight:700; color:var(--wine-ink);
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+tr.commission-row td.commission-label{
+  text-align:left; text-transform:uppercase;
+  font-size:10px; font-weight:700; letter-spacing:.08em;
+  font-family:"Archivo",Arial,sans-serif;
+}
+tr.commission-row td.commission-value{text-align:right;}
+
+td.code{
+  font-family:"Archivo",Arial,sans-serif;
+  font-weight:700; font-size:12px; color:var(--ink); white-space:nowrap;
+}
+td.color-cell{
+  font-family:"Archivo",Arial,sans-serif;
+  font-size:11.5px; color:var(--ink-2); white-space:nowrap;
+}
+td.color-cell .swatch{
+  display:inline-block; width:9px; height:9px; border-radius:50%;
+  margin-right:6px; border:1px solid var(--ink-3); vertical-align:middle;
+}
+td.price{font-size:12.5px; font-weight:700; text-align:right; white-space:nowrap;}
+
+/* IPI em tom próprio (azul-ardósia), bem distinto dos preços em vinho */
+td.ipi{
+  text-align:right; font-size:12px; font-weight:700; white-space:nowrap;
+  color:var(--ipi-ink); background:var(--ipi-bg) !important;
+  border-left:2px solid var(--ipi-border);
+}
+th.ipi-col{
+  color:var(--ipi-ink) !important; background:var(--ipi-band) !important;
+  border-left:2px solid var(--ipi-border);
+}
+td.commission-value.ipi-col{background:var(--ipi-bg) !important; color:var(--ipi-ink) !important;}
+
+/* ===== Custo (só Gerência) — cinza informativo =====
+   O custo NÃO é editável aqui: o único lugar que altera custo é a
+   "Matriz de custos" (exportar/importar planilha). */
+td.cost-col{
+  text-align:right; white-space:nowrap;
+  font-size:11.5px; font-weight:600;
+  color:var(--cost-ink); background:var(--cost-bg) !important;
+  border-left:1px solid var(--cost-border);
+}
+th.cost-col{
+  color:var(--cost-ink) !important; background:var(--cost-band) !important;
+  border-left:1px solid var(--cost-border); font-weight:700;
+}
+td.commission-value.cost-col{background:var(--cost-bg) !important; color:var(--cost-ink) !important;}
+
+/* ===== Simulação (só Gerência, nunca no PDF) ===== */
+.sim-col{
+  background:var(--sim-bg) !important;
+  border-left:2px solid var(--wine-soft) !important;
+}
+th.sim-col{color:var(--wine-ink) !important;}
+th.sim-col + th.sim-col, td.sim-col + td.sim-col{border-left:1px solid var(--line) !important;}
+td.sim-col{text-align:right; white-space:nowrap; padding-left:4px; padding-right:4px;}
+/* Cabeçalhos da simulação podem quebrar em duas linhas: assim as colunas
+   ficam estreitas em vez de esticadas pelo tamanho do rótulo. */
+th.sim-col{
+  padding-left:5px !important; padding-right:5px !important;
+  font-size:9.5px; white-space:normal !important; line-height:1.25;
+}
+th.sim-col .tier-pct{font-size:10px;}
+th.sim-col.sim-group-head{min-width:112px;}
+/* Linha sem alteração/seleção: dados apagados, para deixar claro que o valor
+   ainda não está sendo considerado. Ao editar (ou escolher o preço para o
+   orçamento) ela volta ao contraste normal. */
+td.sim-col.sim-dim{opacity:.5;}
+td.sim-col.sim-dim input.sim-input{color:var(--ink-3);}
+td.sim-col:not(.sim-dim){background:var(--sim-bg-on) !important;}
+input.sim-input{
+  width:58px; text-align:right;
+  font:inherit; font-size:12px; font-weight:700;
+  font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  color:var(--ink); background:var(--card);
+  border:1px solid var(--line); border-radius:6px; padding:4px;
+}
+input.sim-input:focus{outline:2px solid var(--wine-soft); outline-offset:-1px;}
+/* Sem as setinhas do input numérico: o campo cabe em bem menos largura */
+input.sim-input::-webkit-outer-spin-button,
+input.sim-input::-webkit-inner-spin-button,
+table.coef-table input::-webkit-outer-spin-button,
+table.coef-table input::-webkit-inner-spin-button,
+.coef-top-field input::-webkit-outer-spin-button,
+.coef-top-field input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+input.sim-input, table.coef-table input, .coef-top-field input{appearance:textfield; -moz-appearance:textfield;}
+input.sim-input.changed{border-color:var(--wine-ink); background:var(--card);
+  box-shadow:inset 0 0 0 1px var(--wine-soft);}
+input.sim-input.sim-comm{width:44px;}
+.sim-pct{font-size:10px; color:var(--ink-3); margin-left:2px;}
+td.sim-margin{font-weight:700; color:var(--ink-2);}
+td.sim-margin.changed{color:var(--wine-ink);}
+td.sim-margin.negative{color:var(--neg);}
+.sim-legend{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  margin:9px 0 0; font-size:11px; color:var(--ink-3);
+}
+
+/* ===== Seleção de itens/colunas para orçamento ===== */
+.quote-actions{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:11px;}
+.quote-count{font-size:11.5px; font-weight:700; color:var(--wine-ink);}
+th.sel-col, td.sel-col{
+  width:34px; text-align:center !important;
+  padding-left:6px !important; padding-right:6px !important;
+}
+input.sel-check{width:15px; height:15px; accent-color:var(--wine); cursor:pointer; vertical-align:middle;}
+tr.row-selected td{background:color-mix(in srgb, var(--wine) 10%, transparent) !important;}
+
+/* Seleção do orçamento clicando no próprio preço */
+td.pick-cell{cursor:pointer; position:relative; transition:background .12s ease;}
+td.pick-cell:hover{
+  background:color-mix(in srgb, var(--wine) 14%, transparent) !important;
+  box-shadow:inset 0 0 0 1px var(--wine-soft);
+}
+td.pick-cell.picked{
+  background:var(--wine) !important; color:#fff !important;
+  font-weight:700; box-shadow:inset 0 0 0 2px var(--wine-deep);
+}
+td.pick-cell.picked::after{
+  content:"✓"; position:absolute; left:6px; top:50%; transform:translateY(-50%);
+  font-size:11px; font-weight:700; color:#fff; opacity:.9;
+}
+td.sim-pick{text-align:right;}
+td.sim-pick.picked{background:var(--wine) !important;}
+td.sim-pick.picked::after{content:none;}
+button.pick-dot{
+  width:16px; height:16px; margin-right:3px; vertical-align:middle;
+  border:1px solid var(--line); border-radius:50%;
+  background:var(--card); color:transparent;
+  font-size:11px; font-weight:700; line-height:1; cursor:pointer; padding:0;
+}
+td.sim-pick.picked button.pick-dot{background:#fff; border-color:#fff; color:var(--wine-ink);}
+button.pick-dot:hover{border-color:var(--wine-ink); color:var(--wine-ink);}
+
+/* ===== Chave "margem pelo preço" / "preço pela margem" =====
+   Dentro do cabeçalho da tabela os dois botões ficam EMPILHADOS (ocupam
+   bem menos largura); o selecionado usa o verde de confirmação. */
+.sim-mode-switch{
+  display:inline-flex; flex-direction:column; align-items:stretch;
+  background:var(--card); border:1px solid var(--line);
+  border-radius:8px; padding:2px; gap:2px; margin:4px 0 2px; max-width:100%;
+}
+.sim-mode-opt{
+  font:inherit; font-size:9.5px; font-weight:700;
+  text-transform:none; letter-spacing:0; color:var(--ink-2);
+  border:0; background:transparent; border-radius:6px;
+  padding:3px 6px; white-space:nowrap; text-align:center; cursor:pointer;
+}
+.sim-mode-opt.on{background:var(--sim-sel); color:#fff;}
+.sim-mode-opt:hover:not(.on){color:var(--wine-ink); background:var(--sunk);}
+td.sim-out{text-align:right; font-weight:700; color:var(--ink-2);}
+td.sim-out.changed{color:var(--wine-ink);}
+td.sim-out.negative{color:var(--neg); font-size:11px;}
+td.sim-out.pick-cell::after{left:5px;}
+input.sim-input.sim-margin-in{width:46px;}
+button.sim-clear{
+  margin-left:3px; width:15px; height:15px; padding:0; vertical-align:middle;
+  border:1px solid var(--line); border-radius:50%;
+  background:var(--card); color:var(--ink-3);
+  font-size:9px; font-weight:700; line-height:1; cursor:pointer; opacity:.45;
+}
+button.sim-clear:hover{opacity:1; border-color:var(--wine-ink); color:var(--wine-ink);}
+button.sim-clear.on{opacity:1; border-color:var(--wine-soft); color:var(--wine-ink); background:var(--sunk);}
+
+/* Atalho de simulação no painel de filtros (essencial no celular) */
+.filters-actions{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sim-ctl{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sim-ctl .sim-ctl-toggle{font-weight:700;}
+/* No atalho fora da tabela há largura de sobra: mantém lado a lado */
+.sim-ctl .sim-mode-switch{margin:0; flex-direction:row;}
+.sim-ctl .sim-mode-opt{font-size:11px; padding:4px 9px;}
+
+/* ===== Grupo de simulação recolhível no cabeçalho da tabela =====
+   ABERTO: botão com contorno (chave "«" convida a recolher).
+   RECOLHIDO: botão preenchido em vinho, para ficar óbvio que é um controle
+   fechado que precisa de clique para abrir (chave "»"). */
+th.sim-group-head.collapsed{
+  width:40px; padding:6px 3px !important;
+  background:color-mix(in srgb, var(--wine) 12%, transparent) !important;
+}
+button.sim-group-btn{
+  font:inherit; font-size:10.5px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase;
+  border:1px solid var(--wine-soft); background:var(--card); color:var(--wine-ink);
+  padding:4px 9px; border-radius:8px; cursor:pointer; white-space:nowrap;
+}
+button.sim-group-btn:hover{background:var(--wine); color:#fff;}
+th.sim-group-head.collapsed button.sim-group-btn{
+  writing-mode:vertical-rl; transform:rotate(180deg); padding:10px 5px;
+  background:var(--wine); color:#fff; border-color:var(--wine);
+  box-shadow:0 0 0 2px color-mix(in srgb, var(--wine) 22%, transparent);
+}
+th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-soft);}
+
+/* ===== Módulo recolhível "Visualizar simulação" ===== */
+.sim-toggle{
+  display:flex; align-items:center; gap:9px; width:100%;
+  background:transparent; border:0; padding:0; cursor:pointer; text-align:left;
+}
+.sim-toggle .panel-title{margin:0;}
+.sim-chevron{color:var(--wine-ink); font-size:12px; line-height:1; transition:transform .15s ease;}
+.sim-toggle[aria-expanded="true"] .sim-chevron{transform:rotate(90deg);}
+.sim-state{
+  margin-left:auto; font-size:11px; font-weight:600; color:var(--ink-3);
+  background:var(--chip); border:1px solid var(--line);
+  padding:4px 10px; border-radius:20px;
+}
+.sim-toggle[aria-expanded="true"] .sim-state{
+  color:var(--wine-ink);
+  background:color-mix(in srgb, var(--wine) 9%, transparent);
+  border-color:color-mix(in srgb, var(--wine) 30%, transparent);
+}
+.sim-body[hidden]{display:none;}
+
+/* ===== Painel recolhível genérico (bloco "Orçamento") =====
+   Recolhido mostra só o título e o botão de expandir. */
+.collapse-head{margin-bottom:-11px; padding-bottom:9px; border-bottom:1px solid transparent;}
+.collapse-head.open{margin-bottom:11px; padding-bottom:8px; border-bottom:2px solid var(--wine-soft);}
+.collapse-toggle{
+  display:flex; align-items:center; gap:9px; flex:1 1 auto; min-width:0;
+  background:transparent; border:0; padding:0; cursor:pointer; text-align:left;
+}
+.collapse-toggle .panel-title{margin:0;}
+.collapse-chevron{
+  color:var(--wine-ink); font-size:12px; line-height:1;
+  transition:transform .15s ease; flex:0 0 auto;
+}
+.collapse-toggle[aria-expanded="true"] .collapse-chevron{transform:rotate(90deg);}
+.collapse-btn{
+  margin-left:auto; flex:0 0 auto;
+  font:inherit; font-size:11px; font-weight:700; letter-spacing:.04em;
+  color:var(--wine-ink); background:transparent; border:1px solid var(--wine-ink);
+  padding:5px 12px; border-radius:8px; white-space:nowrap;
+}
+.collapse-toggle[aria-expanded="true"] .collapse-btn{
+  color:#fff; background:var(--wine); border-color:var(--wine);
+}
+.collapse-badge{
+  flex:0 0 auto; font-size:11px; font-weight:700; color:var(--wine-ink);
+  background:color-mix(in srgb, var(--wine) 9%, transparent);
+  border:1px solid color-mix(in srgb, var(--wine) 26%, transparent);
+  padding:3px 10px; border-radius:20px; white-space:nowrap;
+}
+.collapse-badge:empty{display:none;}
+.collapse-body[hidden]{display:none;}
+
+.empty-state{text-align:center; padding:44px 20px; color:var(--ink-3); font-size:12.5px;}
+
+/* ===== Rodapé de condições ===== */
+.footnotes{
+  margin-top:0;
+  background:var(--wine-deep);
+  color:#F2E4E6;
+  border-radius:10px;
+  padding:12px 14px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:10px 16px;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+.footnote-item .flabel{
+  font-size:9.5px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:#E3A8AF; margin-bottom:3px;
+}
+.footnote-item .fval{font-size:11.5px; line-height:1.45;}
+
+.hub-footer{text-align:center; padding:18px; font-size:11px; color:var(--ink-3);}
+
+/* ===== Modal de senha ===== */
+.modal-overlay{
+  position:fixed; inset:0; z-index:98;
+  display:grid; place-items:center; padding:18px;
+  background:var(--overlay); backdrop-filter:blur(2px);
+}
+.modal-overlay[hidden]{display:none;}
+.modal-box{
+  background:var(--card); border:1px solid var(--line);
+  border-radius:12px; padding:22px 20px 18px;
+  width:min(380px,100%);
+  box-shadow:0 8px 40px rgba(0,0,0,.28);
+}
+.modal-box h3{
+  margin:0 0 6px; font:inherit; font-size:12px; font-weight:700;
+  letter-spacing:.09em; text-transform:uppercase; color:var(--wine-ink);
+  display:flex; align-items:center; gap:7px;
+}
+.modal-box p{font-size:12px; color:var(--ink-2); line-height:1.45; margin:0 0 14px;}
+.modal-actions{display:flex; gap:8px; margin-top:14px;}
+.modal-actions .btn{flex:1;}
+.pw-error{color:var(--neg); font-size:11.5px; font-weight:600; margin-top:9px; display:none;}
+
+@media (max-width:640px){
+  .page{padding:10px 10px 30px; gap:10px;}
+  .panel{padding:10px 11px 12px;}
+  .panel-title-row{margin:-10px -11px 10px; padding:8px 11px 7px;}
+  .collapse-head{margin-bottom:-10px;}
+  .collapse-head.open{margin-bottom:10px;}
+  .brand-text h1{font-size:16px;}
+  .logo-badge{width:32px; height:32px;}
+  /* A tabela continua com o mesmo layout do desktop — o JS encolhe cada
+     bloco de categoria (via CSS zoom) até caber na largura da tela,
+     em vez de reformatar em "cards" empilhados. */
+  .cat-block{transform-origin:top left;}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+
+/* ===== Impressão: A4 RETRATO, tudo em UMA página, números na maior fonte
+   possível. Os tamanhos abaixo são fixos e calibrados para o catálogo
+   completo (43 produtos + 4 famílias) caber em uma folha. ===== */
+@page{size:A4 portrait; margin:8mm;}
+@media print{
+  /* A impressão é sempre no tema claro, mesmo com dark mode ligado. */
+  :root, :root[data-theme="dark"], :root:not([data-theme="light"]){
+    --wine:#7C1B29; --wine-deep:#5E1220; --wine-soft:#A5303F;
+    --bg:#FFFFFF; --card:#FFFFFF; --sunk:#F5F4F2;
+    --ink:#26252A; --ink-2:#5A555C; --ink-3:#8B858E;
+    --line:#C9C5C1; --line-2:#E3E0DD;
+    --s1:#9E2438; --s2:#B8801F; --s3:#1E6FB8; --s4:#4E7A1E;
+    --pos:#2C6B4F; --neg:#A33A2A; --chip:#F2F0ED; --wine-ink:#7C1B29;
+    --cat-6-bg:#E8F0F8; --cat-6-band:#D3E3F2; --cat-6-border:#1E6FB8;
+    --cat-7-bg:#E9F2EA; --cat-7-band:#D3E5D6; --cat-7-border:#4E7A1E;
+    --cat-8-bg:#F8F1DD; --cat-8-band:#EFE1BE; --cat-8-border:#B8801F;
+    --cat-9-bg:#F7E9ED; --cat-9-band:#EFD6DC; --cat-9-border:#9E2438;
+    --ipi-bg:#EDF1F6; --ipi-band:#DCE5EF; --ipi-ink:#1B5C99; --ipi-border:#9DB4CE;
+    --cost-bg:#F2F1EF; --cost-band:#E6E4E0; --cost-border:#CFCCC7; --cost-ink:#6B6A6F;
+  }
+  /* A calibração de "tudo em uma página" depende de entrelinha curta e de
+     bordas colapsadas — o line-height 1.4 da tela custaria uma folha extra. */
+  body{background:#fff; line-height:1.2;}
+  .no-print{display:none !important;}
   .wgi-header{
-    background: linear-gradient(180deg, var(--maroon) 0%, var(--maroon-dark) 100%);
-    padding:20px 24px;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    background:var(--wine) !important; padding:6px 10px; position:static;
   }
-  .header-inner{
-    max-width:1180px;
-    margin:0 auto;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:16px;
-    flex-wrap:wrap;
-  }
-  .brand{display:flex; align-items:center; gap:16px;}
-  .logo-badge{
-    width:60px;height:60px;
-    background:#fff;
-    border-radius:12px;
-    display:flex; align-items:center; justify-content:center;
-    box-shadow:var(--shadow);
-    flex-shrink:0;
-    padding:5px;
-  }
-  .logo-badge img{width:100%; height:100%; object-fit:contain;}
-  .brand-text h1{
-    font-family:'Manrope',sans-serif;
-    font-weight:800;
-    font-size:clamp(20px,3vw,28px);
-    color:#fff;
-    margin:0 0 2px;
-    letter-spacing:0.01em;
-  }
-  .brand-text p{
-    font-family:'Manrope',sans-serif;
-    font-weight:700;
-    font-size:13.5px;
-    color:#EBD3D6;
-    margin:0;
-  }
-  .header-actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
-  .clock-pill{
-    background:#fff;
-    color:var(--maroon);
-    font-family:'Manrope',sans-serif;
-    font-weight:700;
-    font-size:14px;
-    padding:10px 18px;
-    border-radius:8px;
-    box-shadow:var(--shadow);
-    white-space:nowrap;
-  }
-  .lang-toggle{
-    display:inline-flex;
-    background:rgba(255,255,255,0.14);
-    border-radius:8px;
-    padding:3px;
-    gap:2px;
-  }
-  .lang-toggle button{
-    border:none; background:transparent;
-    padding:7px 12px;
-    font-family:'Inter',sans-serif;
-    font-weight:700;
-    font-size:12.5px;
-    color:#F3D9DC;
-    border-radius:6px;
-    cursor:pointer;
-  }
-  .lang-toggle button.active{background:#fff; color:var(--maroon);}
-
-  /* ===== Layout ===== */
-  .page{
-    max-width:1180px;
-    margin:0 auto;
-    padding:22px 20px 60px;
-    transition:max-width .18s ease;
-  }
-  /* Com o grupo de simulação aberto surgem 3 colunas a mais: a página se
-     alarga para aproveitar a tela antes de precisar encolher a tabela. */
-  .page.wide{ max-width:min(1800px, 98vw); padding-left:12px; padding-right:12px; }
-  .panel{
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:10px;
-    box-shadow:var(--shadow);
-    padding:22px 24px;
-    margin-bottom:18px;
-  }
-  .panel-title-row{
-    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-    margin:0 0 14px;
-    padding-bottom:12px;
-    border-bottom:2px solid var(--maroon-line);
-  }
-  .panel-title{
-    font-family:'Manrope',sans-serif;
-    font-weight:800;
-    font-size:15px;
-    letter-spacing:0.02em;
-    color:var(--maroon);
-    text-transform:uppercase;
-    margin:0;
-  }
-  .field-row{
-    display:flex;
-    flex-wrap:wrap;
-    gap:20px 26px;
-    align-items:flex-end;
-  }
-  .field{display:flex; flex-direction:column; gap:8px; min-width:180px;}
-  .field.grow{flex:1;}
-  .field-label{
-    font-family:'Inter',sans-serif;
-    font-size:11.5px;
-    font-weight:700;
-    letter-spacing:0.05em;
-    text-transform:uppercase;
-    color:var(--ink-soft);
-  }
-  .field-hint{
-    font-size:11.5px;
-    color:var(--ink-faint);
-    margin-top:2px;
-  }
-
-  .segmented{
-    display:inline-flex;
-    background:#F6F4F1;
-    border:1px solid var(--input-border);
-    border-radius:8px;
-    padding:3px;
-    gap:2px;
-  }
-  .segmented button{
-    border:none;
-    background:transparent;
-    padding:9px 18px;
-    font-family:'Inter',sans-serif;
-    font-weight:600;
-    font-size:13.5px;
-    color:var(--ink-soft);
-    border-radius:6px;
-    cursor:pointer;
-    transition:background .15s ease, color .15s ease;
-    white-space:nowrap;
-  }
-  .segmented button.active{ background:var(--maroon); color:#fff; }
-  .segmented button:hover:not(.active){ color:var(--ink); }
-  .segmented button.locked::after{ content:" 🔒"; font-size:11px; }
-  .segmented.disabled{opacity:0.45; pointer-events:none;}
-
-  .chipset{display:flex; flex-wrap:wrap; gap:8px;}
-  .chip{
-    border:1px solid var(--input-border);
-    background:#fff;
-    padding:8px 15px;
-    border-radius:20px;
-    font-size:13px;
-    font-weight:600;
-    color:var(--ink-soft);
-    cursor:pointer;
-    transition:all .15s ease;
-  }
-  .chip.active{ background:var(--ink); border-color:var(--ink); color:#fff; }
-  .chip:hover:not(.active){border-color:var(--maroon); color:var(--maroon);}
-
-  .input-box{
-    border:1px solid var(--input-border);
-    background:#fff;
-    border-radius:8px;
-    padding:10px 14px;
-    font-family:'Inter',sans-serif;
-    font-size:14px;
-    color:var(--ink);
-    width:100%;
-  }
-  .input-box::placeholder{color:var(--ink-faint);}
-  .input-box:focus{outline:none; border-color:var(--maroon); box-shadow:0 0 0 3px rgba(124,27,41,0.12);}
-
-  .status-pill{
-    font-family:'Inter',sans-serif;
-    font-size:12px;
-    font-weight:600;
-    color:var(--ink-soft);
-    background:#F6F4F1;
-    border:1px solid var(--line);
-    padding:8px 13px;
-    border-radius:8px;
-    display:inline-flex;
-    gap:7px;
-    align-items:center;
-  }
-  .status-pill.gerencia{
-    color:var(--maroon);
-    background:rgba(124,27,41,0.06);
-    border-color:rgba(124,27,41,0.25);
-  }
-
-  .btn{
-    border:none;
-    border-radius:8px;
-    padding:10px 16px;
-    font-family:'Inter',sans-serif;
-    font-weight:600;
-    font-size:13.5px;
-    cursor:pointer;
-  }
-  .btn-primary{background:var(--maroon); color:#fff;}
-  .btn-primary:hover{background:var(--maroon-dark);}
-  .btn:disabled, .btn-primary:disabled{opacity:0.45; cursor:not-allowed; pointer-events:none;}
-  .btn-ghost{background:#F6F4F1; color:var(--ink-soft);}
-  .btn-ghost:hover{background:var(--line);}
-  .btn-outline{background:#fff; color:var(--maroon); border:1px solid var(--maroon);}
-  .btn-outline:hover{background:rgba(124,27,41,0.06);}
-
-  /* ===== Admin panel ===== */
-  .admin-panel{border:1px dashed var(--maroon-line); background:#FBF6F6;}
-  .admin-hint{font-size:13px; color:var(--ink-soft); line-height:1.55; margin:0 0 16px;}
-  .admin-actions{display:flex; gap:12px; flex-wrap:wrap; align-items:center;}
-  .file-btn{position:relative; overflow:hidden;}
-  .file-btn input[type=file]{
-    position:absolute; inset:0; opacity:0; cursor:pointer;
-  }
-  .admin-msg{font-size:12.5px; font-weight:600; margin-top:12px;}
-  .admin-msg.ok{color:#3F7A4E;}
-  .admin-msg.err{color:#B02A2A;}
-
-  /* ===== Coeficientes de venda ===== */
-  .coef-tabs{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:16px;}
-  .coef-tab{
-    border:1px solid var(--input-border); background:#fff;
-    padding:7px 13px; border-radius:7px; font-size:12.5px; font-weight:600;
-    color:var(--ink-soft); cursor:pointer;
-  }
-  .coef-tab.active{background:var(--maroon); border-color:var(--maroon); color:#fff;}
-  .coef-tab:hover:not(.active){border-color:var(--maroon); color:var(--maroon);}
-
-  /* Coeficientes: ICMS e PIS/COFINS são os mesmos para a versão inteira, por
-     isso ficam em uma faixa ACIMA da tabela (economiza largura). A tabela usa
-     table-layout fixo e colunas estreitas para caber na tela — inclusive no
-     celular — sem rolagem lateral. */
-  .coef-wrap{ display:block; max-width:100%; }
-  .coef-scroll{ overflow-x:auto; max-width:100%; -webkit-overflow-scrolling:touch; }
-  /* Faixa de ICMS / PIS-COFINS acima das tabelas */
-  .coef-top{
-    display:flex; flex-wrap:wrap; gap:10px 14px; align-items:flex-end;
-    margin:0 0 12px; padding:10px 12px;
-    background:#fff; border:1px solid var(--line); border-radius:8px;
-  }
-  .coef-top-field{ display:flex; flex-direction:column; gap:4px; }
-  .coef-top-field > span{
-    font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
-    color:var(--ink-soft);
-  }
-  .coef-top-field input{
-    width:92px; background:#FDF3B0; border:1px solid var(--input-border); border-radius:5px;
-    padding:5px 6px; text-align:center; font-family:'Inter',sans-serif;
-    font-size:12.5px; font-weight:700; color:var(--ink);
-  }
-  .coef-top-field input:focus{outline:none; border-color:var(--maroon); box-shadow:0 0 0 2px rgba(124,27,41,0.12);}
-  .coef-top-note{ font-size:11px; color:var(--ink-faint); align-self:center; margin-left:auto; }
-  table.coef-table{
-    border-collapse:collapse; background:#fff; border:1px solid var(--line);
-    border-radius:8px; overflow:hidden;
-    width:100%; min-width:0; table-layout:fixed;
-  }
-  table.coef-table th, table.coef-table td{
-    border:1px solid var(--line); padding:5px 3px; font-size:11.5px; text-align:center;
-  }
-  table.coef-table thead th{
-    background:#F6F4F1; color:var(--ink-soft); font-weight:700; font-size:9.5px;
-    text-transform:uppercase; letter-spacing:.01em; padding:5px 2px;
-  }
-  table.coef-table tbody th{
-    background:#F6F4F1; text-align:left; font-weight:700; color:var(--ink);
-    white-space:normal; font-size:10.5px; line-height:1.2; padding:5px 6px;
-    width:86px;
-  }
-  table.coef-table col.coef-rowhead{ width:86px; }
-  table.coef-table input{
-    width:100%; max-width:120px; min-width:0; box-sizing:border-box;
-    border:1px solid var(--input-border); border-radius:5px;
-    padding:4px 2px; text-align:center; font-family:'Inter',sans-serif; font-size:11.5px; color:var(--ink);
-  }
-  table.coef-table input:focus{outline:none; border-color:var(--maroon); box-shadow:0 0 0 2px rgba(124,27,41,0.12);}
-  td.coef-yellow{background:#FDF3B0;}
-  td.coef-readonly{background:#F6F4F1; color:var(--ink-soft); font-weight:600;}
-  @media (max-width:560px){
-    table.coef-table th, table.coef-table td{ padding:4px 2px; font-size:10.5px; }
-    table.coef-table thead th{ font-size:8.5px; }
-    table.coef-table tbody th{ width:64px; font-size:9.5px; padding:4px 4px; }
-    table.coef-table col.coef-rowhead{ width:64px; }
-    table.coef-table input{ font-size:10.5px; padding:3px 1px; }
-    .coef-top-field input{ width:78px; }
-  }
-  .coef-hint{font-size:11.5px; color:var(--ink-faint); margin:12px 0 0; line-height:1.5;}
-  .coef-reset{margin-top:14px;}
-
-  /* ===== Content / tables ===== */
-  .print-summary{display:none;}
-  .print-summary .icms-badge{
-    display:inline-block; background:var(--maroon); color:#fff;
-    padding:3px 14px; border-radius:6px; font-weight:800;
+  .logo-badge{width:34px; height:34px; border-width:1px; padding:2px;}
+  .brand-text h1{font-size:15px !important; margin:0;}
+  .brand-text p{font-size:9px;}
+  .page{padding:0; gap:0; max-width:none; display:block;}
+  .panel{box-shadow:none; border:none; padding:0; margin:0;}
+  /* Título da tabela com o ICMS aplicável em destaque */
+  .print-summary{
+    display:block; font-size:16px; font-weight:700;
+    color:var(--wine-deep); text-align:center;
+    text-transform:uppercase; letter-spacing:.06em;
+    margin:4px 0 5px; padding-bottom:3px;
+    border-bottom:3px solid var(--wine);
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  .cat-block{
-    margin-bottom:20px; max-width:100%; overflow-x:hidden;
-    border-left:6px solid var(--maroon-line);
-  }
-  .cat-heading{
-    display:flex;
-    align-items:baseline;
-    gap:10px;
-    margin:0 0 10px;
-    padding:8px 14px;
-    border-radius:6px;
-    background:#F6F4F1;
-    -webkit-print-color-adjust:exact; print-color-adjust:exact;
-  }
-  .cat-heading h2{
-    font-family:'Manrope',sans-serif;
-    font-size:16px;
-    font-weight:800;
-    margin:0;
-    color:var(--ink);
-  }
-  .cat-count{
-    font-size:12px;
-    color:var(--ink-faint);
-  }
-  /* Cada família de produtos ganha sua própria faixa de cor (cabeçalho da
-     categoria, cabeçalho das colunas e linha de comissão). */
-  .cat-block[data-catcolor="6"]{ border-left-color:var(--cat-6-border); }
-  .cat-block[data-catcolor="6"] .cat-heading{ background:var(--cat-6-bg); }
-  .cat-block[data-catcolor="6"] .price-table thead th{ background:var(--cat-6-band); }
-  .cat-block[data-catcolor="6"] tr.commission-row td{ background:var(--cat-6-bg); }
-  .cat-block[data-catcolor="7"]{ border-left-color:var(--cat-7-border); }
-  .cat-block[data-catcolor="7"] .cat-heading{ background:var(--cat-7-bg); }
-  .cat-block[data-catcolor="7"] .price-table thead th{ background:var(--cat-7-band); }
-  .cat-block[data-catcolor="7"] tr.commission-row td{ background:var(--cat-7-bg); }
-  .cat-block[data-catcolor="8"]{ border-left-color:var(--cat-8-border); }
-  .cat-block[data-catcolor="8"] .cat-heading{ background:var(--cat-8-bg); }
-  .cat-block[data-catcolor="8"] .price-table thead th{ background:var(--cat-8-band); }
-  .cat-block[data-catcolor="8"] tr.commission-row td{ background:var(--cat-8-bg); }
-  .cat-block[data-catcolor="9"]{ border-left-color:var(--cat-9-border); }
-  .cat-block[data-catcolor="9"] .cat-heading{ background:var(--cat-9-bg); }
-  .cat-block[data-catcolor="9"] .price-table thead th{ background:var(--cat-9-band); }
-  .cat-block[data-catcolor="9"] tr.commission-row td{ background:var(--cat-9-bg); }
-
-  table.price-table{
-    width:100%;
-    border-collapse:collapse;
-    background:#fff;
-    border:1px solid var(--line);
-    border-radius:8px;
-    overflow:hidden;
-  }
+  .print-summary .icms-badge{font-size:16px; padding:3px 13px;}
+  /* Blocos de categoria compactos */
+  .cat-block{margin:0 0 3px; break-inside:avoid-page; overflow:visible; border-left-width:5px;}
+  .cat-heading{margin:0 0 1px; padding:1.5px 9px; border-radius:0 4px 4px 0;}
+  .cat-heading h2{font-size:11.5px; letter-spacing:.07em; line-height:1.15;}
+  .cat-count{font-size:9px;}
+  /* Tabelas: fonte máxima que ainda cabe numa página A4 retrato */
+  table.price-table{border-collapse:collapse; border-radius:0; border-color:#bbb;}
   .price-table thead th{
-    background:#F6F4F1;
-    color:var(--ink-soft);
-    font-family:'Inter',sans-serif;
-    font-weight:700;
-    font-size:11px;
-    letter-spacing:.03em;
-    text-transform:uppercase;
-    text-align:right;
-    padding:11px 13px;
-    white-space:nowrap;
-    border-bottom:2px solid var(--maroon-line);
-  }
-  .price-table thead th.left{text-align:left;}
-  .price-table thead th .tier-pct{
-    display:block;
-    font-family:'Inter',sans-serif;
-    font-size:12.5px;
-    color:var(--maroon);
-    font-weight:700;
-    margin-top:2px;
-  }
-  .price-table tbody td{
-    padding:10px 13px;
-    font-size:13.5px;
-    border-top:1px solid var(--line);
-  }
-  .price-table tbody tr:nth-child(even){background:#FBFAF8;}
-  .price-table tbody tr:hover{background:rgba(124,27,41,0.04);}
-  /* Comissões abaixo dos produtos, na própria tabela, respeitando as colunas */
-  tr.commission-row td{
-    background:#F6F4F1;
-    border-top:2px solid var(--maroon-line);
-    font-weight:800;
-    color:var(--maroon-dark);
+    color:#000 !important; font-size:8.5px; padding:1.5px 4px; line-height:1.15;
+    border-bottom-width:2px; letter-spacing:.03em;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  tr.commission-row td.commission-label{
-    text-align:left; text-transform:uppercase; font-size:11px; letter-spacing:.04em;
+  .price-table thead th .tier-pct{font-size:9.5px; margin-top:0; color:#7C1B29 !important;}
+  .price-table tbody td{padding:.7px 4px; font-size:10px; line-height:1.15; border-top-color:#ddd;}
+  .price-table tbody tr:nth-child(even) td{background:#f7f7f7 !important;}
+  .price-table tbody tr:hover td{background:transparent;}
+  td.code{font-size:10px;}
+  td.color-cell{font-size:9.5px;}
+  td.color-cell .swatch{width:7px; height:7px; margin-right:4px;}
+  td.price{font-size:11.5px;}   /* os números — maior fonte da tabela */
+  tr.commission-row td{font-size:10.5px; padding:1.2px 4px; line-height:1.15; border-top-width:2px;}
+  tr.commission-row td.commission-label{font-size:8.5px;}
+  tr{break-inside:avoid;}
+  /* Rodapé de condições — compacto, e sem a referência em USD */
+  .footnotes{
+    background:#fff !important; color:#000 !important;
+    border:1px solid #999; border-radius:0;
+    padding:2.5px 8px; gap:2px 10px; margin-top:3px; break-inside:avoid;
+    grid-template-columns:repeat(4,1fr);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  tr.commission-row td.commission-value{
-    text-align:right; font-variant-numeric:tabular-nums;
+  .footnote-item .flabel{color:#555 !important; font-size:7px; margin-bottom:1px;}
+  .footnote-item .fval{color:#000 !important; font-size:8px; line-height:1.25;}
+  .footnote-item.usd-item{display:none !important;}
+  /* As colunas de simulação existem só na tela da Gerência — nunca no PDF. */
+  .sim-col{display:none !important;}
+  .sim-legend{display:none !important;}
+  /* Nada de destaque de seleção no PDF: o realce de escolha é só de tela */
+  tr.row-selected td{background:inherit !important;}
+  td.pick-cell.picked{
+    background:inherit !important; color:inherit !important;
+    box-shadow:none !important; font-weight:700;
   }
-  td.code{ font-weight:700; font-size:13px; color:var(--ink); white-space:nowrap; }
-  td.color-cell{color:var(--ink-soft); white-space:nowrap;}
-  td.color-cell .swatch{
-    display:inline-block; width:9px;height:9px; border-radius:50%;
-    margin-right:6px; border:1px solid rgba(0,0,0,0.15); vertical-align:middle;
-  }
-  td.price{ text-align:right; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  /* IPI em tom próprio (azul-ardósia), bem distinto dos preços em vinho */
+  td.pick-cell.picked::after{content:none !important;}
+  /* IPI mantém o tom próprio na impressão */
   td.ipi{
-    text-align:right; font-size:13px; font-weight:700; white-space:nowrap;
-    color:var(--ipi-ink); background:var(--ipi-bg);
-    border-left:2px solid var(--ipi-border);
-    font-variant-numeric:tabular-nums;
+    font-size:9px; font-weight:700;
+    color:#1B5C99 !important; background:#EDF1F6 !important;
+    border-left:1px solid #9DB4CE;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
   th.ipi-col{
-    color:var(--ipi-ink) !important; background:var(--ipi-bg) !important;
-    border-left:2px solid var(--ipi-border);
+    color:#1B5C99 !important; background:#DCE5EF !important;
+    border-left:1px solid #9DB4CE;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  td.commission-value.ipi-col{ background:var(--ipi-bg) !important; color:var(--ipi-ink) !important; }
-
-  /* ===== Custo (só Gerência) — cinza claro, meramente informativo =====
-     O custo NÃO é editável aqui: o único lugar que altera custo é a
-     "Matriz de custos" (exportar/importar planilha). */
+  td.commission-value.ipi-col{background:#EDF1F6 !important; color:#1B5C99 !important;}
+  /* Custo (só Gerência) mantém o cinza claro na impressão */
   td.cost-col{
-    text-align:right; white-space:nowrap;
-    font-size:12.5px; font-weight:600; font-variant-numeric:tabular-nums;
-    color:var(--ink-faint); background:var(--cost-bg);
-    border-left:1px solid var(--cost-border);
+    font-size:9px; font-weight:600;
+    color:#6B6A6F !important; background:#F2F1EF !important;
+    border-left:1px solid #CFCCC7;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
   th.cost-col{
-    color:var(--ink-faint) !important; background:var(--cost-band) !important;
-    border-left:1px solid var(--cost-border); font-weight:600;
+    color:#6B6A6F !important; background:#E6E4E0 !important;
+    border-left:1px solid #CFCCC7;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  td.commission-value.cost-col{ background:var(--cost-bg) !important; color:var(--ink-faint) !important; }
-
-  /* ===== Simulação (colunas 6 e 7) — só Gerência, nunca no PDF ===== */
-  .sim-col{
-    background:#FFFBEF !important;
-    border-left:2px solid var(--maroon-line) !important;
-  }
-  th.sim-col{ color:var(--maroon-dark) !important; }
-  th.sim-col + th.sim-col, td.sim-col + td.sim-col{ border-left:1px solid var(--input-border) !important; }
-  td.sim-col{ text-align:right; white-space:nowrap; padding-left:4px; padding-right:4px; }
-  /* Cabeçalhos da simulação podem quebrar em duas linhas: assim as colunas
-     ficam estreitas em vez de esticadas pelo tamanho do rótulo. */
-  th.sim-col{
-    padding-left:5px !important; padding-right:5px !important;
-    font-size:9.5px; white-space:normal !important; line-height:1.25;
-  }
-  th.sim-col .tier-pct{ font-size:10px; }
-  th.sim-col.sim-group-head{ min-width:112px; }
-  /* Linha sem alteração/seleção na simulação: dados em cinza claro, para
-     deixar claro que aquele valor ainda não está sendo considerado.
-     Assim que a linha é editada ou o preço resultante é escolhido para o
-     orçamento, ela volta ao contraste normal (removendo a classe sim-dim). */
-  td.sim-col.sim-dim{ opacity:.5; }
-  td.sim-col.sim-dim input.sim-input{ color:var(--ink-faint); }
-  /* Linha ativa (editada ou escolhida para o orçamento): reforça o destaque
-     em relação às demais, que ficam em cinza claro. */
-  td.sim-col:not(.sim-dim){ background:#FCEFC2 !important; }
-  input.sim-input{
-    width:58px; text-align:right;
-    border:1px solid var(--input-border); border-radius:6px;
-    padding:4px 4px; font-family:'Inter',sans-serif; font-size:12px;
-    font-weight:700; font-variant-numeric:tabular-nums; color:var(--ink);
-    background:#fff;
-  }
-  input.sim-input:focus{
-    outline:none; border-color:var(--maroon); box-shadow:0 0 0 3px rgba(124,27,41,0.12);
-  }
-  /* Sem as setinhas do input numérico: o campo cabe em bem menos largura */
-  input.sim-input::-webkit-outer-spin-button,
-  input.sim-input::-webkit-inner-spin-button,
-  table.coef-table input::-webkit-outer-spin-button,
-  table.coef-table input::-webkit-inner-spin-button,
-  .coef-top-field input::-webkit-outer-spin-button,
-  .coef-top-field input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
-  input.sim-input, table.coef-table input, .coef-top-field input{ appearance:textfield; -moz-appearance:textfield; }
-  input.sim-input.changed{ border-color:var(--maroon); background:#FFF6F7; }
-  input.sim-input.sim-comm{ width:44px; }
-  .sim-pct{ font-size:10.5px; color:var(--ink-faint); margin-left:2px; }
-  td.sim-margin{
-    font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink-soft);
-  }
-  td.sim-margin.changed{ color:var(--maroon-dark); }
-  td.sim-margin.negative{ color:#B02A2A; }
-  .sim-legend{
-    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-    margin:10px 0 0; font-size:11.5px; color:var(--ink-faint);
-  }
-
-  /* ===== Seleção de itens/colunas para orçamento ===== */
-  .quote-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; }
-  .quote-count{ font-size:12.5px; font-weight:700; color:var(--maroon); }
-  th.sel-col, td.sel-col{
-    width:34px; text-align:center !important;
-    padding-left:6px !important; padding-right:6px !important;
-  }
-  input.sel-check{ width:15px; height:15px; accent-color:var(--maroon); cursor:pointer; vertical-align:middle; }
-  tr.row-selected td{ background:rgba(124,27,41,0.07) !important; }
-  /* ===== Seleção do orçamento clicando no próprio preço ===== */
-  td.pick-cell{ cursor:pointer; position:relative; transition:background .12s ease; }
-  td.pick-cell:hover{ background:rgba(124,27,41,0.10) !important; box-shadow:inset 0 0 0 1px var(--maroon-line); }
-  td.pick-cell.picked{
-    background:var(--maroon) !important; color:#fff !important;
-    font-weight:800; box-shadow:inset 0 0 0 2px var(--maroon-dark);
-  }
-  td.pick-cell.picked::after{
-    content:"✓"; position:absolute; left:6px; top:50%; transform:translateY(-50%);
-    font-size:11px; font-weight:800; color:#fff; opacity:.9;
-  }
-  td.sim-pick{ text-align:right; }
-  td.sim-pick.picked{ background:var(--maroon) !important; }
-  td.sim-pick.picked::after{ content:none; }
-  button.pick-dot{
-    width:16px; height:16px; margin-right:3px; vertical-align:middle;
-    border:1px solid var(--input-border); border-radius:50%;
-    background:#fff; color:transparent; font-size:11px; font-weight:800;
-    line-height:1; cursor:pointer; padding:0;
-  }
-  td.sim-pick.picked button.pick-dot{ background:#fff; border-color:#fff; color:var(--maroon); }
-  button.pick-dot:hover{ border-color:var(--maroon); color:var(--maroon-line); }
-
-  /* ===== Chave "margem pelo preço" / "preço pela margem" =====
-     Dentro do cabeçalho da tabela os dois botões ficam EMPILHADOS (ocupam
-     bem menos largura) e o selecionado usa cinza forte. */
-  .sim-mode-switch{
-    display:inline-flex; flex-direction:column; align-items:stretch;
-    background:#fff; border:1px solid var(--input-border);
-    border-radius:7px; padding:2px; gap:2px; margin:4px 0 2px; max-width:100%;
-  }
-  .sim-mode-opt{
-    border:none; background:transparent; cursor:pointer; border-radius:5px;
-    font-family:'Inter',sans-serif; font-weight:700; font-size:9.5px;
-    text-transform:none; letter-spacing:0; color:var(--ink-soft);
-    padding:3px 6px; white-space:nowrap; text-align:center;
-  }
-  .sim-mode-opt.on{ background:var(--sim-sel); color:#fff; }
-  .sim-mode-opt:hover:not(.on){ color:var(--maroon); background:#F1EFEC; }
-  td.sim-out{ text-align:right; font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink-soft); }
-  td.sim-out.changed{ color:var(--maroon-dark); }
-  td.sim-out.negative{ color:#B02A2A; font-size:11px; }
-  td.sim-out.pick-cell::after{ left:5px; }
-  input.sim-input.sim-margin-in{ width:46px; }
-  button.sim-clear{
-    margin-left:3px; width:15px; height:15px; padding:0; vertical-align:middle;
-    border:1px solid var(--input-border); border-radius:50%;
-    background:#fff; color:var(--ink-faint);
-    font-size:9px; font-weight:800; line-height:1; cursor:pointer; opacity:.45;
-  }
-  button.sim-clear:hover{ opacity:1; border-color:var(--maroon); color:var(--maroon); }
-  button.sim-clear.on{ opacity:1; border-color:var(--maroon-line); color:var(--maroon); background:#FFF6F7; }
-
-  /* Atalho de simulação no painel de filtros (essencial no celular) */
-  .filters-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .sim-ctl{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-  .sim-ctl .sim-ctl-toggle{ font-weight:700; }
-  /* No atalho fora da tabela há largura de sobra: mantém lado a lado */
-  .sim-ctl .sim-mode-switch{ margin:0; flex-direction:row; }
-  .sim-ctl .sim-mode-opt{ font-size:11px; padding:4px 9px; }
-
-  /* ===== Grupo de simulação recolhível no cabeçalho da tabela =====
-     Estado ABERTO: botão com contorno (chave "«" convida a recolher).
-     Estado RECOLHIDO: botão PREENCHIDO em bordô, para ficar óbvio que é um
-     controle fechado que precisa de clique para abrir (chave "»"). A cor
-     sólida é a principal pista visual de que a coluna está recolhida. */
-  th.sim-group-head.collapsed{ width:40px; padding:6px 3px !important; background:rgba(124,27,41,0.10) !important; }
-  button.sim-group-btn{
-    border:1px solid var(--maroon-line); background:#fff; color:var(--maroon);
-    font-family:'Inter',sans-serif; font-weight:800; font-size:10.5px;
-    letter-spacing:.03em; text-transform:uppercase;
-    padding:4px 9px; border-radius:6px; cursor:pointer; white-space:nowrap;
-  }
-  button.sim-group-btn:hover{ background:var(--maroon); color:#fff; }
-  th.sim-group-head.collapsed button.sim-group-btn{
-    writing-mode:vertical-rl; transform:rotate(180deg); padding:10px 5px;
-    background:var(--maroon); color:#fff; border-color:var(--maroon);
-    box-shadow:0 0 0 2px rgba(124,27,41,0.18);
-  }
-  th.sim-group-head.collapsed button.sim-group-btn:hover{ background:var(--maroon-dark); }
-
-  /* ===== Módulo recolhível "Visualizar simulação" ===== */
-  .sim-toggle{
-    display:flex; align-items:center; gap:10px; width:100%;
-    background:transparent; border:none; padding:0; cursor:pointer; text-align:left;
-  }
-  .sim-toggle .panel-title{ margin:0; }
-  .sim-chevron{ color:var(--maroon); font-size:14px; line-height:1; transition:transform .15s ease; }
-  .sim-toggle[aria-expanded="true"] .sim-chevron{ transform:rotate(90deg); }
-  .sim-state{
-    margin-left:auto; font-size:11.5px; font-weight:600; color:var(--ink-faint);
-    background:#F6F4F1; border:1px solid var(--line); padding:4px 10px; border-radius:20px;
-  }
-  .sim-toggle[aria-expanded="true"] .sim-state{
-    color:var(--maroon); background:rgba(124,27,41,0.07); border-color:rgba(124,27,41,0.25);
-  }
-  .sim-body[hidden]{ display:none; }
-
-  /* ===== Painel recolhível genérico (usado no bloco "Orçamento") =====
-     Recolhido mostra só o título e o botão de expandir. */
-  .collapse-head{ margin-bottom:0; padding-bottom:0; border-bottom:none; }
-  .collapse-head.open{ margin-bottom:14px; padding-bottom:12px; border-bottom:2px solid var(--maroon-line); }
-  .collapse-toggle{
-    display:flex; align-items:center; gap:10px; flex:1 1 auto; min-width:0;
-    background:transparent; border:none; padding:0; cursor:pointer; text-align:left;
-  }
-  .collapse-toggle .panel-title{ margin:0; }
-  .collapse-chevron{
-    color:var(--maroon); font-size:13px; line-height:1;
-    transition:transform .15s ease; flex:0 0 auto;
-  }
-  .collapse-toggle[aria-expanded="true"] .collapse-chevron{ transform:rotate(90deg); }
-  .collapse-btn{
-    margin-left:auto; flex:0 0 auto;
-    font-family:'Inter',sans-serif; font-size:11.5px; font-weight:700;
-    color:var(--maroon); background:#fff; border:1px solid var(--maroon);
-    padding:5px 12px; border-radius:20px; white-space:nowrap;
-  }
-  .collapse-toggle[aria-expanded="true"] .collapse-btn{
-    color:#fff; background:var(--maroon); border-color:var(--maroon);
-  }
-  .collapse-badge{
-    flex:0 0 auto; font-size:11.5px; font-weight:700; color:var(--maroon);
-    background:rgba(124,27,41,0.08); border:1px solid rgba(124,27,41,0.22);
-    padding:3px 10px; border-radius:20px; white-space:nowrap;
-  }
-  .collapse-badge:empty{ display:none; }
-  .collapse-body[hidden]{ display:none; }
-
-  .empty-state{ text-align:center; padding:50px 20px; color:var(--ink-faint); font-size:14px; }
-
-  /* ===== Footer notes ===== */
-  .footnotes{
-    margin-top:22px;
-    background:var(--maroon-dark);
-    color:#EFE2E3;
-    border-radius:10px;
-    padding:22px 24px;
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-    gap:18px;
-  }
-  .footnote-item .flabel{
-    font-family:'Inter',sans-serif;
-    font-size:10.5px;
-    font-weight:700;
-    letter-spacing:.06em;
-    text-transform:uppercase;
-    color:#E3A8AF;
-    margin-bottom:6px;
-  }
-  .footnote-item .fval{font-size:13px; line-height:1.5;}
-
-  .hub-footer{ text-align:center; padding:22px; font-size:11.5px; color:var(--ink-faint); }
-
-  /* ===== Password modal ===== */
-  .modal-overlay{
-    position:fixed; inset:0;
-    background:rgba(38,37,42,0.55);
-    display:flex; align-items:center; justify-content:center;
-    z-index:50; padding:20px;
-  }
-  .modal-overlay[hidden]{display:none;}
-  .modal-box{
-    background:#fff; border-radius:12px; padding:28px 26px;
-    max-width:380px; width:100%;
-    box-shadow:0 20px 50px -12px rgba(0,0,0,0.35);
-  }
-  .modal-box h3{
-    font-family:'Manrope',sans-serif; font-size:17px; font-weight:800;
-    color:var(--maroon); margin:0 0 8px; display:flex; align-items:center; gap:8px;
-  }
-  .modal-box p{ font-size:13.5px; color:var(--ink-soft); line-height:1.5; margin:0 0 16px; }
-  .modal-actions{ display:flex; gap:10px; margin-top:16px; }
-  .modal-actions .btn{flex:1;}
-  .pw-error{ color:#B02A2A; font-size:12.5px; font-weight:600; margin-top:10px; display:none; }
-
-  @media (max-width:640px){
-    .panel{padding:14px;}
-    /* A tabela continua com o mesmo layout do desktop — o JS encolhe cada
-       bloco de categoria (via CSS zoom) até caber na largura da tela,
-       em vez de reformatar em "cards" empilhados. */
-    .cat-block{ transform-origin:top left; }
-  }
-
-  /* ===== Print (B&W friendly) ===== */
-  /* ===== Impressão: A4 RETRATO, tudo em UMA página, números na maior
-     fonte possível. Os tamanhos abaixo são fixos e calibrados para o
-     catálogo completo (43 produtos + 4 famílias) caber em uma folha. ===== */
-  @page{ size: A4 portrait; margin: 8mm; }
-  @media print{
-    body{background:#fff;}
-    .no-print{display:none !important;}
-    .wgi-header{
-      -webkit-print-color-adjust:exact; print-color-adjust:exact;
-      background:var(--maroon) !important; padding:6px 10px;
-    }
-    .logo-badge{ width:34px; height:34px; border-radius:7px; padding:3px; }
-    .brand-text h1{ font-size:15px !important; margin:0; }
-    .brand-text p{ font-size:9px; }
-    .page{padding:0;}
-    .panel{box-shadow:none; border:none; padding:0; margin:0;}
-    /* Título da tabela com o ICMS aplicável em destaque */
-    .print-summary{
-      display:block; font-family:'Manrope',sans-serif;
-      font-size:17px; font-weight:800; color:var(--maroon-dark);
-      text-align:center; text-transform:uppercase; letter-spacing:.02em;
-      margin:4px 0 5px; padding-bottom:3px;
-      border-bottom:3px solid var(--maroon);
-      -webkit-print-color-adjust:exact; print-color-adjust:exact;
-    }
-    .print-summary .icms-badge{ font-size:17px; padding:3px 13px; }
-    /* Blocos de categoria compactos */
-    .cat-block{
-      margin:0 0 3px; break-inside:avoid-page; overflow:visible;
-      border-left-width:5px;
-    }
-    .cat-heading{ margin:0 0 1px; padding:1.5px 9px; border-radius:4px; }
-    .cat-heading h2{ font-size:12.5px; }
-    .cat-count{ font-size:9px; }
-    /* Tabelas: fonte máxima que ainda cabe numa página A4 retrato */
-    table.price-table{ border-radius:0; border-color:#bbb; }
-    .price-table thead th{
-      color:#000 !important; font-size:8.5px; padding:1.5px 4px;
-      border-bottom-width:2px; letter-spacing:0;
-      -webkit-print-color-adjust:exact; print-color-adjust:exact;
-    }
-    .price-table thead th .tier-pct{ font-size:9.5px; margin-top:0; color:#7C1B29 !important; }
-    .price-table tbody td{ padding:0.7px 4px; font-size:10px; border-top-color:#ddd; }
-    td.code{ font-size:10px; }
-    td.color-cell{ font-size:9.5px; }
-    td.color-cell .swatch{ width:7px; height:7px; margin-right:4px; }
-    td.price{ font-size:11.5px; }   /* os números — maior fonte da tabela */
-    .price-table tbody tr:nth-child(even){background:#f7f7f7 !important;}
-    tr.commission-row td{ font-size:10.5px; padding:1.2px 4px; border-top-width:2px; }
-    tr.commission-row td.commission-label{ font-size:8.5px; }
-    tr{break-inside:avoid;}
-    /* Rodapé de condições — compacto, e sem a referência em USD */
-    .footnotes{
-      background:#fff !important; color:#000 !important;
-      border:1px solid #999; border-radius:0;
-      padding:2.5px 8px; gap:2px 10px; margin-top:3px; break-inside:avoid;
-      grid-template-columns:repeat(4, 1fr);
-      -webkit-print-color-adjust:exact; print-color-adjust:exact;
-    }
-    .footnote-item .flabel{ color:#555 !important; font-size:7px; margin-bottom:1px; }
-    .footnote-item .fval{ color:#000 !important; font-size:8px; line-height:1.25; }
-    .footnote-item.usd-item{ display:none !important; }
-    /* As colunas de simulação (6 "Simular preço" e 7 "Margem resultante")
-       existem só na tela da Gerência — nunca saem no PDF. */
-    .sim-col{ display:none !important; }
-    .sim-legend{ display:none !important; }
-    /* Nada de destaque de seleção no PDF: o realce de escolha é só de tela */
-    tr.row-selected td{ background:inherit !important; }
-    td.pick-cell.picked{
-      background:inherit !important; color:inherit !important;
-      box-shadow:none !important; font-weight:700;
-    }
-    td.pick-cell.picked::after{ content:none !important; }
-    /* IPI mantém o tom próprio na impressão */
-    td.ipi{
-      font-size:9px; font-weight:700;
-      color:#33506E !important; background:#EDF1F6 !important;
-      border-left:1px solid #9DB4CE;
-      -webkit-print-color-adjust:exact; print-color-adjust:exact;
-    }
-    th.ipi-col{
-      color:#33506E !important; background:#DCE5EF !important;
-      border-left:1px solid #9DB4CE;
-      -webkit-print-color-adjust:exact; print-color-adjust:exact;
-    }
-    td.commission-value.ipi-col{ background:#EDF1F6 !important; color:#33506E !important; }
-    /* Custo (só Gerência) mantém o cinza claro na impressão */
-    td.cost-col{
-      font-size:9px; font-weight:600;
-      color:#6B6A6F !important; background:#F2F1EF !important;
-      border-left:1px solid #CFCCC7;
-      -webkit-print-color-adjust:exact; print-color-adjust:exact;
-    }
-    th.cost-col{
-      color:#6B6A6F !important; background:#E6E4E0 !important;
-      border-left:1px solid #CFCCC7;
-      -webkit-print-color-adjust:exact; print-color-adjust:exact;
-    }
-    td.commission-value.cost-col{ background:#F2F1EF !important; color:#6B6A6F !important; }
-  }
+  td.commission-value.cost-col{background:#F2F1EF !important; color:#6B6A6F !important;}
+}
 </style>
 </head>
 <body>
@@ -898,6 +953,7 @@
         <button data-val="en">EN</button>
       </div>
       <div class="clock-pill" id="clockPill">—</div>
+      <button class="hdr-chip" id="themeBtn" type="button">Tema</button>
     </div>
   </div>
 </header>
@@ -1265,7 +1321,7 @@ const I18N = {
     pwTitle:"🔒 Acesso restrito — Gerência",
     pwText:"Esta área contém margens comerciais sensíveis. Informe a senha do módulo de gerência para continuar.",
     pwPlaceholder:"Senha", pwError:"Senha incorreta. Tente novamente.", cancel:"Cancelar", enter:"Entrar",
-    pdfBtn:"Gerar PDF",
+    pdfBtn:"Gerar PDF", theme:"Tema",
     adminTitle:"Matriz de custos",
     adminHint:"Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.",
     exportBtn:"Exportar custos (XLSX)", importBtn:"Importar planilha (XLSX)",
@@ -1328,7 +1384,7 @@ const I18N = {
     pwTitle:"🔒 Restricted access — Management",
     pwText:"This area contains sensitive commercial margins. Enter the management password to continue.",
     pwPlaceholder:"Password", pwError:"Incorrect password. Try again.", cancel:"Cancel", enter:"Enter",
-    pdfBtn:"Generate PDF",
+    pdfBtn:"Generate PDF", theme:"Theme",
     adminTitle:"Cost matrix",
     adminHint:"Update each product's cost and the app recalculates every price automatically. Export to edit in a spreadsheet and import it back.",
     exportBtn:"Export costs (XLSX)", importBtn:"Import spreadsheet (XLSX)",
@@ -1623,6 +1679,7 @@ function applyStaticTexts(){
   document.getElementById('searchInput').placeholder = t('searchPlaceholder');
   document.getElementById('txt-categoryLabel').textContent = t('categoryLabel');
   document.getElementById('txt-pdfBtn').textContent = t('pdfBtn');
+  document.getElementById('themeBtn').textContent = t('theme');
   document.getElementById('txt-quoteTitle').textContent = t('quoteTitle');
   document.getElementById('txt-quoteBtn').textContent = t('quoteBtn');
   document.getElementById('txt-quoteClientLabel').textContent = t('quoteClientLabel');
@@ -2596,6 +2653,29 @@ document.getElementById('quoteBtn').onclick = ()=>{
 window.addEventListener('afterprint', ()=>{
   if(state.quoteMode){ state.quoteMode = false; render(); }
 });
+
+/* ===== Tema claro / escuro =====
+   O design system WGI troca de tema só pelos tokens de cor: basta marcar
+   data-theme no <html>. Sem a marca, vale a preferência do sistema. */
+(function(){
+  const btn = document.getElementById('themeBtn');
+  try{
+    const salvo = localStorage.getItem('wgi-tema');
+    if(salvo === 'dark' || salvo === 'light'){
+      document.documentElement.setAttribute('data-theme', salvo);
+    }
+  }catch(e){}
+  if(!btn) return;
+  btn.onclick = ()=>{
+    const atual = document.documentElement.getAttribute('data-theme');
+    const escuro = atual ? atual === 'dark'
+                         : window.matchMedia('(prefers-color-scheme:dark)').matches;
+    const novo = escuro ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', novo);
+    try{ localStorage.setItem('wgi-tema', novo); }catch(e){}
+    scheduleFitTablesToScreen();
+  };
+})();
 
 render();
 </script>
