@@ -956,6 +956,8 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
       </div>
       <div class="clock-pill" id="clockPill">—</div>
       <button class="hdr-chip" id="themeBtn" type="button">Tema</button>
+      <span class="clock-pill" id="whoPill" hidden></span>
+      <button class="hdr-chip" id="sairBtn" type="button">Sair</button>
     </div>
   </div>
 </header>
@@ -1383,7 +1385,7 @@ const I18N = {
     pwTitle:"🔒 Acesso restrito — Gerência",
     pwText:"Esta área contém margens comerciais sensíveis. Informe a senha do módulo de gerência para continuar.",
     pwPlaceholder:"Senha", pwError:"Senha incorreta. Tente novamente.", cancel:"Cancelar", enter:"Entrar",
-    pdfBtn:"Gerar PDF", theme:"Tema",
+    pdfBtn:"Gerar PDF", theme:"Tema", sair:"Sair", sairTip:"Encerrar a sessão da Central de Acesso",
     adminTitle:"Matriz de custos",
     adminHint:"Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.",
     exportBtn:"Exportar custos (XLSX)", importBtn:"Importar planilha (XLSX)",
@@ -1446,7 +1448,7 @@ const I18N = {
     pwTitle:"🔒 Restricted access — Management",
     pwText:"This area contains sensitive commercial margins. Enter the management password to continue.",
     pwPlaceholder:"Password", pwError:"Incorrect password. Try again.", cancel:"Cancel", enter:"Enter",
-    pdfBtn:"Generate PDF", theme:"Theme",
+    pdfBtn:"Generate PDF", theme:"Theme", sair:"Sign out", sairTip:"End the Central de Acesso session",
     adminTitle:"Cost matrix",
     adminHint:"Update each product's cost and the app recalculates every price automatically. Export to edit in a spreadsheet and import it back.",
     exportBtn:"Export costs (XLSX)", importBtn:"Import spreadsheet (XLSX)",
@@ -1762,6 +1764,8 @@ function applyStaticTexts(){
   document.getElementById('txt-categoryLabel').textContent = t('categoryLabel');
   document.getElementById('txt-pdfBtn').textContent = t('pdfBtn');
   document.getElementById('themeBtn').textContent = t('theme');
+  const bSair = document.getElementById('sairBtn');
+  if(bSair){ bSair.textContent = t('sair'); bSair.title = t('sairTip'); }
   document.getElementById('txt-quoteTitle').textContent = t('quoteTitle');
   document.getElementById('txt-quoteBtn').textContent = t('quoteBtn');
   document.getElementById('txt-quoteClientLabel').textContent = t('quoteClientLabel');
@@ -2753,6 +2757,24 @@ window.addEventListener('afterprint', ()=>{
     try{ localStorage.setItem('wgi-tema', novo); }catch(e){}
     scheduleFitTablesToScreen();
   };
+})();
+
+/* ===== Quem está logado + sair =====
+   A ferramenta sobe com data-barra="nao", então a barra de identificação do
+   guard.js não aparece: o nome da conta e o botão Sair ficam aqui no header.
+   Trocar de módulo (representante <-> gerência) é sair e entrar de novo com a
+   outra senha, porque quem decide isso é a Central de Acesso. */
+(function(){
+  const pill = document.getElementById('whoPill');
+  const btn  = document.getElementById('sairBtn');
+  const u = (typeof APP !== 'undefined' && APP.usuario) ? APP.usuario : null;
+  if(pill && u){
+    const quem = u.nome || u.email || '';
+    // "Gestão · gestão" seria redundante: só marca o papel quando o nome não diz.
+    pill.textContent = quem + (MODO_GER && !/gest/i.test(quem) ? ' · gestão' : '');
+    pill.hidden = false;
+  }
+  if(btn) btn.onclick = ()=>{ APP.sair(); };
 })();
 
 // O cadeado do botão Gerência reflete a senha usada na Central de Acesso.
