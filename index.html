@@ -455,6 +455,14 @@ table.price-table{
 .price-table tbody td.code,
 .price-table tbody td.color-cell,
 .price-table tbody td.commission-label{text-align:left;}
+/* O peso base 500 das linhas não pode apagar o destaque do código, do preço
+   e dos números com tom próprio: eles precisam de especificidade equivalente. */
+.price-table tbody td.code,
+.price-table tbody td.price,
+.price-table tbody td.ipi,
+.price-table tbody td.sim-margin,
+.price-table tbody td.sim-out{font-weight:700;}
+.price-table tbody td.cost-col{font-weight:600;}
 .price-table tbody tr:nth-child(even) td{background:var(--sunk);}
 .price-table tbody tr:hover td{background:color-mix(in srgb, var(--wine) 7%, transparent);}
 
@@ -567,6 +575,19 @@ td.sim-margin.negative{color:var(--neg);}
 /* ===== Seleção de itens/colunas para orçamento ===== */
 .quote-actions{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:11px;}
 .quote-count{font-size:11.5px; font-weight:700; color:var(--wine-ink);}
+/* Botão "marcar/limpar toda a coluna" no cabeçalho de cada tabela de preço.
+   Fica acima do rótulo da coluna e some na impressão. */
+.col-pick{
+  display:block; margin:0 0 3px auto;
+  font:inherit; font-size:9px; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; white-space:nowrap;
+  border:1px solid var(--line); border-radius:6px;
+  background:var(--card); color:var(--ink-3);
+  padding:2px 7px; cursor:pointer;
+}
+.col-pick:hover{border-color:var(--wine-ink); color:var(--wine-ink);}
+.col-pick.on{background:var(--wine); border-color:var(--wine); color:#fff;}
+
 th.sel-col, td.sel-col{
   width:34px; text-align:center !important;
   padding-left:6px !important; padding-right:6px !important;
@@ -852,6 +873,7 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
   /* As colunas de simulação existem só na tela da Gerência — nunca no PDF. */
   .sim-col{display:none !important;}
   .sim-legend{display:none !important;}
+  .col-pick{display:none !important;}
   /* Nada de destaque de seleção no PDF: o realce de escolha é só de tela */
   tr.row-selected td{background:inherit !important;}
   td.pick-cell.picked{
@@ -1033,17 +1055,12 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
           <span class="field-label" id="txt-quoteClientLabel">Cliente</span>
           <input type="text" id="quoteClient" class="input-box" placeholder="Nome do cliente (opcional)">
         </div>
-        <div class="field grow">
-          <span class="field-label" id="txt-quoteBulkLabel">Aplicar tabela a todos os itens marcados</span>
-          <select id="quoteBulkCol" class="input-box"></select>
-        </div>
       </div>
       <div class="quote-actions">
-        <button class="btn btn-ghost" id="selAllBtn"><span id="txt-selAll">Selecionar todos os itens</span></button>
         <button class="btn btn-ghost" id="selNoneBtn"><span id="txt-selNone">Limpar seleção</span></button>
         <span class="quote-count" id="quoteCount"></span>
       </div>
-      <p class="admin-hint" id="txt-quoteHint" style="margin:10px 0 0;">Marque os itens na coluna ✓ das tabelas abaixo e escolha, item a item, de qual tabela sai o preço. O orçamento sai sem margens nem comissões.</p>
+      <p class="admin-hint" id="txt-quoteHint" style="margin:10px 0 0;">Clique no preço desejado para incluir o item; clique de novo para tirar. No cabeçalho de cada tabela há um botão que marca todos os itens em tela naquela coluna — depois é só clicar em outras células para trocar item a item. O orçamento sai sem margens nem comissões.</p>
     </div>
   </section>
 
@@ -1328,6 +1345,8 @@ const state = {
   selRows: {},
   rowCol: {},
   quoteMode: false,
+  // Impressão da tabela de preços restrita aos itens marcados
+  tableMode: false,
   quoteClient: '',
   // Bloco "Orçamento": recolhido por padrão (só título + botão de expandir).
   quoteOpen: false,
@@ -1356,14 +1375,15 @@ const I18N = {
     searchPlaceholder:"Ex.: 8J50PE, 7FB90PA, Branca — separe por vírgula", categoryLabel:"Categoria", allCat:"Todas",
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
-    quoteTitle:"Orçamento — selecione itens e colunas", quoteBtn:"Gerar orçamento (PDF)",
+    quoteTitle:"Orçamento — selecione itens e colunas",
+    quoteBtn:"Gerar orçamento com itens selecionados",
     quoteClientLabel:"Cliente", quoteClientPlaceholder:"Nome do cliente (opcional)",
     quoteBulkLabel:"Aplicar tabela a todos os itens marcados",
     quoteColHeader:"Tabela", quoteColHeaderShort:"Tabela do orçamento",
     quoteSimOption:"Simulação", quoteBulkPlaceholder:"— escolher —",
     selAll:"Selecionar todos os itens", selNone:"Limpar seleção",
     quoteExpand:"Expandir", quoteCollapse:"Recolher",
-    quoteHint:"Marque os itens na coluna ✓ das tabelas abaixo e escolha, item a item, de qual tabela sai o preço. O orçamento sai sem margens nem comissões.",
+    quoteHint:"Clique no preço desejado para incluir o item; clique de novo para tirar. No cabeçalho de cada tabela há um botão que marca todos os itens em tela naquela coluna — depois é só clicar em outras células para trocar item a item. O orçamento sai sem margens nem comissões.",
     quoteCount:(n)=> n + " item(ns) selecionado(s)",
     pickTip:"Usar este preço no orçamento",
     simModeMarginFromPrice:"Margem pelo preço", simModePriceFromMargin:"Preço pela margem",
@@ -1385,7 +1405,13 @@ const I18N = {
     pwTitle:"🔒 Acesso restrito — Gerência",
     pwText:"Esta área contém margens comerciais sensíveis. Informe a senha do módulo de gerência para continuar.",
     pwPlaceholder:"Senha", pwError:"Senha incorreta. Tente novamente.", cancel:"Cancelar", enter:"Entrar",
-    pdfBtn:"Gerar PDF", theme:"Tema", sair:"Sair", sairTip:"Encerrar a sessão da Central de Acesso",
+    pdfBtn:"Gerar tabela em PDF com itens selecionados",
+    pdfEmpty:"Marque ao menos um item para gerar a tabela em PDF.",
+    colPickAll:"Marcar todos os itens em tela nesta coluna",
+    colPickNone:"Limpar todos os itens desta coluna",
+    colPickAllShort:"todos", colPickNoneShort:"limpar",
+    selectedSuffix:"selecionados",
+    theme:"Tema", sair:"Sair", sairTip:"Encerrar a sessão da Central de Acesso",
     adminTitle:"Matriz de custos",
     adminHint:"Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.",
     exportBtn:"Exportar custos (XLSX)", importBtn:"Importar planilha (XLSX)",
@@ -1419,14 +1445,15 @@ const I18N = {
     searchPlaceholder:"e.g. 8J50PE, 7FB90PA, White — comma separated", categoryLabel:"Category", allCat:"All",
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
-    quoteTitle:"Quote — select items and columns", quoteBtn:"Generate quote (PDF)",
+    quoteTitle:"Quote — select items and columns",
+    quoteBtn:"Generate quote with selected items",
     quoteClientLabel:"Customer", quoteClientPlaceholder:"Customer name (optional)",
     quoteBulkLabel:"Apply table to all ticked items",
     quoteColHeader:"Table", quoteColHeaderShort:"Quote table",
     quoteSimOption:"Simulation", quoteBulkPlaceholder:"— choose —",
     selAll:"Select all items", selNone:"Clear selection",
     quoteExpand:"Expand", quoteCollapse:"Collapse",
-    quoteHint:"Tick the items in the ✓ column of the tables below and pick, item by item, which table the price comes from. The quote has no margins or commissions.",
+    quoteHint:"Click the price you want to add the item; click it again to remove. Each table header has a button that selects every item on screen in that column — then just click other cells to change an item. The quote has no margins or commissions.",
     quoteCount:(n)=> n + " item(s) selected",
     pickTip:"Use this price in the quote",
     simModeMarginFromPrice:"Margin from price", simModePriceFromMargin:"Price from margin",
@@ -1448,7 +1475,13 @@ const I18N = {
     pwTitle:"🔒 Restricted access — Management",
     pwText:"This area contains sensitive commercial margins. Enter the management password to continue.",
     pwPlaceholder:"Password", pwError:"Incorrect password. Try again.", cancel:"Cancel", enter:"Enter",
-    pdfBtn:"Generate PDF", theme:"Theme", sair:"Sign out", sairTip:"End the Central de Acesso session",
+    pdfBtn:"Generate PDF table with selected items",
+    pdfEmpty:"Select at least one item to generate the PDF table.",
+    colPickAll:"Select every item on screen in this column",
+    colPickNone:"Clear every item in this column",
+    colPickAllShort:"all", colPickNoneShort:"clear",
+    selectedSuffix:"selected",
+    theme:"Theme", sair:"Sign out", sairTip:"End the Central de Acesso session",
     adminTitle:"Cost matrix",
     adminHint:"Update each product's cost and the app recalculates every price automatically. Export to edit in a spreadsheet and import it back.",
     exportBtn:"Export costs (XLSX)", importBtn:"Import spreadsheet (XLSX)",
@@ -1770,8 +1803,6 @@ function applyStaticTexts(){
   document.getElementById('txt-quoteBtn').textContent = t('quoteBtn');
   document.getElementById('txt-quoteClientLabel').textContent = t('quoteClientLabel');
   document.getElementById('quoteClient').placeholder = t('quoteClientPlaceholder');
-  document.getElementById('txt-quoteBulkLabel').textContent = t('quoteBulkLabel');
-  document.getElementById('txt-selAll').textContent = t('selAll');
   document.getElementById('txt-selNone').textContent = t('selNone');
   document.getElementById('txt-quoteHint').textContent = t('quoteHint');
   renderQuoteCollapse();
@@ -1980,21 +2011,42 @@ function rowColLabel(code, block){
   return opt ? opt.label : '';
 }
 
-// Select do topo que aplica a mesma tabela a todos os itens marcados
-function renderQuoteBulk(block){
-  const sel = document.getElementById('quoteBulkCol');
-  if(!sel) return;
-  const opts = quoteColOptions(block);
-  sel.innerHTML = '<option value="">'+t('quoteBulkPlaceholder')+'</option>'
-    + opts.map(o=>'<option value="'+o.value+'">'+o.label+'</option>').join('');
-  sel.value = '';
+// Contador de itens escolhidos no painel do orçamento
+function renderQuoteCount(){
   const cnt = document.getElementById('quoteCount');
   if(cnt) cnt.textContent = t('quoteCount')(selectedRowCount());
 }
 
+// Botão no cabeçalho de cada coluna de tabela. Marca de uma vez todos os
+// itens que estão em tela naquela coluna; se todos já estiverem nela, limpa.
+// Depois de marcar a coluna inteira, clicar numa célula de outra coluna troca
+// só aquele item — a escolha é por item, não por lote.
+function colPickBtn(col, codes, block){
+  const cheio = codes.length > 0
+    && codes.every(c => state.selRows[c] && rowColOf(c, block) === String(col));
+  return '<button class="col-pick'+(cheio?' on':'')+'" type="button" data-col="'+col+'"'
+       + ' title="'+escAttr(cheio ? t('colPickNone') : t('colPickAll'))+'">'
+       + (cheio ? t('colPickNoneShort') : t('colPickAllShort'))
+       + '</button>';
+}
+
 // Seleção do orçamento direto na célula: clicar no preço escolhe aquele item
 // naquela coluna; clicar de novo na mesma célula tira o item da seleção.
-function bindSelection(block){
+function bindSelection(block, codigosEmTela){
+  // Marcar / limpar uma coluna inteira de uma vez
+  document.querySelectorAll('button.col-pick').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      const col = btn.dataset.col;
+      const cheio = codigosEmTela.length > 0
+        && codigosEmTela.every(c => state.selRows[c] && rowColOf(c, block) === col);
+      codigosEmTela.forEach(c=>{
+        if(cheio){ delete state.selRows[c]; delete state.rowCol[c]; }
+        else { state.selRows[c] = true; state.rowCol[c] = col; }
+      });
+      render();
+    });
+  });
   document.querySelectorAll('td.pick-cell').forEach(cell=>{
     cell.addEventListener('click', (ev)=>{
       // Digitar no campo de preço simulado não deve mexer na seleção
@@ -2036,7 +2088,7 @@ function render(){
 
   const block = currentBlock();
   renderCatChips(block);
-  renderQuoteBulk(block);
+  renderQuoteCount();
 
   document.getElementById('versionNote').textContent = block.date + ' · ' + block.note;
 
@@ -2059,8 +2111,12 @@ function render(){
   const tierLabels = block.margins.map((m,i)=> t('tableCol') + ' ' + (i+1));
   const shownTiers = block.margins.map((m,i)=>i);
 
+  // Tanto o orçamento quanto a "tabela em PDF" saem apenas com os itens
+  // marcados: são dois documentos diferentes da MESMA seleção.
+  const soMarcados = quote || state.tableMode;
+
   let rows = block.rows;
-  if(quote){
+  if(soMarcados){
     // O orçamento traz exatamente os itens marcados pelo usuário — nada
     // além disso. Os filtros de categoria e busca são só para NAVEGAR na
     // tela; se ficarem ativos, não podem esconder do PDF um item que já
@@ -2085,6 +2141,9 @@ function render(){
     }
   }
 
+  // Códigos que estão em tela agora: é sobre eles que o botão de coluna age.
+  const codigosEmTela = rows.map(r=>r.code);
+
   const grouped = {};
   rows.forEach(r=>{ grouped[r.cat] = grouped[r.cat] || []; grouped[r.cat].push(r); });
 
@@ -2103,7 +2162,8 @@ function render(){
   } else {
     document.getElementById('printSummary').innerHTML =
       t('title') + ' &nbsp;<span class="icms-badge">ICMS ' + icmsTxt + '</span>&nbsp; · '
-      + modTxt + ' · ' + block.date + ' · ' + block.note;
+      + modTxt + ' · ' + block.date + ' · ' + block.note
+      + (state.tableMode ? ' · ' + rows.length + ' ' + t('selectedSuffix') : '');
   }
 
   if(rows.length === 0){
@@ -2132,7 +2192,11 @@ function render(){
         thead += '<th>'+t('priceCol')+'</th>';
       } else {
         shownTiers.forEach(i=>{
-          thead += '<th>'+tierLabels[i]+(showMarginPct ? '<span class="tier-pct">'+fmtPct(block.margins[i])+'</span>' : '')+'</th>';
+          thead += '<th>'
+                +  colPickBtn(i, codigosEmTela, block)
+                +  tierLabels[i]
+                +  (showMarginPct ? '<span class="tier-pct">'+fmtPct(block.margins[i])+'</span>' : '')
+                +  '</th>';
         });
       }
       // Grupo de simulação: fica SEMPRE visível como um grupo recolhido no
@@ -2305,7 +2369,7 @@ function render(){
   document.getElementById('content').appendChild(foot);
 
   // Fora do orçamento, liga os controles de seleção da tabela
-  if(!state.quoteMode) bindSelection(block);
+  if(!state.quoteMode && !state.tableMode) bindSelection(block, codigosEmTela);
   // Os inputs de simulação só existem com o módulo aberto
   if(showSim) bindSimInputs(block);
 
@@ -2479,7 +2543,18 @@ document.getElementById('searchInput').addEventListener('input', (e)=>{
 });
 
 // ---------- PDF (impressão) ----------
-document.getElementById('pdfBtn').onclick = ()=> window.print();
+// A tabela de preços em PDF sai com os MESMOS itens marcados que o orçamento
+// usaria — a diferença é o formato: aqui vão todas as colunas de tabela, lá
+// vai só o preço escolhido de cada item.
+document.getElementById('pdfBtn').onclick = ()=>{
+  if(selectedRowCount() === 0){
+    window.alert(t('pdfEmpty'));
+    return;
+  }
+  state.tableMode = true;
+  render();
+  setTimeout(()=>{ window.print(); }, 80);
+};
 
 // ---------- Admin: export / import custos ----------
 function showAdminMsg(msg, ok){
@@ -2703,23 +2778,10 @@ document.querySelectorAll('#simCtlMode .sim-mode-opt').forEach(btn=>{
 document.getElementById('quoteClient').addEventListener('input', (e)=>{
   state.quoteClient = e.target.value;
 });
-document.getElementById('selAllBtn').onclick = ()=>{
-  currentBlock().rows.forEach(r=>{ state.selRows[r.code] = true; });
-  render();
-};
 document.getElementById('selNoneBtn').onclick = ()=>{
   state.selRows = {}; state.rowCol = {};
   render();
 };
-// Aplica a mesma tabela a todos os itens marcados
-document.getElementById('quoteBulkCol').addEventListener('change', (e)=>{
-  const val = e.target.value;
-  if(val === '') return;
-  Object.keys(state.selRows).forEach(code=>{
-    if(state.selRows[code]) state.rowCol[code] = val;
-  });
-  render();
-});
 
 // Gera o orçamento: entra no modo orçamento (só itens/colunas escolhidos),
 // imprime, e volta ao normal quando a caixa de impressão fecha.
@@ -2733,7 +2795,11 @@ document.getElementById('quoteBtn').onclick = ()=>{
   setTimeout(()=>{ window.print(); }, 80);
 };
 window.addEventListener('afterprint', ()=>{
-  if(state.quoteMode){ state.quoteMode = false; render(); }
+  if(state.quoteMode || state.tableMode){
+    state.quoteMode = false;
+    state.tableMode = false;
+    render();
+  }
 });
 
 /* ===== Tema claro / escuro =====
