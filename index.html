@@ -43,15 +43,16 @@
      escuro demais sobre fundo escuro, então lá ele vira o vinho claro.
      Preenchimentos (botões, células escolhidas, header) continuam em --wine. */
   --wine-ink:#7C1B29;
-  /* faixa de cor por família de produtos (derivada de --s1..--s4) */
-  --cat-6-bg:#E8F0F8; --cat-6-band:#D3E3F2; --cat-6-border:#1E6FB8;
-  --cat-7-bg:#E9F2EA; --cat-7-band:#D3E5D6; --cat-7-border:#4E7A1E;
-  --cat-8-bg:#F8F1DD; --cat-8-band:#EFE1BE; --cat-8-border:#B8801F;
-  --cat-9-bg:#F7E9ED; --cat-9-band:#EFD6DC; --cat-9-border:#9E2438;
-  /* IPI — tom próprio, para não competir com os preços */
-  --ipi-bg:#EDF1F6; --ipi-band:#DCE5EF; --ipi-ink:#1B5C99; --ipi-border:#9DB4CE;
-  /* custo (só Gerência) — cinza meramente informativo */
-  --cost-bg:#F4F3F1; --cost-band:#E9E7E3; --cost-border:#D5D2CD; --cost-ink:#8B858E;
+  /* Famílias de produto: nenhum preenchimento colorido. A família é marcada
+     só por um filete, sempre na cor do documento — muda a intensidade, nunca
+     o matiz. */
+  --cat-6-border:var(--wine-ink);
+  --cat-7-border:color-mix(in srgb, var(--wine-ink) 74%, var(--ink-3));
+  --cat-8-border:color-mix(in srgb, var(--wine-ink) 48%, var(--ink-3));
+  --cat-9-border:color-mix(in srgb, var(--wine-ink) 26%, var(--ink-3));
+  /* IPI e custo: colunas distinguidas por filete e por tom de texto */
+  --ipi-ink:var(--ink-2); --ipi-border:var(--line);
+  --cost-ink:var(--ink-3); --cost-border:var(--line);
   /* simulação (só Gerência, nunca no PDF) */
   --sim-bg:#FBF6EA; --sim-bg-on:#F3E8CE; --sim-sel:#2C6B4F;
   /* campos editáveis (coeficientes) */
@@ -70,12 +71,12 @@
     --pos:#5FA37E; --neg:#D97A62; --chip:#2A272F;
     --shadow:0 1px 2px rgba(0,0,0,.4);
 
-    --cat-6-bg:#18222D; --cat-6-band:#20303F; --cat-6-border:#5B92E0;
-    --cat-7-bg:#1A2318; --cat-7-band:#233020; --cat-7-border:#6E9430;
-    --cat-8-bg:#282217; --cat-8-band:#37301E; --cat-8-border:#B8842C;
-    --cat-9-bg:#2A1A1F; --cat-9-band:#3A2229; --cat-9-border:#C4536A;
-    --ipi-bg:#182430; --ipi-band:#20303F; --ipi-ink:#8FBBEC; --ipi-border:#3A5670;
-    --cost-bg:#232028; --cost-band:#2C2830; --cost-border:#3A3540; --cost-ink:#847D88;
+    --cat-6-border:var(--wine-ink);
+    --cat-7-border:color-mix(in srgb, var(--wine-ink) 74%, var(--ink-3));
+    --cat-8-border:color-mix(in srgb, var(--wine-ink) 48%, var(--ink-3));
+    --cat-9-border:color-mix(in srgb, var(--wine-ink) 26%, var(--ink-3));
+    --ipi-ink:var(--ink-2); --ipi-border:var(--line);
+    --cost-ink:var(--ink-3); --cost-border:var(--line);
     --sim-bg:#282217; --sim-bg-on:#3A3120; --sim-sel:#5FA37E;
     --edit-bg:#3A3120;
     --wine-ink:#C4536A;
@@ -91,12 +92,12 @@
   --pos:#5FA37E; --neg:#D97A62; --chip:#2A272F;
   --shadow:0 1px 2px rgba(0,0,0,.4);
 
-  --cat-6-bg:#18222D; --cat-6-band:#20303F; --cat-6-border:#5B92E0;
-  --cat-7-bg:#1A2318; --cat-7-band:#233020; --cat-7-border:#6E9430;
-  --cat-8-bg:#282217; --cat-8-band:#37301E; --cat-8-border:#B8842C;
-  --cat-9-bg:#2A1A1F; --cat-9-band:#3A2229; --cat-9-border:#C4536A;
-  --ipi-bg:#182430; --ipi-band:#20303F; --ipi-ink:#8FBBEC; --ipi-border:#3A5670;
-  --cost-bg:#232028; --cost-band:#2C2830; --cost-border:#3A3540; --cost-ink:#847D88;
+  --cat-6-border:var(--wine-ink);
+  --cat-7-border:color-mix(in srgb, var(--wine-ink) 74%, var(--ink-3));
+  --cat-8-border:color-mix(in srgb, var(--wine-ink) 48%, var(--ink-3));
+  --cat-9-border:color-mix(in srgb, var(--wine-ink) 26%, var(--ink-3));
+  --ipi-ink:var(--ink-2); --ipi-border:var(--line);
+  --cost-ink:var(--ink-3); --cost-border:var(--line);
   --sim-bg:#282217; --sim-bg-on:#3A3120; --sim-sel:#5FA37E;
   --edit-bg:#3A3120;
   --wine-ink:#C4536A;
@@ -235,7 +236,12 @@ body{
 .segmented button.active,
 .segmented button[aria-pressed="true"]{background:var(--wine); color:#fff;}
 .segmented button:hover:not(.active){color:var(--ink);}
-.segmented button.locked::after{content:" 🔒"; font-size:10px;}
+.segmented button.locked::after{
+  content:""; display:inline-block; width:11px; height:11px;
+  margin-left:5px; vertical-align:-1px; background:currentColor;
+  -webkit-mask:var(--mask-lock) center/contain no-repeat;
+  mask:var(--mask-lock) center/contain no-repeat;
+}
 .segmented.disabled{opacity:.45; pointer-events:none;}
 
 .chipset{display:flex; flex-wrap:wrap; gap:6px;}
@@ -390,68 +396,73 @@ td.coef-readonly{background:var(--sunk); color:var(--ink-2); font-weight:600;}
   -webkit-print-color-adjust:exact; print-color-adjust:exact;
 }
 .cat-block{
-  margin:0 0 12px; max-width:100%; overflow-x:hidden;
-  border-left:5px solid var(--wine-soft);
+  --cat-accent:var(--wine-ink);
+  margin:0; padding:0;
+  max-width:100%; overflow:hidden;
+  border:1px solid var(--line);
+  border-left:2px solid var(--cat-accent);
+  border-radius:10px;
 }
 .cat-heading{
   display:flex; align-items:baseline; gap:9px;
-  margin:0 0 6px; padding:7px 12px;
-  border-radius:0 8px 8px 0;
-  background:var(--sunk);
-  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  margin:0; padding:9px 13px 8px;
+  background:transparent;
+  border-bottom:1px solid var(--line);
 }
 .cat-heading h2{
   margin:0; font:inherit; font-size:12px; font-weight:700;
-  letter-spacing:.09em; text-transform:uppercase; color:var(--ink);
+  letter-spacing:.09em; text-transform:uppercase; color:var(--cat-accent);
 }
-.cat-count{font-size:10.5px; color:var(--ink-3); letter-spacing:.03em;}
+.cat-count{
+  margin-left:auto; font-size:10.5px; color:var(--ink-3); letter-spacing:.03em;
+  font-variant-numeric:tabular-nums;
+}
 
-/* Cada família de produtos ganha sua própria faixa de cor (cabeçalho da
-   categoria, cabeçalho das colunas e linha de comissão). */
-.cat-block[data-catcolor="6"]{border-left-color:var(--cat-6-border);}
-.cat-block[data-catcolor="6"] .cat-heading{background:var(--cat-6-bg);}
-.cat-block[data-catcolor="6"] .price-table thead th{background:var(--cat-6-band);}
-.cat-block[data-catcolor="6"] tr.commission-row td{background:var(--cat-6-bg);}
-.cat-block[data-catcolor="7"]{border-left-color:var(--cat-7-border);}
-.cat-block[data-catcolor="7"] .cat-heading{background:var(--cat-7-bg);}
-.cat-block[data-catcolor="7"] .price-table thead th{background:var(--cat-7-band);}
-.cat-block[data-catcolor="7"] tr.commission-row td{background:var(--cat-7-bg);}
-.cat-block[data-catcolor="8"]{border-left-color:var(--cat-8-border);}
-.cat-block[data-catcolor="8"] .cat-heading{background:var(--cat-8-bg);}
-.cat-block[data-catcolor="8"] .price-table thead th{background:var(--cat-8-band);}
-.cat-block[data-catcolor="8"] tr.commission-row td{background:var(--cat-8-bg);}
-.cat-block[data-catcolor="9"]{border-left-color:var(--cat-9-border);}
-.cat-block[data-catcolor="9"] .cat-heading{background:var(--cat-9-bg);}
-.cat-block[data-catcolor="9"] .price-table thead th{background:var(--cat-9-band);}
-.cat-block[data-catcolor="9"] tr.commission-row td{background:var(--cat-9-bg);}
+/* Cada família de produtos é identificada apenas pelo filete da esquerda e
+   pelo tom do título. Sem faixa de fundo em lugar nenhum. */
+.cat-block[data-catcolor="6"]{--cat-accent:var(--cat-6-border);}
+.cat-block[data-catcolor="7"]{--cat-accent:var(--cat-7-border);}
+.cat-block[data-catcolor="8"]{--cat-accent:var(--cat-8-border);}
+.cat-block[data-catcolor="9"]{--cat-accent:var(--cat-9-border);}
 
+/* ===== Tabela de preços =====
+   Grade proporcional: código e cor têm fatia fixa da largura e TODAS as
+   colunas numéricas dividem o resto em partes iguais, qualquer que seja o
+   número delas (4 ou 5 tabelas, simulação aberta ou não, custo, IPI). É isso
+   que faz a tabela ficar justificada à tela sem coluna esticada. */
 table.price-table{
-  width:100%;
+  width:100%; table-layout:fixed;
   border-collapse:separate; border-spacing:0;
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:0 10px 10px 0;
-  overflow:hidden;
+  background:transparent;
+  border:0; border-radius:0;
   font-size:12px;
 }
+.price-table th:first-child{width:20%;}
+.price-table th:nth-child(2){width:12%;}
+/* O orçamento tem uma coluna de preço só: aí a grade fixa esticaria o preço
+   pela tela inteira. */
+.price-table.quote-only{table-layout:auto;}
+.price-table.quote-only th:first-child{width:99%;}
 .price-table thead th{
-  background:var(--sunk); color:var(--ink-2);
-  font:inherit; font-size:10px; font-weight:700;
-  letter-spacing:.07em; text-transform:uppercase;
-  text-align:right; padding:7px 9px; white-space:nowrap;
-  border-bottom:2px solid var(--wine-soft);
+  background:transparent; color:var(--ink-3);
+  font:inherit; font-size:9.5px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase;
+  text-align:right; padding:8px 11px 7px; white-space:nowrap;
+  border-bottom:1px solid var(--line);
+  vertical-align:bottom;
 }
 .price-table thead th.left{text-align:left;}
 .price-table thead th .tier-pct{
-  display:block; font-size:11px; font-weight:700;
-  letter-spacing:.02em; color:var(--wine-ink); margin-top:1px;
+  display:block; font-size:10.5px; font-weight:700;
+  letter-spacing:.02em; color:var(--cat-accent); margin-top:2px;
 }
 .price-table tbody td{
-  padding:4px 9px; text-align:right; white-space:nowrap;
+  padding:5px 11px; text-align:right; white-space:nowrap;
   border-top:1px solid var(--line-2);
   font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
   font-weight:500; color:var(--ink);
 }
+.price-table tbody tr:first-child td{border-top:0;}
 .price-table tbody td.code,
 .price-table tbody td.color-cell,
 .price-table tbody td.commission-label{text-align:left;}
@@ -463,87 +474,94 @@ table.price-table{
 .price-table tbody td.sim-margin,
 .price-table tbody td.sim-out{font-weight:700;}
 .price-table tbody td.cost-col{font-weight:600;}
-.price-table tbody tr:nth-child(even) td{background:var(--sunk);}
-.price-table tbody tr:hover td{background:color-mix(in srgb, var(--wine) 7%, transparent);}
+/* Zebra discreta: um véu de tinta, não uma barra. */
+.price-table tbody tr:nth-child(even) td{
+  background:color-mix(in srgb, var(--ink) 2.5%, transparent);
+}
+.price-table tbody tr:hover td{background:color-mix(in srgb, var(--wine) 5%, transparent);}
 
 /* Comissões abaixo dos produtos, na própria tabela, respeitando as colunas */
-/* especificidade acima da faixa zebrada, mas abaixo da cor da família */
 .price-table tbody tr.commission-row td{
-  background:var(--chip);
-  border-top:2px solid var(--wine-soft);
-  font-weight:700; color:var(--wine-ink);
+  background:transparent;
+  border-top:1px solid var(--line);
+  padding-top:7px; padding-bottom:8px;
+  font-weight:700; color:var(--cat-accent);
   -webkit-print-color-adjust:exact; print-color-adjust:exact;
 }
 tr.commission-row td.commission-label{
   text-align:left; text-transform:uppercase;
-  font-size:10px; font-weight:700; letter-spacing:.08em;
-  font-family:"Archivo",Arial,sans-serif;
+  font-size:9.5px; font-weight:700; letter-spacing:.08em;
+  font-family:"Archivo",Arial,sans-serif; color:var(--ink-3);
 }
 tr.commission-row td.commission-value{text-align:right;}
 
 td.code{
   font-family:"Archivo",Arial,sans-serif;
   font-weight:700; font-size:12px; color:var(--ink); white-space:nowrap;
+  letter-spacing:.01em;
 }
 td.color-cell{
   font-family:"Archivo",Arial,sans-serif;
   font-size:11.5px; color:var(--ink-2); white-space:nowrap;
 }
 td.color-cell .swatch{
-  display:inline-block; width:9px; height:9px; border-radius:50%;
-  margin-right:6px; border:1px solid var(--ink-3); vertical-align:middle;
+  display:inline-block; width:8px; height:8px; border-radius:50%;
+  margin-right:6px; border:1px solid var(--line); vertical-align:middle;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
 }
 td.price{font-size:12.5px; font-weight:700; text-align:right; white-space:nowrap;}
 
-/* IPI em tom próprio (azul-ardósia), bem distinto dos preços em vinho */
+/* IPI: sem fundo — só um filete de separação e o texto em tom secundário */
 td.ipi{
   text-align:right; font-size:12px; font-weight:700; white-space:nowrap;
-  color:var(--ipi-ink); background:var(--ipi-bg) !important;
-  border-left:2px solid var(--ipi-border);
+  color:var(--ipi-ink); background:transparent;
+  border-left:1px solid var(--ipi-border);
 }
 th.ipi-col{
-  color:var(--ipi-ink) !important; background:var(--ipi-band) !important;
-  border-left:2px solid var(--ipi-border);
+  color:var(--ipi-ink); background:transparent;
+  border-left:1px solid var(--ipi-border);
 }
-td.commission-value.ipi-col{background:var(--ipi-bg) !important; color:var(--ipi-ink) !important;}
+td.commission-value.ipi-col{background:transparent; color:var(--ipi-ink);}
 
-/* ===== Custo (só Gerência) — cinza informativo =====
-   O custo NÃO é editável aqui: o único lugar que altera custo é a
-   "Matriz de custos" (exportar/importar planilha). */
+/* ===== Custo (só Gerência) — informativo, nunca editável aqui =====
+   O único lugar que altera custo é a "Matriz de custos". */
 td.cost-col{
   text-align:right; white-space:nowrap;
   font-size:11.5px; font-weight:600;
-  color:var(--cost-ink); background:var(--cost-bg) !important;
+  color:var(--cost-ink); background:transparent;
   border-left:1px solid var(--cost-border);
 }
 th.cost-col{
-  color:var(--cost-ink) !important; background:var(--cost-band) !important;
+  color:var(--cost-ink); background:transparent;
   border-left:1px solid var(--cost-border); font-weight:700;
 }
-td.commission-value.cost-col{background:var(--cost-bg) !important; color:var(--cost-ink) !important;}
+td.commission-value.cost-col{background:transparent; color:var(--cost-ink);}
 
 /* ===== Simulação (só Gerência, nunca no PDF) ===== */
 .sim-col{
-  background:var(--sim-bg) !important;
-  border-left:2px solid var(--wine-soft) !important;
+  background:transparent;
+  border-left:1px solid var(--wine-soft);
 }
-th.sim-col{color:var(--wine-ink) !important;}
-th.sim-col + th.sim-col, td.sim-col + td.sim-col{border-left:1px solid var(--line) !important;}
-td.sim-col{text-align:right; white-space:nowrap; padding-left:4px; padding-right:4px;}
+th.sim-col{color:var(--wine-ink);}
+th.sim-col + th.sim-col, td.sim-col + td.sim-col{border-left:1px solid var(--line-2);}
+td.sim-col{text-align:right; white-space:nowrap; padding-left:5px; padding-right:5px;}
 /* Cabeçalhos da simulação podem quebrar em duas linhas: assim as colunas
    ficam estreitas em vez de esticadas pelo tamanho do rótulo. */
 th.sim-col{
-  padding-left:5px !important; padding-right:5px !important;
-  font-size:9.5px; white-space:normal !important; line-height:1.25;
+  padding-left:6px !important; padding-right:6px !important;
+  font-size:9px; white-space:normal !important; line-height:1.25;
 }
-th.sim-col .tier-pct{font-size:10px;}
-th.sim-col.sim-group-head{min-width:112px;}
+th.sim-col .tier-pct{font-size:9.5px;}
+/* A coluna que abriga a chave de modo precisa de uma fatia maior da grade,
+   senão a chave transborda o cabeçalho. */
+.price-table th.sim-col.sim-group-head{width:13%; min-width:0;}
+.price-table th.sim-col.sim-group-head.collapsed{width:44px;}
 /* Linha sem alteração/seleção: dados apagados, para deixar claro que o valor
    ainda não está sendo considerado. Ao editar (ou escolher o preço para o
    orçamento) ela volta ao contraste normal. */
-td.sim-col.sim-dim{opacity:.5;}
+td.sim-col.sim-dim{opacity:.45;}
 td.sim-col.sim-dim input.sim-input{color:var(--ink-3);}
-td.sim-col:not(.sim-dim){background:var(--sim-bg-on) !important;}
+td.sim-col:not(.sim-dim){background:color-mix(in srgb, var(--wine) 4%, transparent);}
 input.sim-input{
   width:58px; text-align:right;
   font:inherit; font-size:12px; font-weight:700;
@@ -578,47 +596,55 @@ td.sim-margin.negative{color:var(--neg);}
 /* Botão "marcar/limpar toda a coluna" no cabeçalho de cada tabela de preço.
    Fica acima do rótulo da coluna e some na impressão. */
 .col-pick{
-  display:block; margin:0 0 3px auto;
-  font:inherit; font-size:9px; font-weight:700; letter-spacing:.06em;
+  display:block; margin:0 0 4px auto;
+  font:inherit; font-size:8.5px; font-weight:700; letter-spacing:.07em;
   text-transform:uppercase; white-space:nowrap;
-  border:1px solid var(--line); border-radius:6px;
-  background:var(--card); color:var(--ink-3);
-  padding:2px 7px; cursor:pointer;
+  border:1px solid var(--line); border-radius:20px;
+  background:transparent; color:var(--ink-3);
+  padding:2px 8px; cursor:pointer;
+  transition:border-color .12s ease, color .12s ease;
 }
 .col-pick:hover{border-color:var(--wine-ink); color:var(--wine-ink);}
-.col-pick.on{background:var(--wine); border-color:var(--wine); color:#fff;}
+.col-pick.on{border-color:var(--wine-ink); color:var(--wine-ink);
+  background:color-mix(in srgb, var(--wine) 8%, transparent);}
 
 th.sel-col, td.sel-col{
   width:34px; text-align:center !important;
   padding-left:6px !important; padding-right:6px !important;
 }
 input.sel-check{width:15px; height:15px; accent-color:var(--wine); cursor:pointer; vertical-align:middle;}
-tr.row-selected td{background:color-mix(in srgb, var(--wine) 10%, transparent) !important;}
+/* Linha escolhida: um véu, não um bloco de cor */
+tr.row-selected td{background:color-mix(in srgb, var(--wine) 4%, transparent) !important;}
 
-/* Seleção do orçamento clicando no próprio preço */
-td.pick-cell{cursor:pointer; position:relative; transition:background .12s ease;}
-td.pick-cell:hover{
-  background:color-mix(in srgb, var(--wine) 14%, transparent) !important;
-  box-shadow:inset 0 0 0 1px var(--wine-soft);
+/* ===== Célula escolhida para o orçamento =====
+   Contorno, nunca preenchimento: a marcação é uma referência de borda na cor
+   do documento. */
+td.pick-cell{cursor:pointer; position:relative;
+  transition:box-shadow .12s ease, color .12s ease, background .12s ease;}
+td.pick-cell:not(.picked):hover{
+  background:color-mix(in srgb, var(--wine) 8%, transparent) !important;
+  box-shadow:inset 0 0 0 1px var(--line);
 }
+/* Marcado: contorno + número na cor do documento. Sem preenchimento chapado e
+   sem símbolo dentro da célula — quem confirma a ação é o aviso de marcação. */
 td.pick-cell.picked{
-  background:var(--wine) !important; color:#fff !important;
-  font-weight:700; box-shadow:inset 0 0 0 2px var(--wine-deep);
+  background:color-mix(in srgb, var(--wine) 7%, transparent) !important;
+  color:var(--wine-ink) !important; font-weight:700;
+  box-shadow:inset 0 0 0 1.5px var(--wine-ink);
 }
-td.pick-cell.picked::after{
-  content:"✓"; position:absolute; left:6px; top:50%; transform:translateY(-50%);
-  font-size:11px; font-weight:700; color:#fff; opacity:.9;
-}
+td.pick-cell.picked::after{content:none;}
 td.sim-pick{text-align:right;}
-td.sim-pick.picked{background:var(--wine) !important;}
+td.sim-pick.picked{background:color-mix(in srgb, var(--wine) 7%, transparent) !important;}
 td.sim-pick.picked::after{content:none;}
 button.pick-dot{
   width:16px; height:16px; margin-right:3px; vertical-align:middle;
   border:1px solid var(--line); border-radius:50%;
   background:var(--card); color:transparent;
   font-size:11px; font-weight:700; line-height:1; cursor:pointer; padding:0;
+  display:inline-grid; place-items:center;
 }
-td.sim-pick.picked button.pick-dot{background:#fff; border-color:#fff; color:var(--wine-ink);}
+button.pick-dot .ico{width:9px; height:9px; stroke-width:2.4;}
+td.sim-pick.picked button.pick-dot{border-color:var(--wine-ink); color:var(--wine-ink);}
 button.pick-dot:hover{border-color:var(--wine-ink); color:var(--wine-ink);}
 
 /* ===== Chave "margem pelo preço" / "preço pela margem" =====
@@ -665,7 +691,7 @@ button.sim-clear.on{opacity:1; border-color:var(--wine-soft); color:var(--wine-i
    fechado que precisa de clique para abrir (chave "»"). */
 th.sim-group-head.collapsed{
   width:40px; padding:6px 3px !important;
-  background:color-mix(in srgb, var(--wine) 12%, transparent) !important;
+  background:transparent;
 }
 button.sim-group-btn{
   font:inherit; font-size:10.5px; font-weight:700;
@@ -676,8 +702,7 @@ button.sim-group-btn{
 button.sim-group-btn:hover{background:var(--wine); color:#fff;}
 th.sim-group-head.collapsed button.sim-group-btn{
   writing-mode:vertical-rl; transform:rotate(180deg); padding:10px 5px;
-  background:var(--wine); color:#fff; border-color:var(--wine);
-  box-shadow:0 0 0 2px color-mix(in srgb, var(--wine) 22%, transparent);
+  background:transparent; color:var(--wine-ink); border-color:var(--wine-ink);
 }
 th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-soft);}
 
@@ -778,6 +803,127 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
 .modal-actions .btn{flex:1;}
 .pw-error{color:var(--neg); font-size:11.5px; font-weight:600; margin-top:9px; display:none;}
 
+
+/* ===== Iconografia: SVG de traço fino, herdando a cor do texto ===== */
+.ico{
+  width:15px; height:15px; flex:none; display:inline-block; vertical-align:-3px;
+  fill:none; stroke:currentColor; stroke-width:1.5;
+  stroke-linecap:round; stroke-linejoin:round;
+}
+.ico.sm{width:12px; height:12px; vertical-align:-2px;}
+.btn .ico{margin-right:5px;}
+.collapse-chevron .ico, .sim-chevron .ico{width:13px; height:13px; vertical-align:-2px;}
+/* Máscaras usadas onde só existe pseudo-elemento (sem nó para um <svg>) */
+:root{
+  --mask-check:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 12.5 5 5 10-11"/></svg>');
+  --mask-lock:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>');
+}
+
+/* A chave "margem pelo preço / preço pela margem" mora dentro do cabeçalho da
+   coluna: com a grade proporcional ela precisa caber na fatia da coluna. */
+th.sim-col .sim-mode-switch{width:100%; box-sizing:border-box; max-width:none;}
+th.sim-col .sim-mode-opt{white-space:normal; font-size:9px; padding:3px 4px; line-height:1.2;}
+
+/* ===== Aviso de marcação de célula (toast) ===== */
+#toastWrap{
+  position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
+  z-index:120; display:flex; flex-direction:column; align-items:center;
+  gap:8px; pointer-events:none; width:max-content; max-width:calc(100vw - 24px);
+}
+.toast{
+  display:flex; align-items:center; gap:9px;
+  background:var(--card); color:var(--ink);
+  border:1px solid var(--line); border-left:3px solid var(--wine-ink);
+  border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,.18);
+  padding:9px 14px; font-size:12px; font-weight:600; letter-spacing:.01em;
+  white-space:nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis;
+  animation:toast-in .18s ease both;
+}
+.toast .ico{color:var(--wine-ink);}
+.toast b{font-weight:700; font-family:"Archivo Narrow",Archivo,Arial,sans-serif;}
+.toast .tsep{color:var(--ink-3); font-weight:400;}
+.toast .tcount{
+  margin-left:2px; padding-left:9px; border-left:1px solid var(--line);
+  font-size:11px; font-weight:700; color:var(--ink-3);
+  font-variant-numeric:tabular-nums;
+}
+.toast.off{border-left-color:var(--ink-3);}
+.toast.off .ico{color:var(--ink-3);}
+.toast.leaving{animation:toast-out .16s ease both;}
+@keyframes toast-in{from{opacity:0; transform:translateY(10px) scale(.98);} to{opacity:1; transform:none;}}
+@keyframes toast-out{to{opacity:0; transform:translateY(6px) scale(.98);}}
+@media (prefers-reduced-motion:reduce){.toast,.toast.leaving{animation:none;}}
+
+/* ===== Celular: a tabela vira uma lista de fichas =====
+   Mesma informação, sem rolagem lateral e sem encolher a fonte. Cada td já
+   carrega data-label, que vira o rótulo da linha da ficha. */
+@media (max-width:720px){
+  .cat-block{zoom:1 !important;}
+  .cat-heading{padding:9px 12px 8px;}
+  table.price-table{display:block; font-size:12.5px;}
+  .price-table thead{display:none;}
+  .price-table tbody{display:block;}
+  .price-table tbody tr{
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:0 12px; padding:9px 12px 11px;
+    border-top:1px solid var(--line-2);
+  }
+  .price-table tbody tr:first-child{border-top:0;}
+  /* Na ficha o fundo é da linha inteira, nunca de célula solta */
+  .price-table tbody tr:nth-child(even) td,
+  .price-table tbody tr.row-selected td{background:transparent !important;}
+  .price-table tbody tr:nth-child(even){background:color-mix(in srgb, var(--ink) 2.5%, transparent);}
+  .price-table tbody tr.row-selected{
+    background:color-mix(in srgb, var(--wine) 5%, transparent);
+    box-shadow:inset 2px 0 0 var(--wine-ink);
+  }
+  .price-table tbody tr:hover td{background:transparent;}
+  .price-table tbody td{
+    display:flex; align-items:baseline; justify-content:space-between; gap:10px;
+    padding:3px 0; border:0 !important; text-align:right; min-width:0;
+    white-space:nowrap; overflow:hidden;
+  }
+  .price-table tbody td::before{
+    content:attr(data-label);
+    font-family:"Archivo",Arial,sans-serif;
+    font-size:8.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--ink-3); text-align:left; flex:0 1 auto;
+    overflow:hidden; text-overflow:ellipsis;
+  }
+  .price-table tbody td.code,
+  .price-table tbody td.color-cell{grid-column:1 / -1; justify-content:flex-start;}
+  /* Campos de simulação ocupam a linha inteira da ficha: o rótulo não é
+     cortado e o campo tem onde digitar. */
+  .price-table tbody td.sim-col{grid-column:1 / -1; border-left:0 !important;}
+  .price-table tbody td.code::before,
+  .price-table tbody td.color-cell::before{display:none;}
+  .price-table tbody td.code{font-size:14.5px; padding:0;}
+  .price-table tbody td.color-cell{padding:1px 0 5px; font-size:11px;}
+  .price-table tbody tr.commission-row{
+    border-top:1px solid var(--line); background:transparent;
+  }
+  .price-table tbody tr.commission-row td{padding:3px 0;}
+  tr.commission-row td.commission-label{grid-column:1 / -1; padding-bottom:2px;}
+  /* Na ficha a escolha é um contorno arredondado em volta do preço */
+  .price-table tbody tr.row-selected td.pick-cell.picked,
+  td.pick-cell.picked{
+    background:color-mix(in srgb, var(--wine) 7%, transparent) !important;
+    box-shadow:inset 0 0 0 1.5px var(--wine-ink);
+    border-radius:7px; padding:3px 8px !important;
+  }
+  td.pick-cell.picked::after{content:none;}
+  td.pick-cell:not(.picked):hover{box-shadow:none; background:transparent !important;}
+  /* O aviso precisa caber na largura do celular: quebra em duas linhas em vez
+     de vazar pela borda. */
+  #toastWrap{bottom:14px; left:12px; right:12px; transform:none;
+    width:auto; max-width:none; align-items:stretch;}
+  .toast{
+    font-size:12px; padding:9px 12px;
+    white-space:normal; flex-wrap:wrap; row-gap:2px;
+  }
+  .toast .tcount{margin-left:auto; padding-left:0; border-left:0;}
+}
+
 @media (max-width:640px){
   .page{padding:10px 10px 30px; gap:10px;}
   .panel{padding:10px 11px 12px;}
@@ -786,10 +932,9 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
   .collapse-head.open{margin-bottom:10px;}
   .brand-text h1{font-size:16px;}
   .logo-badge{width:32px; height:32px;}
-  /* A tabela continua com o mesmo layout do desktop — o JS encolhe cada
-     bloco de categoria (via CSS zoom) até caber na largura da tela,
-     em vez de reformatar em "cards" empilhados. */
-  .cat-block{transform-origin:top left;}
+  /* Abaixo de 720px a tabela já virou lista de fichas (acima); aqui só
+     resta o ajuste do cabeçalho e dos painéis. */
+  .cat-heading h2{font-size:11.5px;}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
 
@@ -806,12 +951,10 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
     --line:#C9C5C1; --line-2:#E3E0DD;
     --s1:#9E2438; --s2:#B8801F; --s3:#1E6FB8; --s4:#4E7A1E;
     --pos:#2C6B4F; --neg:#A33A2A; --chip:#F2F0ED; --wine-ink:#7C1B29;
-    --cat-6-bg:#E8F0F8; --cat-6-band:#D3E3F2; --cat-6-border:#1E6FB8;
-    --cat-7-bg:#E9F2EA; --cat-7-band:#D3E5D6; --cat-7-border:#4E7A1E;
-    --cat-8-bg:#F8F1DD; --cat-8-band:#EFE1BE; --cat-8-border:#B8801F;
-    --cat-9-bg:#F7E9ED; --cat-9-band:#EFD6DC; --cat-9-border:#9E2438;
-    --ipi-bg:#EDF1F6; --ipi-band:#DCE5EF; --ipi-ink:#1B5C99; --ipi-border:#9DB4CE;
-    --cost-bg:#F2F1EF; --cost-band:#E6E4E0; --cost-border:#CFCCC7; --cost-ink:#6B6A6F;
+    --cat-6-border:#7C1B29; --cat-7-border:#8E4450;
+    --cat-8-border:#A07079; --cat-9-border:#B49BA0;
+    --ipi-ink:#5A555C; --ipi-border:#C9C5C1;
+    --cost-ink:#8B858E; --cost-border:#DAD7D3;
   }
   /* A calibração de "tudo em uma página" depende de entrelinha curta e de
      bordas colapsadas — o line-height 1.4 da tela custaria uma folha extra. */
@@ -837,26 +980,36 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
   }
   .print-summary .icms-badge{font-size:16px; padding:3px 13px;}
   /* Blocos de categoria compactos */
-  .cat-block{margin:0 0 3px; break-inside:avoid-page; overflow:visible; border-left-width:5px;}
-  .cat-heading{margin:0 0 1px; padding:1.5px 9px; border-radius:0 4px 4px 0;}
-  .cat-heading h2{font-size:11.5px; letter-spacing:.07em; line-height:1.15;}
+  .cat-block{margin:0 0 3.5px; break-inside:avoid-page; overflow:visible;
+    border:0; border-left:2.5px solid var(--cat-accent); border-radius:0;}
+  .cat-heading{margin:0; padding:1.5px 7px; border-radius:0;
+    border-bottom:.75pt solid var(--cat-accent); background:transparent;}
+  .cat-heading h2{font-size:11.5px; letter-spacing:.07em; line-height:1.15;
+    color:var(--cat-accent) !important;}
   .cat-count{font-size:9px;}
   /* Tabelas: fonte máxima que ainda cabe numa página A4 retrato */
-  table.price-table{border-collapse:collapse; border-radius:0; border-color:#bbb;}
+  table.price-table{border-collapse:collapse; border-radius:0; border:0; width:100%;}
   .price-table thead th{
-    color:#000 !important; font-size:8.5px; padding:1.5px 4px; line-height:1.15;
-    border-bottom-width:2px; letter-spacing:.03em;
+    color:#000 !important; font-size:8.5px; padding:1.6px 4px; line-height:1.15;
+    background:transparent !important;
+    border-bottom:.75pt solid #999; letter-spacing:.03em;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
   .price-table thead th .tier-pct{font-size:9.5px; margin-top:0; color:#7C1B29 !important;}
-  .price-table tbody td{padding:.7px 4px; font-size:10px; line-height:1.15; border-top-color:#ddd;}
+  .price-table tbody td{padding:1px 4px; font-size:10.5px; line-height:1.15;
+    border-top:.4pt solid #ddd;}
+  .price-table tbody tr:first-child td{border-top:0;}
   .price-table tbody tr:nth-child(even) td{background:#f7f7f7 !important;}
   .price-table tbody tr:hover td{background:transparent;}
-  td.code{font-size:10px;}
-  td.color-cell{font-size:9.5px;}
+  .price-table tbody tr.commission-row td{
+    background:transparent !important; padding-top:1.2px; padding-bottom:1.2px;
+    border-top:.75pt solid #999; color:#7C1B29 !important;
+  }
+  td.code{font-size:10.5px;}
+  td.color-cell{font-size:10px;}
   td.color-cell .swatch{width:7px; height:7px; margin-right:4px;}
-  td.price{font-size:11.5px;}   /* os números — maior fonte da tabela */
-  tr.commission-row td{font-size:10.5px; padding:1.2px 4px; line-height:1.15; border-top-width:2px;}
+  td.price{font-size:12px;}   /* os números — maior fonte da tabela */
+  tr.commission-row td{font-size:10.5px; padding:1.4px 4px; line-height:1.15;}
   tr.commission-row td.commission-label{font-size:8.5px;}
   tr{break-inside:avoid;}
   /* Rodapé de condições — compacto, e sem a referência em USD */
@@ -875,42 +1028,58 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
   .sim-legend{display:none !important;}
   .col-pick{display:none !important;}
   /* Nada de destaque de seleção no PDF: o realce de escolha é só de tela */
-  tr.row-selected td{background:inherit !important;}
+  tr.row-selected td, tr.row-selected{background:transparent !important;
+    box-shadow:none !important;}
   td.pick-cell.picked{
-    background:inherit !important; color:inherit !important;
+    background:transparent !important; color:inherit !important;
     box-shadow:none !important; font-weight:700;
   }
   td.pick-cell.picked::after{content:none !important;}
+  #toastWrap{display:none !important;}
   /* IPI mantém o tom próprio na impressão */
   td.ipi{
-    font-size:9px; font-weight:700;
-    color:#1B5C99 !important; background:#EDF1F6 !important;
-    border-left:1px solid #9DB4CE;
+    font-size:9.5px; font-weight:700;
+    color:#5A555C !important; background:transparent !important;
+    border-left:.4pt solid #bbb;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
   th.ipi-col{
-    color:#1B5C99 !important; background:#DCE5EF !important;
-    border-left:1px solid #9DB4CE;
-    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    color:#5A555C !important; background:transparent !important;
+    border-left:.4pt solid #bbb;
   }
-  td.commission-value.ipi-col{background:#EDF1F6 !important; color:#1B5C99 !important;}
+  td.commission-value.ipi-col{background:transparent !important; color:#5A555C !important;}
   /* Custo (só Gerência) mantém o cinza claro na impressão */
   td.cost-col{
-    font-size:9px; font-weight:600;
-    color:#6B6A6F !important; background:#F2F1EF !important;
-    border-left:1px solid #CFCCC7;
-    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    font-size:9.5px; font-weight:600;
+    color:#6B6A6F !important; background:transparent !important;
+    border-left:.4pt solid #bbb;
   }
   th.cost-col{
-    color:#6B6A6F !important; background:#E6E4E0 !important;
-    border-left:1px solid #CFCCC7;
-    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    color:#6B6A6F !important; background:transparent !important;
+    border-left:.4pt solid #bbb;
   }
-  td.commission-value.cost-col{background:#F2F1EF !important; color:#6B6A6F !important;}
+  td.commission-value.cost-col{background:transparent !important; color:#6B6A6F !important;}
 }
 </style>
 </head>
 <body>
+
+<!-- Iconografia: um sprite de símbolos SVG de traço fino (stroke 1.5),
+     usados via <svg class="ico"><use href="#i-..."></use></svg>. -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true" focusable="false">
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11.5"/><path d="m16.5 10.5-4.5 4.5-4.5-4.5"/><path d="M4 16.5v2.5a1.5 1.5 0 0 0 1.5 1.5h13a1.5 1.5 0 0 0 1.5-1.5v-2.5"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 20.5V9"/><path d="m7.5 13.5 4.5-4.5 4.5 4.5"/><path d="M4 7.5V5a1.5 1.5 0 0 1 1.5-1.5h13A1.5 1.5 0 0 1 20 5v2.5"/></symbol>
+  <symbol id="i-quote" viewBox="0 0 24 24"><path d="M14 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3.5V8h4.5"/><path d="M8.5 12.5h7"/><path d="M8.5 16h4.5"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 8.5V3.5h10v5"/><path d="M7 19.5H5A1.5 1.5 0 0 1 3.5 18v-6A1.5 1.5 0 0 1 5 10.5h14a1.5 1.5 0 0 1 1.5 1.5v6a1.5 1.5 0 0 1-1.5 1.5h-2"/><path d="M7 15h10v5.5H7z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9.5 5 7 7-7 7"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m5 9.5 7 7 7-7"/></symbol>
+  <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m14.5 5-7 7 7 7"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5 10-11"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+</svg>
+
+<div id="toastWrap" class="no-print" aria-live="polite" aria-atomic="false"></div>
 
 <script>
   // A impressão em A4 RETRATO usa tamanhos fixos definidos no @media print do
@@ -934,9 +1103,16 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
   // (desktop, tablet ou celular) ela é encolhida até caber no espaço
   // disponível, mantendo o mesmo layout de colunas. Isso vale especialmente
   // quando o grupo de simulação é aberto e surgem 3 colunas a mais.
+  // Abaixo de 720px a tabela já se reorganiza em fichas pelo CSS, então o
+  // zoom não entra: a fonte fica em tamanho de leitura no celular.
+  const STACK_BP = 720;
   let fitRaf = null;
   function fitTablesToScreen(){
     const blocks = document.querySelectorAll('.cat-block');
+    if(window.matchMedia('(max-width:' + STACK_BP + 'px)').matches){
+      blocks.forEach(b=>{ b.style.zoom = ''; });
+      return;
+    }
     // Mede sempre sem zoom aplicado, senão a medida vem contaminada
     blocks.forEach(b=>{ b.style.zoom = ''; });
     void document.body.offsetWidth; // força reflow antes de medir
@@ -1011,9 +1187,9 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
     <div class="panel-title-row"><h3 class="panel-title" id="txt-adminTitle">Matriz de custos</h3></div>
     <p class="admin-hint" id="txt-adminHint">Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.</p>
     <div class="admin-actions">
-      <button class="btn btn-outline" id="exportBtn">⬇ <span id="txt-exportBtn">Exportar custos (XLSX)</span></button>
-      <button class="btn btn-outline" id="exportFullBtn">⬇ <span id="txt-exportFullBtn">Exportar planilha completa (XLSX)</span></button>
-      <label class="btn btn-primary file-btn">⬆ <span id="txt-importBtn">Importar planilha (XLSX)</span>
+      <button class="btn btn-outline" id="exportBtn"><svg class="ico" aria-hidden="true"><use href="#i-download"></use></svg><span id="txt-exportBtn">Exportar custos (XLSX)</span></button>
+      <button class="btn btn-outline" id="exportFullBtn"><svg class="ico" aria-hidden="true"><use href="#i-download"></use></svg><span id="txt-exportFullBtn">Exportar planilha completa (XLSX)</span></button>
+      <label class="btn btn-primary file-btn"><svg class="ico" aria-hidden="true"><use href="#i-upload"></use></svg><span id="txt-importBtn">Importar planilha (XLSX)</span>
         <input type="file" id="importInput" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
       </label>
     </div>
@@ -1040,7 +1216,7 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
   <section class="panel no-print" id="quotePanel">
     <div class="panel-title-row collapse-head" id="quoteHead">
       <button class="collapse-toggle" id="quoteToggle" type="button" aria-expanded="false" aria-controls="quoteBody">
-        <span class="collapse-chevron">▶</span>
+        <span class="collapse-chevron"><svg class="ico" aria-hidden="true"><use href="#i-chevron"></use></svg></span>
         <h3 class="panel-title" id="txt-quoteTitle">Orçamento — selecione itens e colunas</h3>
         <span class="collapse-badge" id="quoteHeadCount"></span>
         <span class="collapse-btn" id="txt-quoteExpand">Expandir</span>
@@ -1048,7 +1224,7 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
     </div>
     <div class="collapse-body" id="quoteBody" hidden>
       <div class="quote-actions" style="margin-top:0; margin-bottom:14px;">
-        <button class="btn btn-primary" id="quoteBtn">🧾 <span id="txt-quoteBtn">Gerar orçamento (PDF)</span></button>
+        <button class="btn btn-primary" id="quoteBtn"><svg class="ico" aria-hidden="true"><use href="#i-quote"></use></svg><span id="txt-quoteBtn">Gerar orçamento (PDF)</span></button>
       </div>
       <div class="field-row">
         <div class="field grow">
@@ -1069,13 +1245,13 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
       <h3 class="panel-title" id="txt-filtersTitle">Filtros</h3>
       <div class="filters-actions">
         <div class="sim-ctl" id="simCtl" style="display:none;">
-          <button class="btn btn-ghost sim-ctl-toggle" id="simCtlToggle">▸ <span id="txt-simCtlLabel">Simulação</span></button>
+          <button class="btn btn-ghost sim-ctl-toggle" id="simCtlToggle"><svg class="ico" aria-hidden="true"><use href="#i-chevron"></use></svg><span id="txt-simCtlLabel">Simulação</span></button>
           <span class="sim-mode-switch" id="simCtlMode">
             <button class="sim-mode-opt" data-mode="margemPeloPreco" id="txt-simCtlA">Margem pelo preço</button>
             <button class="sim-mode-opt" data-mode="precoPelaMargem" id="txt-simCtlB">Preço pela margem</button>
           </span>
         </div>
-        <button class="btn btn-outline" id="pdfBtn">🖨️ <span id="txt-pdfBtn">Gerar PDF</span></button>
+        <button class="btn btn-outline" id="pdfBtn"><svg class="ico" aria-hidden="true"><use href="#i-print"></use></svg><span id="txt-pdfBtn">Gerar PDF</span></button>
       </div>
     </div>
     <div class="field-row">
@@ -1115,7 +1291,7 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
 <!-- Password modal -->
 <div class="modal-overlay no-print" id="pwModal" hidden>
   <div class="modal-box">
-    <h3 id="txt-pwTitle">🔒 Acesso restrito — Gerência</h3>
+    <h3 id="txt-pwTitle"><svg class="ico" aria-hidden="true"><use href="#i-lock"></use></svg>Acesso restrito — Gerência</h3>
     <p id="txt-pwText">Esta área contém margens comerciais sensíveis. Informe a senha do módulo de gerência para continuar.</p>
     <input type="password" id="pwInput" class="input-box" placeholder="Senha">
     <p class="pw-error" id="pwError">Senha incorreta. Tente novamente.</p>
@@ -1385,6 +1561,11 @@ const I18N = {
     quoteExpand:"Expandir", quoteCollapse:"Recolher",
     quoteHint:"Clique no preço desejado para incluir o item; clique de novo para tirar. No cabeçalho de cada tabela há um botão que marca todos os itens em tela naquela coluna — depois é só clicar em outras células para trocar item a item. O orçamento sai sem margens nem comissões.",
     quoteCount:(n)=> n + " item(ns) selecionado(s)",
+    toastIn:(code,col)=> "Incluído no orçamento",
+    toastOut:(code)=> "Removido do orçamento",
+    toastColIn:(n,col)=> n + " itens incluídos",
+    toastColOut:(n)=> n + " itens removidos",
+    toastTotal:(n)=> n + (n===1 ? " item no orçamento" : " itens no orçamento"),
     pickTip:"Usar este preço no orçamento",
     simModeMarginFromPrice:"Margem pelo preço", simModePriceFromMargin:"Preço pela margem",
     simMarginInCol:"Simular margem", simPriceOutCol:"Preço resultante",
@@ -1402,7 +1583,7 @@ const I18N = {
     freightLabel:"Frete", taxIncludedLabel:"Impostos inclusos", taxToAddLabel:"Impostos a incluir",
     paymentLabel:"Prazo médio de pgto", commissionsLabel:"Comissões por tabela", usdLabel:"USD/BRL (referência)",
     footerNote:"Wendell Global Interlining · Tabelas de preços de uso interno — gerado a partir da planilha comercial · consultar sempre a versão mais recente",
-    pwTitle:"🔒 Acesso restrito — Gerência",
+    pwTitle:"Acesso restrito — Gerência",
     pwText:"Esta área contém margens comerciais sensíveis. Informe a senha do módulo de gerência para continuar.",
     pwPlaceholder:"Senha", pwError:"Senha incorreta. Tente novamente.", cancel:"Cancelar", enter:"Entrar",
     pdfBtn:"Gerar tabela em PDF com itens selecionados",
@@ -1455,6 +1636,11 @@ const I18N = {
     quoteExpand:"Expand", quoteCollapse:"Collapse",
     quoteHint:"Click the price you want to add the item; click it again to remove. Each table header has a button that selects every item on screen in that column — then just click other cells to change an item. The quote has no margins or commissions.",
     quoteCount:(n)=> n + " item(s) selected",
+    toastIn:(code,col)=> "Added to the quote",
+    toastOut:(code)=> "Removed from the quote",
+    toastColIn:(n,col)=> n + " items added",
+    toastColOut:(n)=> n + " items removed",
+    toastTotal:(n)=> n + (n===1 ? " item in the quote" : " items in the quote"),
     pickTip:"Use this price in the quote",
     simModeMarginFromPrice:"Margin from price", simModePriceFromMargin:"Price from margin",
     simMarginInCol:"Simulate margin", simPriceOutCol:"Resulting price",
@@ -1472,7 +1658,7 @@ const I18N = {
     freightLabel:"Freight", taxIncludedLabel:"Taxes included", taxToAddLabel:"Taxes to add",
     paymentLabel:"Average payment term", commissionsLabel:"Commission by table", usdLabel:"USD/BRL (reference)",
     footerNote:"Wendell Global Interlining · Internal price lists — generated from the commercial spreadsheet · always check the latest version",
-    pwTitle:"🔒 Restricted access — Management",
+    pwTitle:"Restricted access — Management",
     pwText:"This area contains sensitive commercial margins. Enter the management password to continue.",
     pwPlaceholder:"Password", pwError:"Incorrect password. Try again.", cancel:"Cancel", enter:"Enter",
     pdfBtn:"Generate PDF table with selected items",
@@ -1778,6 +1964,11 @@ function updateClock(){
 updateClock();
 setInterval(updateClock, 1000);
 
+// O <h3> do modal é reescrito pelo i18n: o ícone entra junto com o texto.
+function withIcon(name, text){
+  return '<svg class="ico" aria-hidden="true"><use href="#{NAME}"></use></svg>'.replace('{NAME}', name)
+       + '<span>' + String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</span>';
+}
 function applyStaticTexts(){
   document.getElementById('txt-title').textContent = state.quoteMode ? t('quoteDocTitle') : t('title');
   document.getElementById('txt-subtitle').textContent = t('subtitle');
@@ -1812,7 +2003,7 @@ function applyStaticTexts(){
   document.getElementById('txt-exportFullBtn').textContent = t('exportFullBtn');
   document.getElementById('txt-importBtn').textContent = t('importBtn');
   document.getElementById('txt-footerNote').textContent = t('footerNote');
-  document.getElementById('txt-pwTitle').textContent = t('pwTitle');
+  document.getElementById('txt-pwTitle').innerHTML = withIcon('i-lock', t('pwTitle'));
   document.getElementById('txt-pwText').textContent = t('pwText');
   document.getElementById('pwInput').placeholder = t('pwPlaceholder');
   document.getElementById('pwError').textContent = t('pwError');
@@ -1834,7 +2025,7 @@ function renderQuoteCollapse(){
   btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   head.classList.toggle('open', open);
   if(lbl) lbl.textContent = open ? t('quoteCollapse') : t('quoteExpand');
-  if(chev) chev.textContent = '▶';
+  if(chev) chev.innerHTML = '<svg class="ico" aria-hidden="true"><use href="#i-chevron"></use></svg>';
   const badge = document.getElementById('quoteHeadCount');
   if(badge){
     const n = selectedRowCount();
@@ -1869,7 +2060,8 @@ function renderControls(){
   ctl.style.display = showCtl ? 'flex' : 'none';
   if(showCtl){
     document.getElementById('simCtlToggle').innerHTML =
-      (state.simOpen ? '▾ ' : '▸ ') + '<span>' + t('simGroupLabel') + '</span>';
+      (state.simOpen ? '<svg class="ico" aria-hidden="true"><use href="#i-chevron-down"></use></svg>' : '<svg class="ico" aria-hidden="true"><use href="#i-chevron"></use></svg>')
+      + '<span>' + t('simGroupLabel') + '</span>';
     document.getElementById('simCtlMode').style.display = state.simOpen ? 'inline-flex' : 'none';
     document.getElementById('txt-simCtlA').textContent = t('simModeMarginFromPrice');
     document.getElementById('txt-simCtlB').textContent = t('simModePriceFromMargin');
@@ -1901,7 +2093,9 @@ function renderCatChips(block){
     const chip = document.createElement('button');
     const on = !!state.cats[c];
     chip.className = 'chip' + (on ? ' active' : '');
-    chip.textContent = (on ? '✓ ' : '') + catLabel(c);
+    chip.textContent = '';
+    if(on) chip.insertAdjacentHTML('beforeend', '<svg class="ico sm" aria-hidden="true"><use href="#i-check"></use></svg>');
+    chip.appendChild(document.createTextNode(catLabel(c)));
     chip.onclick = ()=>{
       if(state.cats[c]) delete state.cats[c]; else state.cats[c] = true;
       render();
@@ -2012,6 +2206,43 @@ function rowColLabel(code, block){
 }
 
 // Contador de itens escolhidos no painel do orçamento
+// ---------- Aviso de marcação de célula ----------
+// Toda vez que uma célula entra ou sai do orçamento o usuário recebe a
+// confirmação na hora, com o item, a coluna escolhida e o total marcado.
+// O aviso é só de tela: nunca sai no PDF nem na impressão.
+const TOAST_MS = 2200;
+function toast(html, off){
+  const wrap = document.getElementById('toastWrap');
+  if(!wrap) return;
+  // No máximo dois avisos empilhados — cliques seguidos substituem o anterior
+  while(wrap.children.length >= 2) wrap.removeChild(wrap.firstElementChild);
+  const el = document.createElement('div');
+  el.className = 'toast' + (off ? ' off' : '');
+  el.setAttribute('role', 'status');
+  el.innerHTML = '<svg class="ico" aria-hidden="true"><use href="#'
+               + (off ? 'i-minus' : 'i-check') + '"></use></svg>' + html;
+  wrap.appendChild(el);
+  setTimeout(()=>{
+    el.classList.add('leaving');
+    setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 170);
+  }, TOAST_MS);
+}
+function toastPick(code, colLabel, off){
+  const total = selectedRowCount();
+  let body = '<span>' + (off ? t('toastOut')(code) : t('toastIn')(code, colLabel)) + '</span>'
+           + '<b>' + escAttr(code) + '</b>';
+  if(!off && colLabel) body += '<span class="tsep">·</span><span>' + escAttr(colLabel) + '</span>';
+  body += '<span class="tcount">' + t('toastTotal')(total) + '</span>';
+  toast(body, off);
+}
+function toastColumn(n, colLabel, off){
+  const total = selectedRowCount();
+  let body = '<span>' + (off ? t('toastColOut')(n) : t('toastColIn')(n, colLabel)) + '</span>';
+  if(!off && colLabel) body += '<span class="tsep">·</span><span>' + escAttr(colLabel) + '</span>';
+  body += '<span class="tcount">' + t('toastTotal')(total) + '</span>';
+  toast(body, off);
+}
+
 function renderQuoteCount(){
   const cnt = document.getElementById('quoteCount');
   if(cnt) cnt.textContent = t('quoteCount')(selectedRowCount());
@@ -2040,10 +2271,12 @@ function bindSelection(block, codigosEmTela){
       const col = btn.dataset.col;
       const cheio = codigosEmTela.length > 0
         && codigosEmTela.every(c => state.selRows[c] && rowColOf(c, block) === col);
+      const colLabel = (quoteColOptions(block).find(o=>o.value === String(col))||{}).label || '';
       codigosEmTela.forEach(c=>{
         if(cheio){ delete state.selRows[c]; delete state.rowCol[c]; }
         else { state.selRows[c] = true; state.rowCol[c] = col; }
       });
+      toastColumn(codigosEmTela.length, colLabel, cheio);
       render();
     });
   });
@@ -2061,6 +2294,7 @@ function bindSelection(block, codigosEmTela){
         state.selRows[code] = true;
         state.rowCol[code] = col;
       }
+      toastPick(code, already ? '' : rowColLabel(code, block), already);
       render();
     });
   });
@@ -2182,7 +2416,7 @@ function render(){
       section.appendChild(heading);
 
       const table = document.createElement('table');
-      table.className = 'price-table';
+      table.className = 'price-table' + (quote ? ' quote-only' : '');
 
       let thead = '<thead><tr>';
       thead += '<th class="left">'+t('codeCol')+'</th><th class="left">'+t('colorCol')+'</th>';
@@ -2208,7 +2442,7 @@ function render(){
           const inLabel  = byMargin ? t('simMarginInCol') : t('simPriceCol');
           const outLabel = byMargin ? t('simPriceOutCol') : t('simMarginCol');
           thead += '<th class="sim-col sim-group-head">'
-                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupCloseTip'))+'">« '+t('simGroupLabel')+'</button>'
+                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupCloseTip'))+'"><svg class="ico sm" aria-hidden="true"><use href="#i-chevron-left"></use></svg>'+t('simGroupLabel')+'</button>'
                 +  '<span class="sim-mode-switch" title="'+escAttr(t('simModeTip'))+'">'
                 +    '<button class="sim-mode-opt'+(!byMargin?' on':'')+'" data-mode="margemPeloPreco">'+t('simModeMarginFromPrice')+'</button>'
                 +    '<button class="sim-mode-opt'+(byMargin?' on':'')+'" data-mode="precoPelaMargem">'+t('simModePriceFromMargin')+'</button>'
@@ -2220,7 +2454,7 @@ function render(){
           thead += '<th class="sim-col">'+outLabel+'</th>';
         } else {
           thead += '<th class="sim-col sim-group-head collapsed">'
-                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupOpenTip'))+'">» '+t('simGroupLabel')+'</button></th>';
+                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupOpenTip'))+'"><svg class="ico sm" aria-hidden="true"><use href="#i-chevron"></use></svg>'+t('simGroupLabel')+'</button></th>';
         }
       }
       // Custo: só na Gerência e nunca no orçamento do cliente. Fica logo
@@ -2277,7 +2511,7 @@ function render(){
           tds += '<td class="sim-col'+inputDimCls+(inputIsPrice ? ' pick-cell sim-pick'+(simPicked?' picked':'') : '')+'"'
               +  ' data-code="'+escAttr(r.code)+'" data-col="sim"'
               +  ' data-label="'+(byMargin ? t('simMarginInCol') : t('simPriceCol'))+'">'
-              +  (inputIsPrice ? '<button class="pick-dot" title="'+escAttr(t('pickTip'))+'">✓</button>' : '');
+              +  (inputIsPrice ? '<button class="pick-dot" title="'+escAttr(t('pickTip'))+'"><svg class="ico" aria-hidden="true"><use href="#i-check"></use></svg></button>' : '');
           if(byMargin){
             tds += '<input type="number" step="0.1" class="sim-input sim-margin-in'+(sv.mChanged?' changed':'')+'"'
                 +  ' data-code="'+escAttr(r.code)+'" value="'+(sv.margin*100).toFixed(2)+'">'
