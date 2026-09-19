@@ -397,24 +397,25 @@ td.coef-readonly{background:var(--sunk); color:var(--ink-2); font-weight:600;}
 }
 .cat-block{
   --cat-accent:var(--wine-ink);
-  margin:0; padding:0;
-  max-width:100%; overflow:hidden;
+  margin:0 0 12px; padding:0;
+  width:max-content; max-width:100%; overflow:hidden;
   border:1px solid var(--line);
   border-left:2px solid var(--cat-accent);
   border-radius:10px;
 }
 .cat-heading{
   display:flex; align-items:baseline; gap:9px;
-  margin:0; padding:9px 13px 8px;
+  margin:0; padding:5px 11px 4px;
   background:transparent;
   border-bottom:1px solid var(--line);
 }
 .cat-heading h2{
-  margin:0; font:inherit; font-size:12px; font-weight:700;
+  margin:0; font:inherit; font-size:11px; font-weight:700;
   letter-spacing:.09em; text-transform:uppercase; color:var(--cat-accent);
 }
 .cat-count{
-  margin-left:auto; font-size:10.5px; color:var(--ink-3); letter-spacing:.03em;
+  margin-left:auto; padding-left:24px;
+  font-size:10px; color:var(--ink-3); letter-spacing:.03em;
   font-variant-numeric:tabular-nums;
 }
 
@@ -426,38 +427,43 @@ td.coef-readonly{background:var(--sunk); color:var(--ink-2); font-weight:600;}
 .cat-block[data-catcolor="9"]{--cat-accent:var(--cat-9-border);}
 
 /* ===== Tabela de preços =====
-   Grade proporcional: código e cor têm fatia fixa da largura e TODAS as
-   colunas numéricas dividem o resto em partes iguais, qualquer que seja o
-   número delas (4 ou 5 tabelas, simulação aberta ou não, custo, IPI). É isso
-   que faz a tabela ficar justificada à tela sem coluna esticada. */
+   Colunas justas ao texto: a tabela tem a largura do próprio conteúdo e o
+   card acompanha (.cat-block é width:max-content). Nada de esticar "Cor" ou
+   os preços só porque sobra tela. Os poucos valores em ch abaixo existem
+   para que todas as famílias fiquem com as MESMAS colunas — sem eles, cada
+   tabela teria uma largura, e a borda direita dos cards ficaria irregular. */
 table.price-table{
-  width:100%; table-layout:fixed;
+  width:auto; table-layout:auto;
   border-collapse:separate; border-spacing:0;
   background:transparent;
   border:0; border-radius:0;
   font-size:12px;
 }
-.price-table th:first-child{width:20%;}
-.price-table th:nth-child(2){width:12%;}
-/* O orçamento tem uma coluna de preço só: aí a grade fixa esticaria o preço
-   pela tela inteira. */
-.price-table.quote-only{table-layout:auto;}
-.price-table.quote-only th:first-child{width:99%;}
+/* Cada tipo de coluna tem um piso em px, calculado para caber o conteúdo mais
+   largo do catálogo. Como o piso é maior que o conteúdo de qualquer família,
+   todas as tabelas saem com as MESMAS colunas e a borda direita dos cards fica
+   alinhada. Em px, não em ch: o ch de um th (9,5px) é outro tamanho do ch de
+   uma célula (12px), e o cálculo viraria adivinhação. */
+.price-table th:first-child{min-width:132px;}                  /* código: 7GCP120HPF 0100 */
+.price-table th:nth-child(2){min-width:110px;}                 /* cor: Branco Óptico */
+.price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col){min-width:74px;}
+.price-table th.cost-col{min-width:74px;}
+.price-table th.ipi-col{min-width:58px;}
 .price-table thead th{
   background:transparent; color:var(--ink-3);
   font:inherit; font-size:9.5px; font-weight:700;
   letter-spacing:.08em; text-transform:uppercase;
-  text-align:right; padding:8px 11px 7px; white-space:nowrap;
+  text-align:right; padding:5px 10px 4px; white-space:nowrap;
   border-bottom:1px solid var(--line);
   vertical-align:bottom;
 }
 .price-table thead th.left{text-align:left;}
 .price-table thead th .tier-pct{
-  display:block; font-size:10.5px; font-weight:700;
-  letter-spacing:.02em; color:var(--cat-accent); margin-top:2px;
+  display:block; font-size:10px; font-weight:700;
+  letter-spacing:.02em; color:var(--cat-accent); margin-top:1px;
 }
 .price-table tbody td{
-  padding:5px 11px; text-align:right; white-space:nowrap;
+  padding:5px 10px; text-align:right; white-space:nowrap;
   border-top:1px solid var(--line-2);
   font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
   font-weight:500; color:var(--ink);
@@ -552,10 +558,9 @@ th.sim-col{
   font-size:9px; white-space:normal !important; line-height:1.25;
 }
 th.sim-col .tier-pct{font-size:9.5px;}
-/* A coluna que abriga a chave de modo precisa de uma fatia maior da grade,
-   senão a chave transborda o cabeçalho. */
-.price-table th.sim-col.sim-group-head{width:13%; min-width:0;}
-.price-table th.sim-col.sim-group-head.collapsed{width:44px;}
+/* A coluna que abriga a chave de modo precisa caber a chave inteira. */
+.price-table th.sim-col.sim-group-head{width:auto; min-width:158px;}
+.price-table th.sim-col.sim-group-head.collapsed{width:44px; min-width:0;}
 /* Linha sem alteração/seleção: dados apagados, para deixar claro que o valor
    ainda não está sendo considerado. Ao editar (ou escolher o preço para o
    orçamento) ela volta ao contraste normal. */
@@ -596,12 +601,12 @@ td.sim-margin.negative{color:var(--neg);}
 /* Botão "marcar/limpar toda a coluna" no cabeçalho de cada tabela de preço.
    Fica acima do rótulo da coluna e some na impressão. */
 .col-pick{
-  display:block; margin:0 0 4px auto;
-  font:inherit; font-size:8.5px; font-weight:700; letter-spacing:.07em;
+  display:block; margin:0 0 3px auto;
+  font:inherit; font-size:8px; font-weight:700; letter-spacing:.06em;
   text-transform:uppercase; white-space:nowrap;
   border:1px solid var(--line); border-radius:20px;
   background:transparent; color:var(--ink-3);
-  padding:2px 8px; cursor:pointer;
+  padding:1px 7px; cursor:pointer; line-height:1.5;
   transition:border-color .12s ease, color .12s ease;
 }
 .col-pick:hover{border-color:var(--wine-ink); color:var(--wine-ink);}
@@ -684,14 +689,23 @@ button.sim-clear.on{opacity:1; border-color:var(--wine-soft); color:var(--wine-i
 /* No atalho fora da tabela há largura de sobra: mantém lado a lado */
 .sim-ctl .sim-mode-switch{margin:0; flex-direction:row;}
 .sim-ctl .sim-mode-opt{font-size:11px; padding:4px 9px;}
+/* O atalho da barra de filtros e a chave dentro do cabeçalho são a mesma
+   chave: o escolhido é vinho nos dois, não verde em um e vinho no outro. */
+.sim-mode-opt.on{background:var(--wine); color:#fff;}
+.sim-mode-opt:hover:not(.on){color:var(--wine-ink); background:var(--sunk);}
 
 /* ===== Grupo de simulação recolhível no cabeçalho da tabela =====
    ABERTO: botão com contorno (chave "«" convida a recolher).
    RECOLHIDO: botão preenchido em vinho, para ficar óbvio que é um controle
    fechado que precisa de clique para abrir (chave "»"). */
 th.sim-group-head.collapsed{
-  width:40px; padding:6px 3px !important;
-  background:transparent;
+  width:40px; padding:4px 3px !important;
+  background:transparent; text-align:center !important;
+}
+/* Recolhido, o rótulo sai da tela (continua para leitor de tela): escrito na
+   vertical ele custava ~75px de altura no cabeçalho de TODAS as tabelas. */
+th.sim-group-head.collapsed .sgl{
+  position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%);
 }
 button.sim-group-btn{
   font:inherit; font-size:10.5px; font-weight:700;
@@ -701,9 +715,12 @@ button.sim-group-btn{
 }
 button.sim-group-btn:hover{background:var(--wine); color:#fff;}
 th.sim-group-head.collapsed button.sim-group-btn{
-  writing-mode:vertical-rl; transform:rotate(180deg); padding:10px 5px;
-  background:transparent; color:var(--wine-ink); border-color:var(--wine-ink);
+  display:inline-grid; place-items:center;
+  width:24px; height:24px; padding:0; border-radius:50%;
+  background:color-mix(in srgb, var(--wine) 8%, transparent);
+  color:var(--wine-ink); border-color:var(--wine-ink);
 }
+th.sim-group-head.collapsed button.sim-group-btn .ico{width:12px; height:12px;}
 th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-soft);}
 
 /* ===== Módulo recolhível "Visualizar simulação" ===== */
@@ -819,10 +836,35 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
   --mask-lock:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>');
 }
 
-/* A chave "margem pelo preço / preço pela margem" mora dentro do cabeçalho da
-   coluna: com a grade proporcional ela precisa caber na fatia da coluna. */
-th.sim-col .sim-mode-switch{width:100%; box-sizing:border-box; max-width:none;}
-th.sim-col .sim-mode-opt{white-space:normal; font-size:9px; padding:3px 4px; line-height:1.2;}
+/* ===== Chave de modo da simulação, dentro do cabeçalho =====
+   Um segmentado igual aos demais do design system: os dois modos lado a lado,
+   mesmo peso visual, e o escolhido preenchido em vinho — no lugar da barra
+   verde que ocupava a largura toda e desequilibrava as duas opções. */
+th.sim-col .sim-mode-switch{
+  display:flex; flex-direction:row; width:100%; max-width:none;
+  box-sizing:border-box; margin:3px 0 2px;
+  background:var(--chip); border:1px solid var(--line);
+  border-radius:7px; padding:2px; gap:2px;
+}
+th.sim-col .sim-mode-opt{
+  flex:1 1 0; min-width:0; white-space:nowrap;
+  font-size:8.5px; font-weight:600; letter-spacing:0; text-transform:none;
+  color:var(--ink-3); background:transparent;
+  border:0; border-radius:5px; padding:3px 5px; line-height:1.25;
+}
+th.sim-col .sim-mode-opt.on{background:var(--wine); color:#fff; font-weight:700;}
+th.sim-col .sim-mode-opt:hover:not(.on){color:var(--wine-ink); background:var(--card);}
+/* O "voltar" do grupo vira uma etiqueta discreta, não um botão pesado */
+th.sim-group-head:not(.collapsed) button.sim-group-btn{
+  display:inline-flex; align-items:center; gap:3px;
+  font-size:8.5px; letter-spacing:.09em;
+  border:0; background:transparent; color:var(--ink-3);
+  padding:1px 2px; border-radius:6px;
+}
+th.sim-group-head:not(.collapsed) button.sim-group-btn:hover{
+  background:transparent; color:var(--wine-ink);
+}
+th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:10px;}
 
 /* ===== Aviso de marcação de célula (toast) ===== */
 #toastWrap{
@@ -854,65 +896,63 @@ th.sim-col .sim-mode-opt{white-space:normal; font-size:9px; padding:3px 4px; lin
 @keyframes toast-out{to{opacity:0; transform:translateY(6px) scale(.98);}}
 @media (prefers-reduced-motion:reduce){.toast,.toast.leaving{animation:none;}}
 
-/* ===== Celular: a tabela vira uma lista de fichas =====
-   Mesma informação, sem rolagem lateral e sem encolher a fonte. Cada td já
-   carrega data-label, que vira o rótulo da linha da ficha. */
+/* ===== Celular: a MESMA tabela do desktop, compacta =====
+   Mesmas colunas, mesma ordem, mesma leitura — só a escala muda: fonte menor,
+   espaçamento apertado e as larguras voltando a ser definidas pelo conteúdo
+   (table-layout:auto). O que sobrar de largura o fitTablesToScreen resolve,
+   encolhendo o bloco inteiro como antes — nunca há rolagem lateral. */
 @media (max-width:720px){
-  .cat-block{zoom:1 !important;}
-  .cat-heading{padding:9px 12px 8px;}
-  table.price-table{display:block; font-size:12.5px;}
-  .price-table thead{display:none;}
-  .price-table tbody{display:block;}
-  .price-table tbody tr{
-    display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:0 12px; padding:9px 12px 11px;
-    border-top:1px solid var(--line-2);
+  .cat-heading{padding:7px 9px 6px;}
+  .cat-heading h2{font-size:11px; letter-spacing:.06em;}
+  .cat-count{font-size:9.5px;}
+  /* Os pisos de largura em px são calibrados para a fonte do desktop: no
+     celular eles forçariam a tabela a 596px e o zoom teria de encolher tudo
+     para 0,58. Aqui o conteúdo manda, e o card volta a ocupar a largura da
+     tela em vez de se ajustar à tabela. */
+  .cat-block{width:auto;}
+  table.price-table{width:100%; table-layout:auto; font-size:10px;}
+  .price-table th:first-child,
+  .price-table th:nth-child(2),
+  .price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col),
+  .price-table th.cost-col,
+  .price-table th.ipi-col{width:auto; min-width:0;}
+  .price-table thead th{
+    font-size:7.5px; letter-spacing:.04em; padding:5px 4px 4px;
   }
-  .price-table tbody tr:first-child{border-top:0;}
-  /* Na ficha o fundo é da linha inteira, nunca de célula solta */
-  .price-table tbody tr:nth-child(even) td,
-  .price-table tbody tr.row-selected td{background:transparent !important;}
-  .price-table tbody tr:nth-child(even){background:color-mix(in srgb, var(--ink) 2.5%, transparent);}
-  .price-table tbody tr.row-selected{
-    background:color-mix(in srgb, var(--wine) 5%, transparent);
-    box-shadow:inset 2px 0 0 var(--wine-ink);
-  }
-  .price-table tbody tr:hover td{background:transparent;}
-  .price-table tbody td{
-    display:flex; align-items:baseline; justify-content:space-between; gap:10px;
-    padding:3px 0; border:0 !important; text-align:right; min-width:0;
-    white-space:nowrap; overflow:hidden;
-  }
-  .price-table tbody td::before{
-    content:attr(data-label);
-    font-family:"Archivo",Arial,sans-serif;
-    font-size:8.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
-    color:var(--ink-3); text-align:left; flex:0 1 auto;
-    overflow:hidden; text-overflow:ellipsis;
-  }
-  .price-table tbody td.code,
-  .price-table tbody td.color-cell{grid-column:1 / -1; justify-content:flex-start;}
-  /* Campos de simulação ocupam a linha inteira da ficha: o rótulo não é
-     cortado e o campo tem onde digitar. */
-  .price-table tbody td.sim-col{grid-column:1 / -1; border-left:0 !important;}
-  .price-table tbody td.code::before,
-  .price-table tbody td.color-cell::before{display:none;}
-  .price-table tbody td.code{font-size:14.5px; padding:0;}
-  .price-table tbody td.color-cell{padding:1px 0 5px; font-size:11px;}
-  .price-table tbody tr.commission-row{
-    border-top:1px solid var(--line); background:transparent;
-  }
-  .price-table tbody tr.commission-row td{padding:3px 0;}
-  tr.commission-row td.commission-label{grid-column:1 / -1; padding-bottom:2px;}
-  /* Na ficha a escolha é um contorno arredondado em volta do preço */
-  .price-table tbody tr.row-selected td.pick-cell.picked,
-  td.pick-cell.picked{
-    background:color-mix(in srgb, var(--wine) 7%, transparent) !important;
-    box-shadow:inset 0 0 0 1.5px var(--wine-ink);
-    border-radius:7px; padding:3px 8px !important;
-  }
-  td.pick-cell.picked::after{content:none;}
-  td.pick-cell:not(.picked):hover{box-shadow:none; background:transparent !important;}
+  .price-table thead th .tier-pct{font-size:8.5px; margin-top:1px;}
+  .price-table tbody td{padding:3px 4px;}
+  td.code{font-size:9.5px; letter-spacing:0;}
+  td.color-cell{font-size:9px;}
+  td.color-cell .swatch{width:7px; height:7px; margin-right:4px;}
+  td.price{font-size:10px;}
+  td.ipi, td.cost-col{font-size:9px;}
+  .col-pick{font-size:7px; padding:1px 5px; margin-bottom:3px;}
+  /* As comissões aplicáveis continuam na tabela, alinhadas às suas colunas */
+  tr.commission-row td{padding:5px 4px; font-size:10px;}
+  tr.commission-row td.commission-label{font-size:7.5px; letter-spacing:.05em;}
+  td.pick-cell.picked{box-shadow:inset 0 0 0 1.2px var(--wine-ink);}
+  /* Colunas de simulação: campos menores, para caberem na mesma linha */
+  th.sim-col{font-size:7.5px; padding-left:3px !important; padding-right:3px !important;}
+  .price-table th.sim-col.sim-group-head{width:auto; min-width:0;}
+  td.sim-col{padding-left:3px; padding-right:3px;}
+  input.sim-input{width:46px; font-size:10px; padding:2px 3px; border-radius:5px;}
+  input.sim-input.sim-comm, input.sim-input.sim-margin-in{width:36px;}
+  button.sim-clear{width:13px; height:13px; font-size:8px;}
+  button.pick-dot{width:13px; height:13px; margin-right:2px;}
+  /* No celular a chave volta a empilhar: lado a lado ela custaria ~90px de
+     largura da tabela, e é largura que vira zoom. */
+  th.sim-col .sim-mode-switch{flex-direction:column;}
+  th.sim-col .sim-mode-opt, .sim-mode-opt{font-size:8px; padding:2px 3px;}
+  /* O rótulo vertical do grupo recolhido estica o cabeçalho inteiro: no
+     celular ele encolhe, senão come meia tela de altura. */
+  th.sim-group-head.collapsed button.sim-group-btn{width:20px; height:20px;}
+  th.sim-group-head.collapsed button.sim-group-btn .ico{width:10px; height:10px;}
+  /* Cabeçalho do painel recolhível: título numa linha, contador e botão na
+     linha de baixo — em vez de espremer o título em três linhas. */
+  .collapse-toggle{flex-wrap:wrap; row-gap:7px;}
+  .collapse-toggle .panel-title{flex:1 1 auto; min-width:0;}
+  .collapse-badge{order:2;}
+  .collapse-btn{order:3;}
   /* O aviso precisa caber na largura do celular: quebra em duas linhas em vez
      de vazar pela borda. */
   #toastWrap{bottom:14px; left:12px; right:12px; transform:none;
@@ -923,6 +963,16 @@ th.sim-col .sim-mode-opt{white-space:normal; font-size:9px; padding:3px 4px; lin
   }
   .toast .tcount{margin-left:auto; padding-left:0; border-left:0;}
 }
+/* Telas bem estreitas: mais um passo de compactação antes de precisar encolher */
+@media (max-width:430px){
+  .page{padding-left:7px; padding-right:7px;}
+  table.price-table{font-size:9.5px;}
+  .price-table thead th{font-size:7px; padding:4px 3px;}
+  .price-table tbody td{padding:2.5px 3px;}
+  td.code{font-size:9px;}
+  td.price{font-size:9.5px;}
+  .col-pick{font-size:6.5px; padding:1px 4px;}
+}
 
 @media (max-width:640px){
   .page{padding:10px 10px 30px; gap:10px;}
@@ -932,9 +982,10 @@ th.sim-col .sim-mode-opt{white-space:normal; font-size:9px; padding:3px 4px; lin
   .collapse-head.open{margin-bottom:10px;}
   .brand-text h1{font-size:16px;}
   .logo-badge{width:32px; height:32px;}
-  /* Abaixo de 720px a tabela já virou lista de fichas (acima); aqui só
-     resta o ajuste do cabeçalho e dos painéis. */
-  .cat-heading h2{font-size:11.5px;}
+  /* A tabela continua com o mesmo layout do desktop — o JS encolhe cada
+     bloco de categoria (via CSS zoom) até caber na largura da tela,
+     em vez de reformatar em "cards" empilhados. */
+  .cat-block{transform-origin:top left;}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
 
@@ -1027,9 +1078,14 @@ th.sim-col .sim-mode-opt{white-space:normal; font-size:9px; padding:3px 4px; lin
   .sim-col{display:none !important;}
   .sim-legend{display:none !important;}
   .col-pick{display:none !important;}
-  /* Nada de destaque de seleção no PDF: o realce de escolha é só de tela */
-  tr.row-selected td, tr.row-selected{background:transparent !important;
+  /* Na tela o card tem a largura da tabela; no papel ele ocupa a folha. */
+  .cat-block{width:auto !important;}
+  /* Nada de destaque de seleção no PDF: o realce de escolha é só de tela.
+     Especificidade alta de propósito — as regras de tela usam !important. */
+  .price-table tbody tr.row-selected td,
+  .price-table tbody tr.row-selected{background:transparent !important;
     box-shadow:none !important;}
+  .price-table tbody td.pick-cell.picked,
   td.pick-cell.picked{
     background:transparent !important; color:inherit !important;
     box-shadow:none !important; font-weight:700;
@@ -1103,16 +1159,9 @@ th.sim-col .sim-mode-opt{white-space:normal; font-size:9px; padding:3px 4px; lin
   // (desktop, tablet ou celular) ela é encolhida até caber no espaço
   // disponível, mantendo o mesmo layout de colunas. Isso vale especialmente
   // quando o grupo de simulação é aberto e surgem 3 colunas a mais.
-  // Abaixo de 720px a tabela já se reorganiza em fichas pelo CSS, então o
-  // zoom não entra: a fonte fica em tamanho de leitura no celular.
-  const STACK_BP = 720;
   let fitRaf = null;
   function fitTablesToScreen(){
     const blocks = document.querySelectorAll('.cat-block');
-    if(window.matchMedia('(max-width:' + STACK_BP + 'px)').matches){
-      blocks.forEach(b=>{ b.style.zoom = ''; });
-      return;
-    }
     // Mede sempre sem zoom aplicado, senão a medida vem contaminada
     blocks.forEach(b=>{ b.style.zoom = ''; });
     void document.body.offsetWidth; // força reflow antes de medir
@@ -2442,7 +2491,7 @@ function render(){
           const inLabel  = byMargin ? t('simMarginInCol') : t('simPriceCol');
           const outLabel = byMargin ? t('simPriceOutCol') : t('simMarginCol');
           thead += '<th class="sim-col sim-group-head">'
-                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupCloseTip'))+'"><svg class="ico sm" aria-hidden="true"><use href="#i-chevron-left"></use></svg>'+t('simGroupLabel')+'</button>'
+                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupCloseTip'))+'"><svg class="ico sm" aria-hidden="true"><use href="#i-chevron-left"></use></svg><span class="sgl">'+t('simGroupLabel')+'</span></button>'
                 +  '<span class="sim-mode-switch" title="'+escAttr(t('simModeTip'))+'">'
                 +    '<button class="sim-mode-opt'+(!byMargin?' on':'')+'" data-mode="margemPeloPreco">'+t('simModeMarginFromPrice')+'</button>'
                 +    '<button class="sim-mode-opt'+(byMargin?' on':'')+'" data-mode="precoPelaMargem">'+t('simModePriceFromMargin')+'</button>'
@@ -2454,7 +2503,7 @@ function render(){
           thead += '<th class="sim-col">'+outLabel+'</th>';
         } else {
           thead += '<th class="sim-col sim-group-head collapsed">'
-                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupOpenTip'))+'"><svg class="ico sm" aria-hidden="true"><use href="#i-chevron"></use></svg>'+t('simGroupLabel')+'</button></th>';
+                +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupOpenTip'))+'" aria-label="'+escAttr(t('simGroupOpenTip'))+'"><svg class="ico sm" aria-hidden="true"><use href="#i-chevron"></use></svg><span class="sgl">'+t('simGroupLabel')+'</span></button></th>';
         }
       }
       // Custo: só na Gerência e nunca no orçamento do cliente. Fica logo
