@@ -1117,6 +1117,13 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   }
   td.commission-value.cost-col{background:transparent !important; color:#6B6A6F !important;}
 }
+
+/* =====================================================================
+   Matriz de Custos passou a viver num app próprio (wendell-custos), que
+   grava nas mesmas tabelas do Supabase. Os painéis abaixo ficam sempre
+   escondidos aqui — o botão "Matriz de Custos" no header leva pra lá.
+   ===================================================================== */
+#adminPanel, #coefPanel{ display:none !important; }
 </style>
 </head>
 <body>
@@ -1203,6 +1210,7 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
         <button data-val="en">EN</button>
       </div>
       <div class="clock-pill" id="clockPill">—</div>
+      <a class="hdr-chip" id="matrizLink" href="https://textilegroup.github.io/wendell-custos/" target="_blank" rel="noopener" hidden>Matriz de Custos</a>
       <button class="hdr-chip" id="themeBtn" type="button">Tema</button>
       <span class="clock-pill" id="whoPill" hidden></span>
       <button class="hdr-chip" id="sairBtn" type="button">Sair</button>
@@ -2144,6 +2152,7 @@ function renderControls(){
   document.getElementById('versionModeGroup').style.display = isGer ? 'flex' : 'none';
   document.getElementById('adminPanel').style.display = isGer ? 'block' : 'none';
   document.getElementById('coefPanel').style.display = isGer ? 'block' : 'none';
+  document.getElementById('matrizLink').hidden = !isGer;
   if(isGer) renderCoefPanel();
 
   const icmsSeg = document.getElementById('icmsSeg');
