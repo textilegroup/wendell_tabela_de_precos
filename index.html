@@ -390,11 +390,6 @@ td.coef-readonly{background:var(--sunk); color:var(--ink-2); font-weight:600;}
 
 /* ===== Conteúdo / tabelas ===== */
 .print-summary{display:none;}
-.print-summary .icms-badge{
-  display:inline-block; background:var(--wine); color:#fff;
-  padding:3px 14px; border-radius:6px; font-weight:700;
-  -webkit-print-color-adjust:exact; print-color-adjust:exact;
-}
 .cat-block{
   --cat-accent:var(--wine-ink);
   margin:0 0 12px; padding:0;
@@ -1030,7 +1025,8 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   .brand-text p{font-size:9px;}
   .page{padding:0; gap:0; max-width:none; display:block;}
   .panel{box-shadow:none; border:none; padding:0; margin:0;}
-  /* Título da tabela com o ICMS aplicável em destaque */
+  /* Título da tabela com o ICMS aplicável — texto corrido, sem destaque de
+     cor: o ICMS entra como mais um item da lista separada por "·". */
   .print-summary{
     display:block; font-size:16px; font-weight:700;
     color:var(--wine-deep); text-align:center;
@@ -1039,7 +1035,13 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
     border-bottom:3px solid var(--wine);
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  .print-summary .icms-badge{font-size:16px; padding:3px 13px;}
+  /* Data/hora da geração, pequena, numa linha própria abaixo do título — dá
+     pra saber se um PDF impresso antes reflete a versão mais recente. */
+  .print-stamp{
+    display:block; font-size:9px; font-weight:400;
+    text-transform:none; letter-spacing:.02em;
+    color:var(--ink-3);
+  }
   /* Blocos de categoria compactos */
   .cat-block{margin:0 0 3.5px; break-inside:avoid-page; overflow:visible;
     border:0; border-left:2.5px solid var(--cat-accent); border-radius:0;}
@@ -1391,7 +1393,7 @@ const PRECOS = {};               // precos prontos por ICMS (representante)
 // confirmar visualmente se uma publicação nova já chegou. Convenção X.Y:
 // Y sobe a cada publicação; X sobe (e Y volta pra 1) só numa mudança
 // estrutural (ex.: reorganização de dados/esquema, refactor grande).
-const APP_VERSION = '1.3';
+const APP_VERSION = '1.4';
 {
   const badge = document.getElementById('versionBadge');
   if(badge) badge.textContent = '· v' + APP_VERSION;
@@ -1650,6 +1652,7 @@ const I18N = {
     priceCol:"Preço",
     quoteEmpty:"Selecione ao menos um item para gerar o orçamento.",
     quoteDocTitle:"Orçamento", quoteClientPrefix:"Cliente:",
+    printedAt:"Gerado em",
     simResetBtn:"Limpar simulação",
     simNote:"Colunas de simulação (6 e 7) — visíveis só na Gerência e não saem no PDF.",
     emptyState:"Nenhum item encontrado para os filtros selecionados.",
@@ -1726,6 +1729,7 @@ const I18N = {
     priceCol:"Price",
     quoteEmpty:"Select at least one item to generate the quote.",
     quoteDocTitle:"Quote", quoteClientPrefix:"Customer:",
+    printedAt:"Generated on",
     simResetBtn:"Clear simulation",
     simNote:"Simulation columns (6 and 7) — visible only in Management and excluded from the PDF.",
     emptyState:"No items found for the selected filters.",
@@ -2498,17 +2502,25 @@ function render(){
   // resumo para impressão
   const modTxt = state.audience==='gerencia' ? t('ger') : t('repr');
   const icmsTxt = (state.audience==='gerencia' && state.versionMode==='anterior') ? '18%' : state.icms+'%';
+  // Data e hora da geração, em fonte pequena numa linha própria — dá pra
+  // saber se um PDF já impresso está desatualizado em relação à tela atual.
+  const locale = state.lang==='en' ? 'en-US' : 'pt-BR';
+  const now = new Date();
+  const stampTxt = t('printedAt') + ' ' + now.toLocaleDateString(locale)
+    + ' ' + now.toLocaleTimeString(locale, {hour:'2-digit', minute:'2-digit'});
+  const stampHtml = '<span class="print-stamp">' + stampTxt + '</span>';
   if(quote){
     const cli = (state.quoteClient||'').trim();
     document.getElementById('printSummary').innerHTML =
-      t('quoteDocTitle') + ' &nbsp;<span class="icms-badge">ICMS ' + icmsTxt + '</span>&nbsp;'
+      t('quoteDocTitle') + ' · ICMS ' + icmsTxt
       + (cli ? ' · ' + t('quoteClientPrefix') + ' ' + cli : '')
-      + ' · ' + new Date().toLocaleDateString(state.lang==='en'?'en-US':'pt-BR');
+      + stampHtml;
   } else {
     document.getElementById('printSummary').innerHTML =
-      t('title') + ' &nbsp;<span class="icms-badge">ICMS ' + icmsTxt + '</span>&nbsp; · '
+      t('title') + ' · ICMS ' + icmsTxt + ' · '
       + modTxt + ' · ' + block.date + ' · ' + block.note
-      + (state.tableMode ? ' · ' + rows.length + ' ' + t('selectedSuffix') : '');
+      + (state.tableMode ? ' · ' + rows.length + ' ' + t('selectedSuffix') : '')
+      + stampHtml;
   }
 
   if(rows.length === 0){
