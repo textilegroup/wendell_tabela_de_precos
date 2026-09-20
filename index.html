@@ -263,18 +263,6 @@ body{
 .input-box:focus{outline:2px solid var(--wine-soft); outline-offset:-1px; border-color:var(--wine-soft);}
 select.input-box{cursor:pointer;}
 
-.status-pill{
-  font-size:11px; font-weight:600; color:var(--ink-2);
-  background:var(--chip); border:1px solid var(--line);
-  padding:6px 11px; border-radius:8px;
-  display:inline-flex; gap:6px; align-items:center;
-}
-.status-pill.gerencia{
-  color:var(--wine-ink);
-  background:color-mix(in srgb, var(--wine) 9%, transparent);
-  border-color:color-mix(in srgb, var(--wine) 30%, transparent);
-}
-
 /* ===== Botões ===== */
 .btn{
   font:inherit; font-size:11.5px; font-weight:700; letter-spacing:.04em;
@@ -1286,7 +1274,6 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
             <button class="sim-mode-opt" data-mode="precoPelaMargem" id="txt-simCtlB">Preço pela margem</button>
           </span>
         </div>
-        <button class="btn btn-outline" id="pdfBtn"><svg class="ico" aria-hidden="true"><use href="#i-print"></use></svg><span id="txt-pdfBtn">Gerar PDF</span></button>
       </div>
     </div>
     <div class="field-row">
@@ -1308,10 +1295,6 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
         <span class="field-label" id="txt-categoryLabel">Categoria</span>
         <div class="chipset" id="catChips"></div>
       </div>
-      <div class="field">
-        <span class="field-label" id="txt-versionLabel2">Versão</span>
-        <div class="status-pill" id="versionNote"></div>
-      </div>
     </div>
   </section>
 
@@ -1331,6 +1314,7 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
     <div class="collapse-body" id="quoteBody" hidden>
       <div class="quote-actions" style="margin-top:0; margin-bottom:14px;">
         <button class="btn btn-primary" id="quoteBtn"><svg class="ico" aria-hidden="true"><use href="#i-quote"></use></svg><span id="txt-quoteBtn">Gerar orçamento (PDF)</span></button>
+        <button class="btn btn-outline" id="pdfBtn"><svg class="ico" aria-hidden="true"><use href="#i-print"></use></svg><span id="txt-pdfBtn">Gerar lista de preços completa</span></button>
       </div>
       <div class="field-row">
         <div class="field grow">
@@ -1393,7 +1377,7 @@ const PRECOS = {};               // precos prontos por ICMS (representante)
 // confirmar visualmente se uma publicação nova já chegou. Convenção X.Y:
 // Y sobe a cada publicação; X sobe (e Y volta pra 1) só numa mudança
 // estrutural (ex.: reorganização de dados/esquema, refactor grande).
-const APP_VERSION = '1.4';
+const APP_VERSION = '1.5';
 {
   const badge = document.getElementById('versionBadge');
   if(badge) badge.textContent = '· v' + APP_VERSION;
@@ -1593,8 +1577,6 @@ const state = {
   selRows: {},
   rowCol: {},
   quoteMode: false,
-  // Impressão da tabela de preços restrita aos itens marcados
-  tableMode: false,
   quoteClient: '',
   // Bloco "Orçamento": recolhido por padrão (só título + botão de expandir).
   quoteOpen: false,
@@ -1662,12 +1644,10 @@ const I18N = {
     pwTitle:"Acesso restrito — Gerência",
     pwText:"Esta área contém margens comerciais sensíveis. Informe a senha do módulo de gerência para continuar.",
     pwPlaceholder:"Senha", pwError:"Senha incorreta. Tente novamente.", cancel:"Cancelar", enter:"Entrar",
-    pdfBtn:"Gerar tabela em PDF com itens selecionados",
-    pdfEmpty:"Marque ao menos um item para gerar a tabela em PDF.",
+    pdfBtn:"Gerar lista de preços completa",
     colPickAll:"Marcar todos os itens em tela nesta coluna",
     colPickNone:"Limpar todos os itens desta coluna",
     colPickAllShort:"todos", colPickNoneShort:"limpar",
-    selectedSuffix:"selecionados",
     theme:"Tema", sair:"Sair", sairTip:"Encerrar a sessão da Central de Acesso",
     adminTitle:"Matriz de custos",
     adminHint:"Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.",
@@ -1739,12 +1719,10 @@ const I18N = {
     pwTitle:"Restricted access — Management",
     pwText:"This area contains sensitive commercial margins. Enter the management password to continue.",
     pwPlaceholder:"Password", pwError:"Incorrect password. Try again.", cancel:"Cancel", enter:"Enter",
-    pdfBtn:"Generate PDF table with selected items",
-    pdfEmpty:"Select at least one item to generate the PDF table.",
+    pdfBtn:"Generate complete price list",
     colPickAll:"Select every item on screen in this column",
     colPickNone:"Clear every item in this column",
     colPickAllShort:"all", colPickNoneShort:"clear",
-    selectedSuffix:"selected",
     theme:"Theme", sair:"Sign out", sairTip:"End the Central de Acesso session",
     adminTitle:"Cost matrix",
     adminHint:"Update each product's cost and the app recalculates every price automatically. Export to edit in a spreadsheet and import it back.",
@@ -2093,7 +2071,6 @@ function applyStaticTexts(){
   document.getElementById('txt-btn-repr').textContent = t('profileRepr');
   document.getElementById('txt-btn-ger').textContent = t('profileGer');
   document.getElementById('txt-versionLabel').textContent = t('versionLabel');
-  document.getElementById('txt-versionLabel2').textContent = t('versionLabel');
   document.getElementById('txt-btn-vigente').textContent = t('versionVigente');
   document.getElementById('txt-btn-anterior').textContent = t('versionAnterior');
   document.getElementById('txt-versionHint').textContent = t('versionHint');
@@ -2439,8 +2416,6 @@ function render(){
   renderCatChips(block);
   renderQuoteCount();
 
-  document.getElementById('versionNote').textContent = block.date + ' · ' + block.note;
-
   const showMargin = state.audience === 'gerencia';
   const quote = state.quoteMode;
   // As colunas de simulação são da Gerência, dependem do módulo "Visualizar
@@ -2460,17 +2435,15 @@ function render(){
   const tierLabels = block.margins.map((m,i)=> tierLabel(i));
   const shownTiers = block.margins.map((m,i)=>i);
 
-  // Tanto o orçamento quanto a "tabela em PDF" saem apenas com os itens
-  // marcados: são dois documentos diferentes da MESMA seleção.
-  const soMarcados = quote || state.tableMode;
-
   let rows = block.rows;
-  if(soMarcados){
+  if(quote){
     // O orçamento traz exatamente os itens marcados pelo usuário — nada
     // além disso. Os filtros de categoria e busca são só para NAVEGAR na
-    // tela; se ficarem ativos, não podem esconder do PDF um item que já
-    // foi selecionado (ele pode ter sido marcado numa categoria ou busca
-    // diferente da que está em tela agora).
+    // tela; se ficarem ativos, não podem esconder do orçamento um item que
+    // já foi selecionado (ele pode ter sido marcado numa categoria ou busca
+    // diferente da que está em tela agora). A "lista de preços completa" em
+    // PDF é outro documento: sai com os MESMOS filtros da tela, sem exigir
+    // seleção — é a tabela inteira, não um recorte por cliente.
     rows = rows.filter(r => state.selRows[r.code]);
   } else {
     const selCats = Object.keys(state.cats).filter(k=>state.cats[k]);
@@ -2519,7 +2492,6 @@ function render(){
     document.getElementById('printSummary').innerHTML =
       t('title') + ' · ICMS ' + icmsTxt + ' · '
       + modTxt + ' · ' + block.date + ' · ' + block.note
-      + (state.tableMode ? ' · ' + rows.length + ' ' + t('selectedSuffix') : '')
       + stampHtml;
   }
 
@@ -2730,7 +2702,7 @@ function render(){
   document.getElementById('content').appendChild(foot);
 
   // Fora do orçamento, liga os controles de seleção da tabela
-  if(!state.quoteMode && !state.tableMode) bindSelection(block, codigosEmTela);
+  if(!state.quoteMode) bindSelection(block, codigosEmTela);
   // Os inputs de simulação só existem com o módulo aberto
   if(showSim) bindSimInputs(block);
 
@@ -2904,17 +2876,12 @@ document.getElementById('searchInput').addEventListener('input', (e)=>{
 });
 
 // ---------- PDF (impressão) ----------
-// A tabela de preços em PDF sai com os MESMOS itens marcados que o orçamento
-// usaria — a diferença é o formato: aqui vão todas as colunas de tabela, lá
-// vai só o preço escolhido de cada item.
+// "Gerar lista de preços completa" não depende de seleção: imprime a tabela
+// exatamente como está em tela, com todos os itens que passam pelos filtros
+// atuais (ICMS, categoria, busca) — ao contrário do orçamento, que só leva
+// os itens marcados pelo usuário.
 document.getElementById('pdfBtn').onclick = ()=>{
-  if(selectedRowCount() === 0){
-    window.alert(t('pdfEmpty'));
-    return;
-  }
-  state.tableMode = true;
-  render();
-  setTimeout(()=>{ window.print(); }, 80);
+  window.print();
 };
 
 // ---------- Admin: export / import custos ----------
@@ -3156,9 +3123,8 @@ document.getElementById('quoteBtn').onclick = ()=>{
   setTimeout(()=>{ window.print(); }, 80);
 };
 window.addEventListener('afterprint', ()=>{
-  if(state.quoteMode || state.tableMode){
+  if(state.quoteMode){
     state.quoteMode = false;
-    state.tableMode = false;
     render();
   }
 });
