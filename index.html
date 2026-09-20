@@ -1377,7 +1377,7 @@ const PRECOS = {};               // precos prontos por ICMS (representante)
 // confirmar visualmente se uma publicação nova já chegou. Convenção X.Y:
 // Y sobe a cada publicação; X sobe (e Y volta pra 1) só numa mudança
 // estrutural (ex.: reorganização de dados/esquema, refactor grande).
-const APP_VERSION = '2.2';
+const APP_VERSION = '2.3';
 {
   const badge = document.getElementById('versionBadge');
   if(badge) badge.textContent = '· v' + APP_VERSION;
@@ -1659,7 +1659,7 @@ const I18N = {
     coefHint:"Ajuste margem, comissão, ICMS e PIS/COFINS de cada versão. Os preços de todas as tabelas são recalculados automaticamente.",
     coefMarkup:"Markup", coefMargem:"Margem", coefComissao:"Comissão", coefVartabs:"Var. entre tabelas",
     coefIcms:"ICMS", coefPis:"PIS/COFINS",
-    coefMarkupHint:"\"Markup\" é só informativo — 100/(100 − soma de ICMS, PIS/COFINS, comissão e margem), com o PIS/COFINS incidindo só sobre o que sobra do ICMS. Não pode ser editado diretamente.",
+    coefMarkupHint:"\"Markup\" é só informativo — quantas vezes o custo vira preço (ex.: 1,45 = preço é 1,45× o custo), considerando ICMS, PIS/COFINS (sem incidir sobre o ICMS), comissão e margem. Não pode ser editado diretamente.",
     coefReset:"Restaurar valores originais desta versão",
     coefSave:"Salvar alterações",
     coefResetConfirm:"Restaurar os valores originais desta versão? As alterações feitas nela serão perdidas.",
@@ -1734,7 +1734,7 @@ const I18N = {
     coefHint:"Adjust margin, commission, ICMS and PIS/COFINS for each version. Every price table is recalculated automatically.",
     coefMarkup:"Markup", coefMargem:"Margin", coefComissao:"Commission", coefVartabs:"Var. between tables",
     coefIcms:"ICMS", coefPis:"PIS/COFINS",
-    coefMarkupHint:"\"Markup\" is informational only — 100/(100 − the sum of ICMS, PIS/COFINS, commission and margin), with PIS/COFINS applied only to what's left after ICMS. It can't be edited directly.",
+    coefMarkupHint:"\"Markup\" is informational only — how many times the cost the price represents (e.g. 1.45 = price is 1.45× the cost), considering ICMS, PIS/COFINS (excluding ICMS from its base), commission and margin. It can't be edited directly.",
     coefReset:"Restore this version's original values",
     coefSave:"Save changes",
     coefResetConfirm:"Restore the original values for this version? Changes made to it will be lost.",
@@ -1927,6 +1927,9 @@ function renderCoefPanel(){
   const locale = state.lang==='en' ? 'en-US' : 'pt-BR';
   const pctFmt = v => (v*100).toLocaleString(locale, {minimumFractionDigits:2, maximumFractionDigits:2});
   const pctInput = v => (v*100).toFixed(2); // sempre com ponto — exigido por <input type="number">
+  // Markup como multiplicador do custo (ex.: 1,45 = preço é 1,45× o custo),
+  // não como percentual — diferente das outras linhas da tabela.
+  const markupFmt = v => v.toLocaleString(locale, {minimumFractionDigits:2, maximumFractionDigits:2});
 
   const table = document.getElementById('coefTable');
   // table-layout fixo: a primeira coluna (rótulos) tem largura fixa e as
@@ -1943,7 +1946,7 @@ function renderCoefPanel(){
   let rowComissao = '<tr><th>'+t('coefComissao')+'</th>';
   let rowVarTabs = '<tr><th>'+t('coefVartabs')+'</th>';
   for(let i=0;i<n;i++){
-    rowMarkup += '<td class="coef-readonly">'+(markup[i]===null ? '—' : pctFmt(markup[i])+'%')+'</td>';
+    rowMarkup += '<td class="coef-readonly">'+(markup[i]===null ? '—' : markupFmt(markup[i]))+'</td>';
     rowMargem += '<td class="coef-yellow">'+coefInput(pctInput(p.margins[i]), 'coef-in', 'data-field="margins" data-index="'+i+'"')+'</td>';
     rowComissao += '<td>'+coefInput(pctInput(p.commissions[i]), 'coef-in', 'data-field="commissions" data-index="'+i+'"')+'</td>';
     rowVarTabs += '<td class="coef-readonly">'+pctFmt(varTabs[i])+'%</td>';
