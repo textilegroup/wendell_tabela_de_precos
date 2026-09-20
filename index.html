@@ -1859,15 +1859,18 @@ function computeVarTabs(key){
   return denom.map((d,i)=> i===denom.length-1 ? 0 : (denom[i+1]/d)-1);
 }
 
+// Painel de Coeficientes: só existe a Gerência aqui (ver syncReprFromGer),
+// então o rótulo "Gerência" é redundante — as abas diferenciam só por ICMS.
 function versionLabelFor(key){
   const p = DATA.params[key];
-  const lbl = state.lang==='en' ? p.label_en : p.label;
-  return lbl + ' ' + Math.round(p.icms*100) + '%';
+  return Math.round(p.icms*100) + '%';
 }
 
-// Só existe uma sistemática de coeficientes por ICMS agora, nomeada "Gerência"
-// (repr18/17/4 deixaram de ter aba própria aqui — ver syncReprFromGer). Cada
-// aba já mostra as 5 tabelas direto, sem lógica condicional de audiência.
+// Só existe uma sistemática de coeficientes por ICMS agora (repr18/17/4
+// deixaram de ter aba própria aqui — ver syncReprFromGer). O painel inteiro
+// já é exclusivo da Gerência, então as abas diferenciam só por ICMS (sem
+// repetir "Gerência" — ver versionLabelFor) e cada uma mostra as 5 tabelas
+// direto, sem lógica condicional de audiência.
 function renderCoefTabs(){
   const wrap = document.getElementById('coefTabs');
   wrap.innerHTML = '';
@@ -1914,8 +1917,13 @@ function renderCoefPanel(){
   let cols = '<colgroup><col class="coef-rowhead">';
   for(let i=0;i<n;i++){ cols += '<col>'; }
   cols += '</colgroup>';
+  // A 5ª coluna não existe para o Representante — é a tabela exclusiva da
+  // Gerência, então o cabeçalho dela usa o texto "Gerência" em vez de
+  // "Tabela 5". Só essa coluna: as demais continuam "Tabela 1".."Tabela 4".
   let thead = '<thead><tr><th></th>';
-  for(let i=0;i<n;i++){ thead += '<th>'+t('tableCol')+' '+(i+1)+'</th>'; }
+  for(let i=0;i<n;i++){
+    thead += '<th>'+(i===REPR_TABLE_COUNT ? t('ger') : (t('tableCol')+' '+(i+1)))+'</th>';
+  }
   thead += '</tr></thead>';
 
   let rowAjuste = '<tr><th>'+t('coefAjuste')+'</th>';
