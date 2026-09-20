@@ -1255,7 +1255,7 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
       <div class="coef-top" id="coefSide"></div>
       <div class="coef-scroll"><table class="coef-table" id="coefTable"></table></div>
     </div>
-    <p class="coef-hint" id="txt-coefMarkupHint">"Markup" é só informativo — soma margem, comissão, ICMS e PIS/COFINS (sem ICMS na base do PIS/COFINS) e não pode ser editado diretamente.</p>
+    <p class="coef-hint" id="txt-coefMarkupHint">"Markup" é só informativo — 100/(100 − soma de ICMS, PIS/COFINS, comissão e margem), com o PIS/COFINS incidindo só sobre o que sobra do ICMS. Não pode ser editado diretamente.</p>
     <p class="coef-hint" id="coefDirtyMsg" style="display:none;"></p>
     <div class="admin-actions">
       <button class="btn btn-ghost coef-reset" id="coefResetBtn"><span id="txt-coefReset">Restaurar valores originais desta versão</span></button>
@@ -1377,7 +1377,7 @@ const PRECOS = {};               // precos prontos por ICMS (representante)
 // confirmar visualmente se uma publicação nova já chegou. Convenção X.Y:
 // Y sobe a cada publicação; X sobe (e Y volta pra 1) só numa mudança
 // estrutural (ex.: reorganização de dados/esquema, refactor grande).
-const APP_VERSION = '2.1';
+const APP_VERSION = '2.2';
 {
   const badge = document.getElementById('versionBadge');
   if(badge) badge.textContent = '· v' + APP_VERSION;
@@ -1659,7 +1659,7 @@ const I18N = {
     coefHint:"Ajuste margem, comissão, ICMS e PIS/COFINS de cada versão. Os preços de todas as tabelas são recalculados automaticamente.",
     coefMarkup:"Markup", coefMargem:"Margem", coefComissao:"Comissão", coefVartabs:"Var. entre tabelas",
     coefIcms:"ICMS", coefPis:"PIS/COFINS",
-    coefMarkupHint:"\"Markup\" é só informativo — soma margem, comissão, ICMS e PIS/COFINS (sem ICMS na base do PIS/COFINS) e não pode ser editado diretamente.",
+    coefMarkupHint:"\"Markup\" é só informativo — 100/(100 − soma de ICMS, PIS/COFINS, comissão e margem), com o PIS/COFINS incidindo só sobre o que sobra do ICMS. Não pode ser editado diretamente.",
     coefReset:"Restaurar valores originais desta versão",
     coefSave:"Salvar alterações",
     coefResetConfirm:"Restaurar os valores originais desta versão? As alterações feitas nela serão perdidas.",
@@ -1734,7 +1734,7 @@ const I18N = {
     coefHint:"Adjust margin, commission, ICMS and PIS/COFINS for each version. Every price table is recalculated automatically.",
     coefMarkup:"Markup", coefMargem:"Margin", coefComissao:"Commission", coefVartabs:"Var. between tables",
     coefIcms:"ICMS", coefPis:"PIS/COFINS",
-    coefMarkupHint:"\"Markup\" is informational only — it sums margin, commission, ICMS and PIS/COFINS (PIS/COFINS excludes ICMS from its base) and can't be edited directly.",
+    coefMarkupHint:"\"Markup\" is informational only — 100/(100 − the sum of ICMS, PIS/COFINS, commission and margin), with PIS/COFINS applied only to what's left after ICMS. It can't be edited directly.",
     coefReset:"Restore this version's original values",
     coefSave:"Save changes",
     coefResetConfirm:"Restore the original values for this version? Changes made to it will be lost.",
@@ -1862,14 +1862,17 @@ function computeVarTabs(key){
   const denom = p.margins.map((m,i)=>1-(base+(p.commissions[i]||0)+m));
   return denom.map((d,i)=> i===denom.length-1 ? 0 : (denom[i+1]/d)-1);
 }
-// Markup: soma de tudo que entra no preço (margem + comissão + ICMS +
-// PIS/COFINS), só informativo — não é um campo editável nem entra em
-// nenhuma fórmula própria, é a mesma soma que computePrice usa no
-// denominador. O PIS/COFINS incide sobre (1-ICMS), nunca sobre o ICMS.
+// Markup: quantas vezes o custo o preço representa — 100/(100-soma), com
+// soma = ICMS + PIS/COFINS + comissão + margem. O PIS/COFINS não incide
+// sobre o ICMS: sua base é (1-ICMS), a mesma que computePrice já usa no
+// denominador do preço. Só informativo — não é campo editável.
 function computeMarkup(key){
   const p = DATA.params[key];
-  const base = p.icms + p.pis*(1-p.icms);
-  return p.margins.map((m,i)=> base + (p.commissions[i]||0) + m);
+  const base = p.icms + p.pis*(1-p.icms); // PIS/COFINS fora da base do ICMS
+  return p.margins.map((m,i)=>{
+    const denom = 1 - (base + (p.commissions[i]||0) + m);
+    return denom > 0.0001 ? 1/denom : null; // markup impossível
+  });
 }
 
 // Painel de Coeficientes: só existe a Gerência aqui (ver syncReprFromGer),
@@ -1940,7 +1943,7 @@ function renderCoefPanel(){
   let rowComissao = '<tr><th>'+t('coefComissao')+'</th>';
   let rowVarTabs = '<tr><th>'+t('coefVartabs')+'</th>';
   for(let i=0;i<n;i++){
-    rowMarkup += '<td class="coef-readonly">'+pctFmt(markup[i])+'%</td>';
+    rowMarkup += '<td class="coef-readonly">'+(markup[i]===null ? '—' : pctFmt(markup[i])+'%')+'</td>';
     rowMargem += '<td class="coef-yellow">'+coefInput(pctInput(p.margins[i]), 'coef-in', 'data-field="margins" data-index="'+i+'"')+'</td>';
     rowComissao += '<td>'+coefInput(pctInput(p.commissions[i]), 'coef-in', 'data-field="commissions" data-index="'+i+'"')+'</td>';
     rowVarTabs += '<td class="coef-readonly">'+pctFmt(varTabs[i])+'%</td>';
