@@ -404,19 +404,27 @@ td.coef-readonly{background:var(--sunk); color:var(--ink-2); font-weight:600;}
   border-radius:10px;
 }
 .cat-heading{
-  display:flex; align-items:baseline; gap:9px;
-  margin:0; padding:5px 11px 4px;
+  display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; row-gap:2px;
+  margin:0; padding:6px 11px 5px;
   background:transparent;
   border-bottom:1px solid var(--line);
 }
 .cat-heading h2{
-  margin:0; font:inherit; font-size:11px; font-weight:700;
-  letter-spacing:.09em; text-transform:uppercase; color:var(--cat-accent);
+  margin:0; font:inherit; font-size:14px; font-weight:700;
+  letter-spacing:.07em; text-transform:uppercase; color:var(--cat-accent);
 }
 .cat-count{
   margin-left:auto; padding-left:24px;
   font-size:10px; color:var(--ink-3); letter-spacing:.03em;
   font-variant-numeric:tabular-nums;
+}
+/* Orientação de como usar a tabela (clicar no preço marca o item no
+   orçamento) — sempre numa linha própria, abaixo do título, pra nunca
+   disputar espaço com ele nem com o contador em nenhuma largura de tela. */
+.cat-hint{
+  flex:1 1 100%; order:3;
+  font-size:10.5px; font-weight:400; letter-spacing:.01em;
+  text-transform:none; color:var(--ink-3);
 }
 
 /* Cada família de produtos é identificada apenas pelo filete da esquerda e
@@ -904,7 +912,8 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
    encolhendo o bloco inteiro como antes — nunca há rolagem lateral. */
 @media (max-width:720px){
   .cat-heading{padding:7px 9px 6px;}
-  .cat-heading h2{font-size:11px; letter-spacing:.06em;}
+  .cat-heading h2{font-size:13px; letter-spacing:.05em;}
+  .cat-hint{font-size:9.5px;}
   .cat-count{font-size:9.5px;}
   /* Os pisos de largura em px são calibrados para a fonte do desktop: no
      celular eles forçariam a tabela a 596px e o zoom teria de encolher tudo
@@ -1039,6 +1048,7 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   .cat-heading h2{font-size:11.5px; letter-spacing:.07em; line-height:1.15;
     color:var(--cat-accent) !important;}
   .cat-count{font-size:9px;}
+  .cat-hint{display:none;} /* orientação de clique não faz sentido no papel */
   /* Tabelas: fonte máxima que ainda cabe numa página A4 retrato */
   table.price-table{border-collapse:collapse; border-radius:0; border:0; width:100%;}
   .price-table thead th{
@@ -1218,8 +1228,8 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
       <div class="field">
         <span class="field-label" id="txt-moduleLabel">Módulo</span>
         <div class="segmented" id="audienceSeg">
-          <button data-val="representante" class="active" id="txt-btn-repr">Representante</button>
-          <button data-val="gerencia" class="locked" id="txt-btn-ger">Gerência</button>
+          <button data-val="representante" class="active" id="txt-btn-repr">Representantes</button>
+          <button data-val="gerencia" class="locked" id="txt-btn-ger">Gerencial</button>
         </div>
       </div>
       <div class="field" id="versionModeGroup" style="display:none;">
@@ -1260,33 +1270,6 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
     <div class="admin-actions">
       <button class="btn btn-ghost coef-reset" id="coefResetBtn"><span id="txt-coefReset">Restaurar valores originais desta versão</span></button>
       <button class="btn btn-primary" id="coefSaveBtn"><span id="txt-coefSave">Salvar alterações</span></button>
-    </div>
-  </section>
-
-  <section class="panel no-print" id="quotePanel">
-    <div class="panel-title-row collapse-head" id="quoteHead">
-      <button class="collapse-toggle" id="quoteToggle" type="button" aria-expanded="false" aria-controls="quoteBody">
-        <span class="collapse-chevron"><svg class="ico" aria-hidden="true"><use href="#i-chevron"></use></svg></span>
-        <h3 class="panel-title" id="txt-quoteTitle">Orçamento — selecione itens e colunas</h3>
-        <span class="collapse-badge" id="quoteHeadCount"></span>
-        <span class="collapse-btn" id="txt-quoteExpand">Expandir</span>
-      </button>
-    </div>
-    <div class="collapse-body" id="quoteBody" hidden>
-      <div class="quote-actions" style="margin-top:0; margin-bottom:14px;">
-        <button class="btn btn-primary" id="quoteBtn"><svg class="ico" aria-hidden="true"><use href="#i-quote"></use></svg><span id="txt-quoteBtn">Gerar orçamento (PDF)</span></button>
-      </div>
-      <div class="field-row">
-        <div class="field grow">
-          <span class="field-label" id="txt-quoteClientLabel">Cliente</span>
-          <input type="text" id="quoteClient" class="input-box" placeholder="Nome do cliente (opcional)">
-        </div>
-      </div>
-      <div class="quote-actions">
-        <button class="btn btn-ghost" id="selNoneBtn"><span id="txt-selNone">Limpar seleção</span></button>
-        <span class="quote-count" id="quoteCount"></span>
-      </div>
-      <p class="admin-hint" id="txt-quoteHint" style="margin:10px 0 0;">Clique no preço desejado para incluir o item; clique de novo para tirar. No cabeçalho de cada tabela há um botão que marca todos os itens em tela naquela coluna — depois é só clicar em outras células para trocar item a item. O orçamento sai sem margens nem comissões.</p>
     </div>
   </section>
 
@@ -1333,6 +1316,32 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   <div class="print-summary" id="printSummary"></div>
 
   <div id="content"></div>
+
+  <section class="panel no-print" id="quotePanel">
+    <div class="panel-title-row collapse-head" id="quoteHead">
+      <button class="collapse-toggle" id="quoteToggle" type="button" aria-expanded="false" aria-controls="quoteBody">
+        <span class="collapse-chevron"><svg class="ico" aria-hidden="true"><use href="#i-chevron"></use></svg></span>
+        <h3 class="panel-title" id="txt-quoteTitle">Gerar orçamento com preços selecionados</h3>
+        <span class="collapse-badge" id="quoteHeadCount"></span>
+        <span class="collapse-btn" id="txt-quoteExpand">Expandir</span>
+      </button>
+    </div>
+    <div class="collapse-body" id="quoteBody" hidden>
+      <div class="quote-actions" style="margin-top:0; margin-bottom:14px;">
+        <button class="btn btn-primary" id="quoteBtn"><svg class="ico" aria-hidden="true"><use href="#i-quote"></use></svg><span id="txt-quoteBtn">Gerar orçamento (PDF)</span></button>
+      </div>
+      <div class="field-row">
+        <div class="field grow">
+          <span class="field-label" id="txt-quoteClientLabel">Cliente</span>
+          <input type="text" id="quoteClient" class="input-box" placeholder="Nome do cliente (opcional)">
+        </div>
+      </div>
+      <div class="quote-actions">
+        <button class="btn btn-ghost" id="selNoneBtn"><span id="txt-selNone">Limpar seleção</span></button>
+        <span class="quote-count" id="quoteCount"></span>
+      </div>
+    </div>
+  </section>
 
 </main>
 
@@ -1382,7 +1391,7 @@ const PRECOS = {};               // precos prontos por ICMS (representante)
 // confirmar visualmente se uma publicação nova já chegou. Convenção X.Y:
 // Y sobe a cada publicação; X sobe (e Y volta pra 1) só numa mudança
 // estrutural (ex.: reorganização de dados/esquema, refactor grande).
-const APP_VERSION = '1.2';
+const APP_VERSION = '1.3';
 {
   const badge = document.getElementById('versionBadge');
   if(badge) badge.textContent = '· v' + APP_VERSION;
@@ -1605,6 +1614,9 @@ const I18N = {
     title:"Lista de Preços", subtitle:"Wendell Global Interlining",
     profileTitle:"Perfil de acesso", moduleLabel:"Módulo",
     repr:"Representante", ger:"Gerência",
+    // Só os botões do Perfil de acesso usam este texto — as demais telas
+    // (coluna da 5ª tabela, resumo do módulo no PDF) continuam com repr/ger.
+    profileRepr:"Representantes", profileGer:"Gerencial",
     statusRepr:"Módulo representante — margens ocultas", statusGer:"Módulo gerência — margens visíveis",
     versionLabel:"Versão", versionVigente:"Vigente (MAR/26)", versionAnterior:"Anterior (JAN/26)",
     versionHint:"Disponível apenas no módulo Gerência.",
@@ -1612,7 +1624,7 @@ const I18N = {
     searchPlaceholder:"Ex.: 8J50PE, 7FB90PA, Branca — separe por vírgula", categoryLabel:"Categoria", allCat:"Todas",
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
-    quoteTitle:"Orçamento — selecione itens e colunas",
+    quoteTitle:"Gerar orçamento com preços selecionados",
     quoteBtn:"Gerar orçamento com itens selecionados",
     quoteClientLabel:"Cliente", quoteClientPlaceholder:"Nome do cliente (opcional)",
     quoteBulkLabel:"Aplicar tabela a todos os itens marcados",
@@ -1620,7 +1632,7 @@ const I18N = {
     quoteSimOption:"Simulação", quoteBulkPlaceholder:"— escolher —",
     selAll:"Selecionar todos os itens", selNone:"Limpar seleção",
     quoteExpand:"Expandir", quoteCollapse:"Recolher",
-    quoteHint:"Clique no preço desejado para incluir o item; clique de novo para tirar. No cabeçalho de cada tabela há um botão que marca todos os itens em tela naquela coluna — depois é só clicar em outras células para trocar item a item. O orçamento sai sem margens nem comissões.",
+    catPickHint:"Selecione a opção de preço para incluir no orçamento",
     quoteCount:(n)=> n + " item(ns) selecionado(s)",
     toastIn:(code,col)=> "Incluído no orçamento",
     toastOut:(code)=> "Removido do orçamento",
@@ -1680,6 +1692,7 @@ const I18N = {
     title:"Price List", subtitle:"Wendell Global Interlining",
     profileTitle:"Access profile", moduleLabel:"Module",
     repr:"Sales rep", ger:"Management",
+    profileRepr:"Sales rep", profileGer:"Management",
     statusRepr:"Sales rep module — margins hidden", statusGer:"Management module — margins visible",
     versionLabel:"Version", versionVigente:"Current (MAR/26)", versionAnterior:"Previous (JAN/26)",
     versionHint:"Available only in the Management module.",
@@ -1687,7 +1700,7 @@ const I18N = {
     searchPlaceholder:"e.g. 8J50PE, 7FB90PA, White — comma separated", categoryLabel:"Category", allCat:"All",
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
-    quoteTitle:"Quote — select items and columns",
+    quoteTitle:"Generate quote with selected prices",
     quoteBtn:"Generate quote with selected items",
     quoteClientLabel:"Customer", quoteClientPlaceholder:"Customer name (optional)",
     quoteBulkLabel:"Apply table to all ticked items",
@@ -1695,7 +1708,7 @@ const I18N = {
     quoteSimOption:"Simulation", quoteBulkPlaceholder:"— choose —",
     selAll:"Select all items", selNone:"Clear selection",
     quoteExpand:"Expand", quoteCollapse:"Collapse",
-    quoteHint:"Click the price you want to add the item; click it again to remove. Each table header has a button that selects every item on screen in that column — then just click other cells to change an item. The quote has no margins or commissions.",
+    catPickHint:"Select the price option to add it to the quote",
     quoteCount:(n)=> n + " item(s) selected",
     toastIn:(code,col)=> "Added to the quote",
     toastOut:(code)=> "Removed from the quote",
@@ -2073,8 +2086,8 @@ function applyStaticTexts(){
   document.getElementById('txt-subtitle').textContent = t('subtitle');
   document.getElementById('txt-profileTitle').textContent = t('profileTitle');
   document.getElementById('txt-moduleLabel').textContent = t('moduleLabel');
-  document.getElementById('txt-btn-repr').textContent = t('repr');
-  document.getElementById('txt-btn-ger').textContent = t('ger');
+  document.getElementById('txt-btn-repr').textContent = t('profileRepr');
+  document.getElementById('txt-btn-ger').textContent = t('profileGer');
   document.getElementById('txt-versionLabel').textContent = t('versionLabel');
   document.getElementById('txt-versionLabel2').textContent = t('versionLabel');
   document.getElementById('txt-btn-vigente').textContent = t('versionVigente');
@@ -2094,7 +2107,6 @@ function applyStaticTexts(){
   document.getElementById('txt-quoteClientLabel').textContent = t('quoteClientLabel');
   document.getElementById('quoteClient').placeholder = t('quoteClientPlaceholder');
   document.getElementById('txt-selNone').textContent = t('selNone');
-  document.getElementById('txt-quoteHint').textContent = t('quoteHint');
   renderQuoteCollapse();
   document.getElementById('txt-adminTitle').textContent = t('adminTitle');
   document.getElementById('txt-adminHint').textContent = t('adminHint') + ' ' + t('adminHintFull');
@@ -2511,7 +2523,11 @@ function render(){
 
       const heading = document.createElement('div');
       heading.className = 'cat-heading';
-      heading.innerHTML = '<h2>'+catLabel(catName)+'</h2><span class="cat-count">'+catRows.length+' '+t('itemsSuffix')+'</span>';
+      // No orçamento em si (quote) não há preço pra clicar — a orientação só
+      // faz sentido na tabela normal, onde cada preço é clicável.
+      heading.innerHTML = '<h2>'+catLabel(catName)+'</h2>'
+        + (quote ? '' : '<span class="cat-hint">'+t('catPickHint')+'</span>')
+        + '<span class="cat-count">'+catRows.length+' '+t('itemsSuffix')+'</span>';
       section.appendChild(heading);
 
       const table = document.createElement('table');
