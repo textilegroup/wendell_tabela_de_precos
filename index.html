@@ -1556,7 +1556,7 @@ const state = {
   cats: {},   // filtro de categoria: várias famílias ao mesmo tempo
   search: '',
   lang: 'pt',
-  coefVersion: 'repr18',
+  coefVersion: 'ger18',
   // Preços e comissões digitados nas colunas de simulação (só Gerência), por
   // código de produto. Vazio = usa os valores da última tabela como padrão.
   simPrices: {},
@@ -1776,8 +1776,27 @@ function marginFromPrice(cost, icms, pis, price, commission){
   return 1 - (icms + pis*(1-icms)) - comm - (cost/price);
 }
 
-function roleOf(key){ return key.indexOf('ger') === 0 ? 'ger' : 'repr'; }
 function icmsOf(key){ return key.match(/\d+/)[0]; }
+
+// O Representante nunca teve uma sistemática própria de coeficientes: sempre
+// foi a mesma tabela da Gerência, só sem a Tabela 5. Em vez de manter repr18/
+// 17/4 como versões editáveis à parte (a extinta "aba de representante" do
+// painel de Coeficientes), elas agora só espelham as 4 primeiras colunas da
+// versão Gerência correspondente — a chave repr* continua existindo apenas
+// porque o Supabase (wgi_precos_repr / wgi_price_coefficients) ainda lê preços
+// do Representante por esse version_key.
+const REPR_TABLE_COUNT = 4;
+function syncReprFromGer(gerKey){
+  const reprKey = 'repr' + icmsOf(gerKey);
+  const gp = DATA.params[gerKey];
+  const rp = DATA.params[reprKey];
+  if(!gp || !rp) return;
+  rp.icms = gp.icms;
+  rp.pis = gp.pis;
+  rp.margins = gp.margins.slice(0, REPR_TABLE_COUNT);
+  rp.commissions = gp.commissions.slice(0, REPR_TABLE_COUNT);
+  rp.adjust = gp.adjust.slice(0, REPR_TABLE_COUNT);
+}
 
 // O servidor devolve as linhas em ordem de código. A tabela sempre foi
 // exibida na ordem do catálogo, então reordenamos para o representante ver
@@ -1802,9 +1821,10 @@ function currentBlock(){
       rows: lg.rows, isLegacy:true
     };
   }
-  // Na Gerência, a tabela em tela sempre espelha a versão selecionada no painel
-  // de Coeficientes (repr18/17/4 ou ger18/17/4) — assim dá pra simular o efeito
-  // de uma mudança antes de salvar, inclusive nas tabelas de Representante.
+  // Na Gerência, a tabela em tela sempre espelha a versão Gerência selecionada
+  // no painel de Coeficientes (ger18/17/4, já com as 5 tabelas) — assim dá pra
+  // simular o efeito de uma mudança antes de salvar. As colunas 1-4 dessa
+  // simulação também valem para o Representante (syncReprFromGer).
   const key = state.audience === 'gerencia' ? state.coefVersion : PARAM_KEY[state.audience+'-'+state.icms];
   const p = DATA.params[key];
   // Gerência calcula na hora (precisa disso para simular antes de salvar).
@@ -1845,10 +1865,13 @@ function versionLabelFor(key){
   return lbl + ' ' + Math.round(p.icms*100) + '%';
 }
 
+// Só existe uma sistemática de coeficientes por ICMS agora, nomeada "Gerência"
+// (repr18/17/4 deixaram de ter aba própria aqui — ver syncReprFromGer). Cada
+// aba já mostra as 5 tabelas direto, sem lógica condicional de audiência.
 function renderCoefTabs(){
   const wrap = document.getElementById('coefTabs');
   wrap.innerHTML = '';
-  Object.keys(DATA.params).forEach(key=>{
+  Object.keys(DATA.params).filter(key=>key.indexOf('ger')===0).forEach(key=>{
     const b = document.createElement('button');
     b.className = 'coef-tab' + (state.coefVersion === key ? ' active' : '');
     b.textContent = versionLabelFor(key);
@@ -1963,6 +1986,7 @@ function onCoefChange(e){
   } else {
     p[field][parseInt(idx,10)] = frac;
   }
+  syncReprFromGer(state.coefVersion); // Tabela 1-4 do Representante seguem junto, ao vivo
   renderCoefPanel();
   render(); // simula: recalcula e mostra a tabela na hora, sem salvar ainda
 }
@@ -1971,16 +1995,23 @@ document.getElementById('coefResetBtn').onclick = ()=>{
   if(!window.confirm(t('coefResetConfirm'))) return;
   const key = state.coefVersion;
   DATA.params[key] = JSON.parse(JSON.stringify(DEFAULT_PARAMS[key]));
+  syncReprFromGer(key);
   renderCoefPanel();
   render();
 };
 
 document.getElementById('coefSaveBtn').onclick = async ()=>{
   const key = state.coefVersion;
+  const reprKey = 'repr' + icmsOf(key);
   const btn = document.getElementById('coefSaveBtn');
   btn.disabled = true;
-  await saveCoefficientsToSupabase(key);
+  syncReprFromGer(key);
+  await Promise.all([
+    saveCoefficientsToSupabase(key),
+    saveCoefficientsToSupabase(reprKey)
+  ]);
   SAVED_PARAMS[key] = JSON.parse(JSON.stringify(DATA.params[key]));
+  SAVED_PARAMS[reprKey] = JSON.parse(JSON.stringify(DATA.params[reprKey]));
   updateCoefDirtyUI();
   showAdminMsg(t('coefUpdated'), true);
 };
@@ -2816,7 +2847,7 @@ document.querySelectorAll('#icmsSeg button').forEach(btn=>{
     state.icms = btn.dataset.val;
     state.cats = {};
     state.simPrices = {}; state.simComms = {}; state.simMargins = {}; // muda a tabela base -> zera a simulação
-    if(state.audience==='gerencia'){ state.coefVersion = roleOf(state.coefVersion) + state.icms; }
+    if(state.audience==='gerencia'){ state.coefVersion = 'ger' + state.icms; }
     render();
   };
 });
