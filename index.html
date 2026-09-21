@@ -631,16 +631,24 @@ td.pick-cell.picked{
 td.pick-cell.picked::after{content:none;}
 td.sim-pick{text-align:right;}
 /* ===== Olho: visibilidade do item na tabela do representante ===== */
-th.olho-col,td.olho-cell{width:48px;padding-left:8px !important;padding-right:2px !important;}
+th.olho-col,td.olho-cell{width:80px;padding-left:6px !important;padding-right:4px !important;}
+.olho-row{display:flex;align-items:center;gap:4px;}
 .olho-btn{background:none;border:0;padding:2px;margin:0;cursor:pointer;
   color:var(--wine-ink);display:flex;align-items:center;opacity:.85;}
 .olho-btn .ico{width:32px;height:32px;}
 .olho-btn:hover{opacity:1;}
 .olho-btn.off{color:var(--ink-3);opacity:.55;}
 .olho-btn.off:hover{opacity:.85;}
+/* Ordem: sobe/desce o item dentro da própria categoria — ver moverProduto() */
+.ordem-grp{display:flex;flex-direction:column;gap:1px;flex:none;}
+.ordem-btn{background:none;border:1px solid var(--line);border-radius:3px;color:var(--wine-ink);
+  width:18px;height:16px;padding:0;margin:0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;}
+.ordem-btn:hover:not(:disabled){background:var(--chip);border-color:var(--wine-soft);}
+.ordem-btn:disabled{opacity:.25;cursor:not-allowed;}
 @media (min-width:721px){
-  th.olho-col,td.olho-cell{width:60px;}
+  th.olho-col,td.olho-cell{width:100px;}
   .olho-btn .ico{width:42px;height:42px;}
+  .ordem-btn{width:20px;height:18px;}
 }
 td.sim-pick.picked{background:color-mix(in srgb, var(--wine) 7%, transparent) !important;}
 td.sim-pick.picked::after{content:none;}
@@ -1161,6 +1169,7 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9.5 5 7 7-7 7"/></symbol>
   <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m5 9.5 7 7 7-7"/></symbol>
+  <symbol id="i-chevron-up" viewBox="0 0 24 24"><path d="m5 14.5 7-7 7 7"/></symbol>
   <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m14.5 5-7 7 7 7"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5 10-11"/></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
@@ -1620,6 +1629,46 @@ async function toggleVisivel(code){
   }
 }
 
+// Diz se o item tem vizinho acima/abaixo DENTRO DA MESMA CATEGORIA, na
+// ordem atual de DATA.products — usado só para habilitar/desabilitar as
+// setinhas (a troca em si é decidida pelo servidor, ver moverProduto).
+function vizinhosCategoria(code){
+  const idx = DATA.products.findIndex(p=>p.code === code);
+  if(idx < 0) return { temCima:false, temBaixo:false };
+  const cat = DATA.products[idx].cat;
+  let temCima = false, temBaixo = false;
+  for(let i=idx-1;i>=0;i--){ if(DATA.products[i].cat === cat){ temCima = true; break; } }
+  for(let i=idx+1;i<DATA.products.length;i++){ if(DATA.products[i].cat === cat){ temBaixo = true; break; } }
+  return { temCima, temBaixo };
+}
+
+// Ordem: sobe/desce o item na própria categoria. O servidor decide e troca
+// com o vizinho real (nunca atravessa para outra categoria); aqui só
+// espelhamos a mesma troca em DATA.products para atualizar a tela na hora.
+async function moverProduto(code, direcao){
+  const idx = DATA.products.findIndex(p=>p.code === code);
+  if(idx < 0) return;
+  const cat = DATA.products[idx].cat;
+  let vizIdx = -1;
+  if(direcao === 'cima'){
+    for(let i=idx-1;i>=0;i--){ if(DATA.products[i].cat === cat){ vizIdx = i; break; } }
+  } else {
+    for(let i=idx+1;i<DATA.products.length;i++){ if(DATA.products[i].cat === cat){ vizIdx = i; break; } }
+  }
+  if(vizIdx < 0) return;
+  const { error } = await supabase.rpc('wgi_produto_mover', { p_code: code, p_direcao: direcao });
+  if(error){
+    const detail = describeError(error);
+    console.warn('Falha ao mover item:', detail, error);
+    toast(t('ordemSaveError'), true);
+    return;
+  }
+  const tmp = DATA.products[idx];
+  DATA.products[idx] = DATA.products[vizIdx];
+  DATA.products[vizIdx] = tmp;
+  render();
+}
+
 async function saveCoefficientsToSupabase(versionKey){
   const p = DATA.params[versionKey];
   if(!p) return;
@@ -1699,6 +1748,8 @@ const I18N = {
     olhoOnTip:"Visível para o representante — clique para esconder", olhoOffTip:"Escondido do representante — clique para mostrar",
     olhoSaveError:"Não consegui salvar a visibilidade. Tente de novo.",
     olhoFiltroLabel:"Visibilidade", olhoFiltroTodos:"Todos", olhoFiltroVisiveis:"Visíveis", olhoFiltroInvisiveis:"Invisíveis",
+    moverCimaTip:"Mover para cima (dentro desta categoria)", moverBaixoTip:"Mover para baixo (dentro desta categoria)",
+    ordemSaveError:"Não consegui salvar a nova ordem. Tente de novo.",
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
     quoteTitle:"Gerar orçamento com preços selecionados",
     quoteBtn:"Gerar orçamento com itens selecionados",
@@ -1777,6 +1828,8 @@ const I18N = {
     olhoOnTip:"Visible to sales reps — click to hide", olhoOffTip:"Hidden from sales reps — click to show",
     olhoSaveError:"Could not save the visibility change. Please try again.",
     olhoFiltroLabel:"Visibility", olhoFiltroTodos:"All", olhoFiltroVisiveis:"Visible", olhoFiltroInvisiveis:"Hidden",
+    moverCimaTip:"Move up (within this category)", moverBaixoTip:"Move down (within this category)",
+    ordemSaveError:"Could not save the new order. Please try again.",
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
     quoteTitle:"Generate quote with selected prices",
     quoteBtn:"Generate quote with selected items",
@@ -2534,6 +2587,14 @@ function bindSelection(block, codigosEmTela){
       toggleVisivel(btn.dataset.olho);
     });
   });
+  // Ordem: sobe/desce o item dentro da própria categoria
+  document.querySelectorAll('.ordem-btn').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      if(btn.disabled) return;
+      moverProduto(btn.dataset.code, btn.dataset.mover);
+    });
+  });
 }
 
 function render(){
@@ -2710,10 +2771,21 @@ function render(){
         if(picked !== null) tr.classList.add('row-selected');
         if(showOlho){
           const vis = r.visivel !== false;
-          tds += '<td class="olho-cell"><button type="button" class="olho-btn'+(vis?'':' off')+
-            '" data-olho="'+escAttr(r.code)+'" title="'+escAttr(vis ? t('olhoOnTip') : t('olhoOffTip'))+
-            '"><svg class="ico sm" aria-hidden="true"><use href="#'+(vis?'i-eye':'i-eye-off')+
-            '"></use></svg></button></td>';
+          const viz = vizinhosCategoria(r.code);
+          tds += '<td class="olho-cell"><div class="olho-row">'
+              +  '<div class="ordem-grp">'
+              +    '<button type="button" class="ordem-btn" data-mover="cima" data-code="'+escAttr(r.code)+'"'
+              +      (viz.temCima ? '' : ' disabled') + ' title="'+escAttr(t('moverCimaTip'))+'">'
+              +      '<svg class="ico sm" aria-hidden="true"><use href="#i-chevron-up"></use></svg></button>'
+              +    '<button type="button" class="ordem-btn" data-mover="baixo" data-code="'+escAttr(r.code)+'"'
+              +      (viz.temBaixo ? '' : ' disabled') + ' title="'+escAttr(t('moverBaixoTip'))+'">'
+              +      '<svg class="ico sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg></button>'
+              +  '</div>'
+              +  '<button type="button" class="olho-btn'+(vis?'':' off')+
+                 '" data-olho="'+escAttr(r.code)+'" title="'+escAttr(vis ? t('olhoOnTip') : t('olhoOffTip'))+
+                 '"><svg class="ico sm" aria-hidden="true"><use href="#'+(vis?'i-eye':'i-eye-off')+
+                 '"></use></svg></button>'
+              +  '</div></td>';
         }
         tds += '<td class="code" data-label="'+t('codeCol')+'">'+r.code+'</td>';
         tds += '<td class="color-cell" data-label="'+t('colorCol')+'"><span class="swatch" style="background:'+hex+'"></span>'+colorLabel(r.color||'—')+'</td>';
