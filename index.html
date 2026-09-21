@@ -435,9 +435,9 @@ table.price-table{
    todas as tabelas saem com as MESMAS colunas e a borda direita dos cards fica
    alinhada. Em px, não em ch: o ch de um th (9,5px) é outro tamanho do ch de
    uma célula (12px), e o cálculo viraria adivinhação. */
-.price-table th:first-child{min-width:132px;}                  /* código: 7GCP120HPF 0100 */
-.price-table th:nth-child(2){min-width:110px;}                 /* cor: Branco Óptico */
-.price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col){min-width:74px;}
+.price-table th.code-col{min-width:132px;}                      /* código: 7GCP120HPF 0100 */
+.price-table th.color-col{min-width:110px;}                     /* cor: Branco Óptico */
+.price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col):not(.olho-col){min-width:74px;}
 .price-table th.cost-col{min-width:74px;}
 .price-table th.ipi-col{min-width:58px;}
 .price-table thead th{
@@ -911,16 +911,24 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   .cat-hint{font-size:9.5px;}
   .cat-count{font-size:9.5px;}
   /* Os pisos de largura em px são calibrados para a fonte do desktop: no
-     celular eles forçariam a tabela a 596px e o zoom teria de encolher tudo
-     para 0,58. Aqui o conteúdo manda, e o card volta a ocupar a largura da
-     tela em vez de se ajustar à tabela. */
-  .cat-block{width:auto;}
-  table.price-table{width:100%; table-layout:auto; font-size:10px;}
-  .price-table th:first-child,
-  .price-table th:nth-child(2),
-  .price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col),
+     celular eles forçariam colunas grandes demais para a fonte reduzida.
+     Aqui o conteúdo manda. Olho, código e cor ficam fixos (position:sticky)
+     e o resto da tabela rola por baixo deles — ver applyStickyOffsets(). */
+  .cat-block{width:auto; overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  table.price-table{width:auto; table-layout:auto; font-size:10px;}
+  .price-table th.code-col,
+  .price-table th.color-col,
+  .price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col):not(.olho-col),
   .price-table th.cost-col,
   .price-table th.ipi-col{width:auto; min-width:0;}
+  /* !important: essas células ficam sobre as que rolam por baixo — o véu de
+     zebra e o realce de hover/seleção são semitransparentes (ver acima) e
+     deixariam o conteúdo rolado vazar por trás se vencessem a cascata aqui. */
+  .price-table th.olho-col, .price-table td.olho-cell,
+  .price-table th.code-col, .price-table td.code,
+  .price-table th.color-col, .price-table td.color-cell{
+    position:sticky; z-index:2; background:var(--card) !important;
+  }
   .price-table thead th{
     font-size:7.5px; letter-spacing:.04em; padding:5px 4px 4px;
   }
@@ -1175,30 +1183,58 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   window.addEventListener('beforeprint', prepareTablesForPrint);
   window.addEventListener('afterprint', resetTablesZoom);
 
-  // Mesma técnica, agora para telas estreitas (celular): em vez de reformatar
+  // Mesma técnica, agora para telas médias (tablet): em vez de reformatar
   // a tabela em "cards" empilhados, ela mantém o layout idêntico ao desktop e
   // é encolhida (zoom) até caber na largura disponível, sem cortar colunas.
-  // A tabela nunca precisa de rolagem lateral: em QUALQUER largura de tela
-  // (desktop, tablet ou celular) ela é encolhida até caber no espaço
-  // disponível, mantendo o mesmo layout de colunas. Isso vale especialmente
-  // quando o grupo de simulação é aberto e surgem 3 colunas a mais.
+  // Isso vale especialmente quando o grupo de simulação é aberto e surgem
+  // 3 colunas a mais. No celular (<=720px) a tabela NÃO encolhe mais: olho,
+  // código e cor ficam fixos (position:sticky, no CSS) e o resto rola por
+  // baixo deles — ver applyStickyOffsets().
   let fitRaf = null;
   function fitTablesToScreen(){
+    const mobile = window.innerWidth <= 720;
     const blocks = document.querySelectorAll('.cat-block');
     // Mede sempre sem zoom aplicado, senão a medida vem contaminada
     blocks.forEach(b=>{ b.style.zoom = ''; });
-    void document.body.offsetWidth; // força reflow antes de medir
-    blocks.forEach(b=>{
-      const table = b.querySelector('table.price-table');
-      if(!table) return;
-      const cs = getComputedStyle(b);
-      const padX = parseFloat(cs.paddingLeft || 0) + parseFloat(cs.paddingRight || 0);
-      const available = b.clientWidth - padX;
-      // scrollWidth da tabela = largura mínima que o conteúdo exige
-      const natural = table.scrollWidth;
-      if(available > 0 && natural > available + 1){
-        const scale = Math.max(0.16, available / natural);
-        b.style.zoom = scale.toFixed(3);
+    if(!mobile){
+      void document.body.offsetWidth; // força reflow antes de medir
+      blocks.forEach(b=>{
+        const table = b.querySelector('table.price-table');
+        if(!table) return;
+        const cs = getComputedStyle(b);
+        const padX = parseFloat(cs.paddingLeft || 0) + parseFloat(cs.paddingRight || 0);
+        const available = b.clientWidth - padX;
+        // scrollWidth da tabela = largura mínima que o conteúdo exige
+        const natural = table.scrollWidth;
+        if(available > 0 && natural > available + 1){
+          const scale = Math.max(0.16, available / natural);
+          b.style.zoom = scale.toFixed(3);
+        }
+      });
+    }
+    applyStickyOffsets();
+  }
+  // Calcula o "left" de cada coluna fixa a partir da largura real das
+  // colunas fixas anteriores NESSA tabela (cada família de produto tem sua
+  // própria tabela, com colunas de largura própria).
+  function applyStickyOffsets(){
+    document.querySelectorAll('table.price-table').forEach(table=>{
+      const headRow = table.querySelector('thead tr');
+      if(!headRow) return;
+      let left = 0;
+      const olhoTh = headRow.querySelector('th.olho-col');
+      if(olhoTh){
+        table.querySelectorAll('.olho-col,.olho-cell').forEach(el=>{ el.style.left = left+'px'; });
+        left += olhoTh.getBoundingClientRect().width;
+      }
+      const codeTh = headRow.querySelector('th.code-col');
+      if(codeTh){
+        table.querySelectorAll('.code-col,td.code').forEach(el=>{ el.style.left = left+'px'; });
+        left += codeTh.getBoundingClientRect().width;
+      }
+      const colorTh = headRow.querySelector('th.color-col');
+      if(colorTh){
+        table.querySelectorAll('.color-col,td.color-cell').forEach(el=>{ el.style.left = left+'px'; });
       }
     });
   }
@@ -2610,7 +2646,7 @@ function render(){
 
       let thead = '<thead><tr>';
       if(showOlho){ thead += '<th class="olho-col"></th>'; }
-      thead += '<th class="left">'+t('codeCol')+'</th><th class="left">'+t('colorCol')+'</th>';
+      thead += '<th class="left code-col">'+t('codeCol')+'</th><th class="left color-col">'+t('colorCol')+'</th>';
       if(quote){
         // O orçamento traz só o preço escolhido — de qual tabela ele saiu é
         // controle interno e não vai para o documento do cliente.
@@ -2762,7 +2798,8 @@ function render(){
       // A coluna de marcação some no PDF, então ela precisa ser uma célula
       // própria — se entrasse no colspan do rótulo, os percentuais sairiam
       // deslocados uma coluna na impressão.
-      let cTds = '<td class="commission-label" colspan="2">'+t('commissionsLabel')+'</td>';
+      let cTds = showOlho ? '<td class="olho-cell"></td>' : '';
+      cTds += '<td class="commission-label" colspan="2">'+t('commissionsLabel')+'</td>';
       shownTiers.forEach(i=>{
         const c = block.commissions[i];
         cTds += '<td class="commission-value" data-label="'+tierLabels[i]+'">'
