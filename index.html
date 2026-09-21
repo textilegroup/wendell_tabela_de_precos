@@ -630,6 +630,14 @@ td.pick-cell.picked{
 }
 td.pick-cell.picked::after{content:none;}
 td.sim-pick{text-align:right;}
+/* ===== Olho: visibilidade do item na tabela do representante ===== */
+th.olho-col,td.olho-cell{width:30px;padding-left:8px !important;padding-right:2px !important;}
+.olho-btn{background:none;border:0;padding:2px;margin:0;cursor:pointer;
+  color:var(--wine-ink);display:flex;align-items:center;opacity:.85;}
+.olho-btn .ico{width:17px;height:17px;}
+.olho-btn:hover{opacity:1;}
+.olho-btn.off{color:var(--ink-3);opacity:.55;}
+.olho-btn.off:hover{opacity:.85;}
 td.sim-pick.picked{background:color-mix(in srgb, var(--wine) 7%, transparent) !important;}
 td.sim-pick.picked::after{content:none;}
 button.pick-dot{
@@ -1142,6 +1150,8 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m14.5 5-7 7 7 7"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5 10-11"/></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6.4 5.5 12 5.5 21.5 12 21.5 12 17.6 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M2.5 12S6.4 5.5 12 5.5c1.7 0 3.2.5 4.5 1.2M21.5 12S17.6 18.5 12 18.5c-1.7 0-3.2-.5-4.5-1.2"/><path d="M9.7 10.2a2.8 2.8 0 0 0 3.9 3.9M4.5 4.5l15 15"/></symbol>
 </svg>
 
 <div id="toastWrap" class="no-print" aria-live="polite" aria-atomic="false"></div>
@@ -1451,7 +1461,7 @@ async function loadFromSupabase(){
 
       DATA.products = (data.products || []).map(p=>({
         cat: p.cat, code: p.code, color: p.color,
-        cost: Number(p.cost), ipi: Number(p.ipi)
+        cost: Number(p.cost), ipi: Number(p.ipi), visivel: p.visivel !== false
       }));
       normalizeCategories(DATA.products);
 
@@ -1535,6 +1545,24 @@ async function saveProductsToSupabase(products){
   }
 }
 
+// Olho: mostra/esconde um item na tabela do representante. Muda na tela
+// na hora (otimista) e grava no Supabase; se falhar, desfaz e avisa.
+async function toggleVisivel(code){
+  const p = DATA.products.find(x=>x.code === code);
+  if(!p) return;
+  const novo = !(p.visivel !== false);
+  p.visivel = novo;
+  render();
+  const { error } = await supabase.from('wgi_products').update({ visivel: novo }).eq('code', code);
+  if(error){
+    p.visivel = !novo;
+    render();
+    const detail = describeError(error);
+    console.warn('Falha ao salvar visibilidade:', detail, error);
+    toast(t('olhoSaveError'), true);
+  }
+}
+
 async function saveCoefficientsToSupabase(versionKey){
   const p = DATA.params[versionKey];
   if(!p) return;
@@ -1610,6 +1638,8 @@ const I18N = {
     filtersTitle:"Filtros", icmsLabel:"ICMS", searchLabel:"Buscar produtos (código ou cor)",
     searchPlaceholder:"Ex.: 8J50PE, 7FB90PA, Branca — separe por vírgula", categoryLabel:"Categoria", allCat:"Todas",
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
+    olhoOnTip:"Visível para o representante — clique para esconder", olhoOffTip:"Escondido do representante — clique para mostrar",
+    olhoSaveError:"Não consegui salvar a visibilidade. Tente de novo.",
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
     quoteTitle:"Gerar orçamento com preços selecionados",
     quoteBtn:"Gerar orçamento com itens selecionados",
@@ -1685,6 +1715,8 @@ const I18N = {
     filtersTitle:"Filters", icmsLabel:"State VAT (ICMS)", searchLabel:"Search products (code or color)",
     searchPlaceholder:"e.g. 8J50PE, 7FB90PA, White — comma separated", categoryLabel:"Category", allCat:"All",
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
+    olhoOnTip:"Visible to sales reps — click to hide", olhoOffTip:"Hidden from sales reps — click to show",
+    olhoSaveError:"Could not save the visibility change. Please try again.",
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
     quoteTitle:"Generate quote with selected prices",
     quoteBtn:"Generate quote with selected items",
@@ -2425,6 +2457,13 @@ function bindSelection(block, codigosEmTela){
       render();
     });
   });
+  // Olho: visibilidade do item na tabela do representante
+  document.querySelectorAll('.olho-btn').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      toggleVisivel(btn.dataset.olho);
+    });
+  });
 }
 
 function render(){
@@ -2447,6 +2486,10 @@ function render(){
   const showSim = simAvailable && state.simOpen;
   // Coluna de custo: informação interna da Gerência — nunca no orçamento.
   const showCost = showMargin && !quote;
+  // Olho: define se o item aparece na tabela do representante. Só faz
+  // sentido no catálogo vigente (não na tabela histórica JAN/26) e nunca
+  // no orçamento, que é documento para o cliente.
+  const showOlho = showMargin && !quote && !block.isLegacy;
   // No orçamento não entram margens nem comissões — é documento para o
   // cliente, não material interno.
   const showMarginPct = showMargin && !quote;
@@ -2537,6 +2580,7 @@ function render(){
       table.className = 'price-table' + (quote ? ' quote-only' : '');
 
       let thead = '<thead><tr>';
+      if(showOlho){ thead += '<th class="olho-col"></th>'; }
       thead += '<th class="left">'+t('codeCol')+'</th><th class="left">'+t('colorCol')+'</th>';
       if(quote){
         // O orçamento traz só o preço escolhido — de qual tabela ele saiu é
@@ -2590,6 +2634,13 @@ function render(){
         // O item entra no orçamento clicando direto no preço desejado.
         const picked = state.selRows[r.code] ? rowColOf(r.code, block) : null;
         if(picked !== null) tr.classList.add('row-selected');
+        if(showOlho){
+          const vis = r.visivel !== false;
+          tds += '<td class="olho-cell"><button type="button" class="olho-btn'+(vis?'':' off')+
+            '" data-olho="'+escAttr(r.code)+'" title="'+escAttr(vis ? t('olhoOnTip') : t('olhoOffTip'))+
+            '"><svg class="ico sm" aria-hidden="true"><use href="#'+(vis?'i-eye':'i-eye-off')+
+            '"></use></svg></button></td>';
+        }
         tds += '<td class="code" data-label="'+t('codeCol')+'">'+r.code+'</td>';
         tds += '<td class="color-cell" data-label="'+t('colorCol')+'"><span class="swatch" style="background:'+hex+'"></span>'+colorLabel(r.color||'—')+'</td>';
         if(quote){
