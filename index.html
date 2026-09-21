@@ -1304,6 +1304,14 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
           <button data-val="4">4%</button>
         </div>
       </div>
+      <div class="field" id="olhoFiltroField" style="display:none;">
+        <span class="field-label" id="txt-olhoFiltroLabel">Visibilidade</span>
+        <div class="segmented" id="olhoSeg">
+          <button data-val="todos" class="active" id="txt-olhoTodos">Todos</button>
+          <button data-val="visiveis" id="txt-olhoVisiveis">Visíveis</button>
+          <button data-val="invisiveis" id="txt-olhoInvisiveis">Invisíveis</button>
+        </div>
+      </div>
       <div class="field grow">
         <span class="field-label" id="txt-searchLabel">Buscar código ou cor</span>
         <input type="text" id="searchInput" class="input-box" placeholder="Ex.: 8J50PE ou Branca">
@@ -1593,6 +1601,7 @@ const state = {
   versionMode: 'vigente', // vigente | anterior (só gerência)
   cats: {},   // filtro de categoria: várias famílias ao mesmo tempo
   search: '',
+  olhoFiltro: 'todos', // todos | visiveis | invisiveis — só existe na Gerência (ver showOlho)
   lang: 'pt',
   coefVersion: 'ger18',
   // Preços e comissões digitados nas colunas de simulação (só Gerência), por
@@ -1640,6 +1649,7 @@ const I18N = {
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
     olhoOnTip:"Visível para o representante — clique para esconder", olhoOffTip:"Escondido do representante — clique para mostrar",
     olhoSaveError:"Não consegui salvar a visibilidade. Tente de novo.",
+    olhoFiltroLabel:"Visibilidade", olhoFiltroTodos:"Todos", olhoFiltroVisiveis:"Visíveis", olhoFiltroInvisiveis:"Invisíveis",
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
     quoteTitle:"Gerar orçamento com preços selecionados",
     quoteBtn:"Gerar orçamento com itens selecionados",
@@ -1717,6 +1727,7 @@ const I18N = {
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
     olhoOnTip:"Visible to sales reps — click to hide", olhoOffTip:"Hidden from sales reps — click to show",
     olhoSaveError:"Could not save the visibility change. Please try again.",
+    olhoFiltroLabel:"Visibility", olhoFiltroTodos:"All", olhoFiltroVisiveis:"Visible", olhoFiltroInvisiveis:"Hidden",
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
     quoteTitle:"Generate quote with selected prices",
     quoteBtn:"Generate quote with selected items",
@@ -2127,6 +2138,10 @@ function applyStaticTexts(){
   document.getElementById('txt-versionHint').textContent = t('versionHint');
   document.getElementById('txt-filtersTitle').textContent = t('filtersTitle');
   document.getElementById('txt-icmsLabel').textContent = t('icmsLabel');
+  document.getElementById('txt-olhoFiltroLabel').textContent = t('olhoFiltroLabel');
+  document.getElementById('txt-olhoTodos').textContent = t('olhoFiltroTodos');
+  document.getElementById('txt-olhoVisiveis').textContent = t('olhoFiltroVisiveis');
+  document.getElementById('txt-olhoInvisiveis').textContent = t('olhoFiltroInvisiveis');
   document.getElementById('txt-searchLabel').textContent = t('searchLabel');
   document.getElementById('searchInput').placeholder = t('searchPlaceholder');
   document.getElementById('txt-categoryLabel').textContent = t('categoryLabel');
@@ -2191,6 +2206,11 @@ function renderControls(){
 
   const icmsSeg = document.getElementById('icmsSeg');
   icmsSeg.classList.toggle('disabled', isGer && state.versionMode === 'anterior');
+
+  // Filtro de visibilidade: só existe onde o olho existe (Gerência, catálogo
+  // vigente, fora do orçamento) — ver showOlho em render().
+  const showOlhoFiltro = isGer && !state.quoteMode && state.versionMode !== 'anterior';
+  document.getElementById('olhoFiltroField').style.display = showOlhoFiltro ? 'flex' : 'none';
 
   // Página larga só quando as colunas de simulação estão abertas
   const pageEl = document.querySelector('main.page');
@@ -2523,6 +2543,10 @@ function render(){
           return terms.some(q => code.includes(q) || color.includes(q));
         });
       }
+    }
+    if(showOlho && state.olhoFiltro !== 'todos'){
+      const querVisivel = state.olhoFiltro === 'visiveis';
+      rows = rows.filter(r => (r.visivel !== false) === querVisivel);
     }
   }
 
@@ -2944,6 +2968,15 @@ document.querySelectorAll('#icmsSeg button').forEach(btn=>{
 document.getElementById('searchInput').addEventListener('input', (e)=>{
   state.search = e.target.value;
   render();
+});
+
+document.querySelectorAll('#olhoSeg button').forEach(btn=>{
+  btn.onclick = ()=>{
+    document.querySelectorAll('#olhoSeg button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.olhoFiltro = btn.dataset.val;
+    render();
+  };
 });
 
 // ---------- PDF (impressão) ----------
