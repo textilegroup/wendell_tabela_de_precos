@@ -1119,11 +1119,12 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
 }
 
 /* =====================================================================
-   Matriz de Custos passou a viver num app próprio (wendell-custos), que
-   grava nas mesmas tabelas do Supabase. Os painéis abaixo ficam sempre
-   escondidos aqui — o botão "Matriz de Custos" no header leva pra lá.
+   A edição de custo/IPI por produto passou a viver num app próprio
+   (wendell-custos), que grava na mesma base (wgi_products) usada aqui.
+   Só o painel de custo fica escondido — Coeficientes (margem, comissão,
+   ICMS, PIS/COFINS) continua sendo editado normalmente nesta página.
    ===================================================================== */
-#adminPanel, #coefPanel{ display:none !important; }
+#adminPanel{ display:none !important; }
 </style>
 </head>
 <body>
