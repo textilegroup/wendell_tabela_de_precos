@@ -631,10 +631,10 @@ td.pick-cell.picked{
 td.pick-cell.picked::after{content:none;}
 td.sim-pick{text-align:right;}
 /* ===== Olho: visibilidade do item na tabela do representante ===== */
-th.olho-col,td.olho-cell{width:30px;padding-left:8px !important;padding-right:2px !important;}
+th.olho-col,td.olho-cell{width:38px;padding-left:8px !important;padding-right:2px !important;}
 .olho-btn{background:none;border:0;padding:2px;margin:0;cursor:pointer;
   color:var(--wine-ink);display:flex;align-items:center;opacity:.85;}
-.olho-btn .ico{width:17px;height:17px;}
+.olho-btn .ico{width:23px;height:23px;}
 .olho-btn:hover{opacity:1;}
 .olho-btn.off{color:var(--ink-3);opacity:.55;}
 .olho-btn.off:hover{opacity:.85;}
@@ -1879,6 +1879,7 @@ function currentBlock(){
     ? DATA.products.map(prod=>({
         cat: prod.cat, code: prod.code, color: prod.color, ipi: prod.ipi,
         cost: prod.cost, // necessário para calcular a margem da simulação
+        visivel: prod.visivel !== false,
         prices: p.margins.map((m,i)=>computePrice(prod.cost, p.icms, p.pis, m, p.commissions[i]))
       }))
     : ordemOriginal(((PRECOS[state.icms] && PRECOS[state.icms].rows) || []).map(r=>({
