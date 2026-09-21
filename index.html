@@ -903,8 +903,8 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
 /* ===== Celular: a MESMA tabela do desktop, compacta =====
    Mesmas colunas, mesma ordem, mesma leitura — só a escala muda: fonte menor,
    espaçamento apertado e as larguras voltando a ser definidas pelo conteúdo
-   (table-layout:auto). O que sobrar de largura o fitTablesToScreen resolve,
-   encolhendo o bloco inteiro como antes — nunca há rolagem lateral. */
+   (table-layout:auto). Olho, código e cor ficam fixos e o resto rola ao
+   lado dentro do próprio bloco — ver bindStickyScroll() mais abaixo. */
 @media (max-width:720px){
   .cat-heading{padding:7px 9px 6px;}
   .cat-heading h2{font-size:13px; letter-spacing:.05em;}
@@ -921,13 +921,15 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   .price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col):not(.olho-col),
   .price-table th.cost-col,
   .price-table th.ipi-col{width:auto; min-width:0;}
-  /* !important: essas células ficam sobre as que rolam por baixo — o véu de
-     zebra e o realce de hover/seleção são semitransparentes (ver acima) e
-     deixariam o conteúdo rolado vazar por trás se vencessem a cascata aqui. */
+  /* position:relative (não sticky: suporte em célula de tabela é recente e
+     falhou no aparelho testado) — o translateX que as mantém no lugar
+     durante a rolagem é aplicado via JS, ver bindStickyScroll(). !important
+     no fundo: essas células ficam sobre as que rolam por baixo, e o véu de
+     zebra/hover é semitransparente (ver acima) e vazaria se vencesse aqui. */
   .price-table th.olho-col, .price-table td.olho-cell,
   .price-table th.code-col, .price-table td.code,
   .price-table th.color-col, .price-table td.color-cell{
-    position:sticky; z-index:2; background:var(--card) !important;
+    position:relative; z-index:2; background:var(--card) !important;
   }
   .price-table thead th{
     font-size:7.5px; letter-spacing:.04em; padding:5px 4px 4px;
@@ -1213,29 +1215,36 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
       });
     }
     applyStickyOffsets();
+    bindStickyScroll();
   }
-  // Calcula o "left" de cada coluna fixa a partir da largura real das
-  // colunas fixas anteriores NESSA tabela (cada família de produto tem sua
-  // própria tabela, com colunas de largura própria).
+  // Olho, código e cor NÃO usam position:sticky em <td>/<th>: suporte a
+  // sticky em célula de tabela é recente no Safari/WebKit e falhou no
+  // aparelho testado (a tabela inteira rolava junto). Em vez disso, cada
+  // bloco de categoria tem sua própria rolagem (.cat-block) e, a cada
+  // scroll, aplicamos um translateX igual ao scrollLeft só nessas células —
+  // cancela visualmente a rolagem para elas, sem depender de sticky nativo.
+  const STICKY_SEL = '.olho-col,.olho-cell,.code-col,.code,.color-col,.color-cell';
   function applyStickyOffsets(){
-    document.querySelectorAll('table.price-table').forEach(table=>{
-      const headRow = table.querySelector('thead tr');
-      if(!headRow) return;
-      let left = 0;
-      const olhoTh = headRow.querySelector('th.olho-col');
-      if(olhoTh){
-        table.querySelectorAll('.olho-col,.olho-cell').forEach(el=>{ el.style.left = left+'px'; });
-        left += olhoTh.getBoundingClientRect().width;
-      }
-      const codeTh = headRow.querySelector('th.code-col');
-      if(codeTh){
-        table.querySelectorAll('.code-col,td.code').forEach(el=>{ el.style.left = left+'px'; });
-        left += codeTh.getBoundingClientRect().width;
-      }
-      const colorTh = headRow.querySelector('th.color-col');
-      if(colorTh){
-        table.querySelectorAll('.color-col,td.color-cell').forEach(el=>{ el.style.left = left+'px'; });
-      }
+    document.querySelectorAll('.cat-block').forEach(block=>{
+      const x = block.scrollLeft;
+      block.querySelectorAll(STICKY_SEL).forEach(el=>{
+        el.style.transform = x ? 'translateX('+x+'px)' : '';
+      });
+    });
+  }
+  function bindStickyScroll(){
+    document.querySelectorAll('.cat-block').forEach(block=>{
+      let raf = null;
+      block.addEventListener('scroll', ()=>{
+        if(raf) return;
+        raf = requestAnimationFrame(()=>{
+          raf = null;
+          const x = block.scrollLeft;
+          block.querySelectorAll(STICKY_SEL).forEach(el=>{
+            el.style.transform = x ? 'translateX('+x+'px)' : '';
+          });
+        });
+      }, { passive:true });
     });
   }
   function scheduleFitTablesToScreen(){
