@@ -435,9 +435,9 @@ table.price-table{
    todas as tabelas saem com as MESMAS colunas e a borda direita dos cards fica
    alinhada. Em px, não em ch: o ch de um th (9,5px) é outro tamanho do ch de
    uma célula (12px), e o cálculo viraria adivinhação. */
-.price-table th.code-col{min-width:132px;}                      /* código: 7GCP120HPF 0100 */
-.price-table th.color-col{min-width:110px;}                     /* cor: Branco Óptico */
-.price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col):not(.olho-col){min-width:74px;}
+.price-table th:first-child{min-width:132px;}                  /* código: 7GCP120HPF 0100 */
+.price-table th:nth-child(2){min-width:110px;}                 /* cor: Branco Óptico */
+.price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col){min-width:74px;}
 .price-table th.cost-col{min-width:74px;}
 .price-table th.ipi-col{min-width:58px;}
 .price-table thead th{
@@ -630,26 +630,6 @@ td.pick-cell.picked{
 }
 td.pick-cell.picked::after{content:none;}
 td.sim-pick{text-align:right;}
-/* ===== Olho: visibilidade do item na tabela do representante ===== */
-th.olho-col,td.olho-cell{width:80px;padding-left:6px !important;padding-right:4px !important;}
-.olho-row{display:flex;align-items:center;gap:4px;}
-.olho-btn{background:none;border:0;padding:2px;margin:0;cursor:pointer;
-  color:var(--wine-ink);display:flex;align-items:center;opacity:.85;}
-.olho-btn .ico{width:32px;height:32px;}
-.olho-btn:hover{opacity:1;}
-.olho-btn.off{color:var(--ink-3);opacity:.55;}
-.olho-btn.off:hover{opacity:.85;}
-/* Ordem: sobe/desce o item dentro da própria categoria — ver moverProduto() */
-.ordem-grp{display:flex;flex-direction:column;gap:1px;flex:none;}
-.ordem-btn{background:none;border:1px solid var(--line);border-radius:3px;color:var(--wine-ink);
-  width:18px;height:16px;padding:0;margin:0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;}
-.ordem-btn:hover:not(:disabled){background:var(--chip);border-color:var(--wine-soft);}
-.ordem-btn:disabled{opacity:.25;cursor:not-allowed;}
-@media (min-width:721px){
-  th.olho-col,td.olho-cell{width:100px;}
-  .olho-btn .ico{width:42px;height:42px;}
-  .ordem-btn{width:20px;height:18px;}
-}
 td.sim-pick.picked{background:color-mix(in srgb, var(--wine) 7%, transparent) !important;}
 td.sim-pick.picked::after{content:none;}
 button.pick-dot{
@@ -911,34 +891,24 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
 /* ===== Celular: a MESMA tabela do desktop, compacta =====
    Mesmas colunas, mesma ordem, mesma leitura — só a escala muda: fonte menor,
    espaçamento apertado e as larguras voltando a ser definidas pelo conteúdo
-   (table-layout:auto). Olho, código e cor ficam fixos e o resto rola ao
-   lado dentro do próprio bloco — ver bindStickyScroll() mais abaixo. */
+   (table-layout:auto). O que sobrar de largura o fitTablesToScreen resolve,
+   encolhendo o bloco inteiro como antes — nunca há rolagem lateral. */
 @media (max-width:720px){
   .cat-heading{padding:7px 9px 6px;}
   .cat-heading h2{font-size:13px; letter-spacing:.05em;}
   .cat-hint{font-size:9.5px;}
   .cat-count{font-size:9.5px;}
   /* Os pisos de largura em px são calibrados para a fonte do desktop: no
-     celular eles forçariam colunas grandes demais para a fonte reduzida.
-     Aqui o conteúdo manda. Olho, código e cor ficam fixos (position:sticky)
-     e o resto da tabela rola por baixo deles — ver applyStickyOffsets(). */
-  .cat-block{width:auto; overflow-x:auto; -webkit-overflow-scrolling:touch;}
-  table.price-table{width:auto; table-layout:auto; font-size:10px;}
-  .price-table th.code-col,
-  .price-table th.color-col,
-  .price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col):not(.olho-col),
+     celular eles forçariam a tabela a 596px e o zoom teria de encolher tudo
+     para 0,58. Aqui o conteúdo manda, e o card volta a ocupar a largura da
+     tela em vez de se ajustar à tabela. */
+  .cat-block{width:auto;}
+  table.price-table{width:100%; table-layout:auto; font-size:10px;}
+  .price-table th:first-child,
+  .price-table th:nth-child(2),
+  .price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col),
   .price-table th.cost-col,
   .price-table th.ipi-col{width:auto; min-width:0;}
-  /* position:relative (não sticky: suporte em célula de tabela é recente e
-     falhou no aparelho testado) — o translateX que as mantém no lugar
-     durante a rolagem é aplicado via JS, ver bindStickyScroll(). !important
-     no fundo: essas células ficam sobre as que rolam por baixo, e o véu de
-     zebra/hover é semitransparente (ver acima) e vazaria se vencesse aqui. */
-  .price-table th.olho-col, .price-table td.olho-cell,
-  .price-table th.code-col, .price-table td.code,
-  .price-table th.color-col, .price-table td.color-cell{
-    position:relative; z-index:2; background:var(--card) !important;
-  }
   .price-table thead th{
     font-size:7.5px; letter-spacing:.04em; padding:5px 4px 4px;
   }
@@ -1147,14 +1117,6 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   }
   td.commission-value.cost-col{background:transparent !important; color:#6B6A6F !important;}
 }
-
-/* =====================================================================
-   A edição de custo/IPI por produto passou a viver num app próprio
-   (wendell-custos), que grava na mesma base (wgi_products) usada aqui.
-   Só o painel de custo fica escondido — Coeficientes (margem, comissão,
-   ICMS, PIS/COFINS) continua sendo editado normalmente nesta página.
-   ===================================================================== */
-#adminPanel{ display:none !important; }
 </style>
 </head>
 <body>
@@ -1169,12 +1131,9 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9.5 5 7 7-7 7"/></symbol>
   <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m5 9.5 7 7 7-7"/></symbol>
-  <symbol id="i-chevron-up" viewBox="0 0 24 24"><path d="m5 14.5 7-7 7 7"/></symbol>
   <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m14.5 5-7 7 7 7"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5 10-11"/></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
-  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6.4 5.5 12 5.5 21.5 12 21.5 12 17.6 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
-  <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M2.5 12S6.4 5.5 12 5.5c1.7 0 3.2.5 4.5 1.2M21.5 12S17.6 18.5 12 18.5c-1.7 0-3.2-.5-4.5-1.2"/><path d="M9.7 10.2a2.8 2.8 0 0 0 3.9 3.9M4.5 4.5l15 15"/></symbol>
 </svg>
 
 <div id="toastWrap" class="no-print" aria-live="polite" aria-atomic="false"></div>
@@ -1194,66 +1153,31 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   window.addEventListener('beforeprint', prepareTablesForPrint);
   window.addEventListener('afterprint', resetTablesZoom);
 
-  // Mesma técnica, agora para telas médias (tablet): em vez de reformatar
+  // Mesma técnica, agora para telas estreitas (celular): em vez de reformatar
   // a tabela em "cards" empilhados, ela mantém o layout idêntico ao desktop e
   // é encolhida (zoom) até caber na largura disponível, sem cortar colunas.
-  // Isso vale especialmente quando o grupo de simulação é aberto e surgem
-  // 3 colunas a mais. No celular (<=720px) a tabela NÃO encolhe mais: olho,
-  // código e cor ficam fixos (position:sticky, no CSS) e o resto rola por
-  // baixo deles — ver applyStickyOffsets().
+  // A tabela nunca precisa de rolagem lateral: em QUALQUER largura de tela
+  // (desktop, tablet ou celular) ela é encolhida até caber no espaço
+  // disponível, mantendo o mesmo layout de colunas. Isso vale especialmente
+  // quando o grupo de simulação é aberto e surgem 3 colunas a mais.
   let fitRaf = null;
   function fitTablesToScreen(){
-    const mobile = window.innerWidth <= 720;
     const blocks = document.querySelectorAll('.cat-block');
     // Mede sempre sem zoom aplicado, senão a medida vem contaminada
     blocks.forEach(b=>{ b.style.zoom = ''; });
-    if(!mobile){
-      void document.body.offsetWidth; // força reflow antes de medir
-      blocks.forEach(b=>{
-        const table = b.querySelector('table.price-table');
-        if(!table) return;
-        const cs = getComputedStyle(b);
-        const padX = parseFloat(cs.paddingLeft || 0) + parseFloat(cs.paddingRight || 0);
-        const available = b.clientWidth - padX;
-        // scrollWidth da tabela = largura mínima que o conteúdo exige
-        const natural = table.scrollWidth;
-        if(available > 0 && natural > available + 1){
-          const scale = Math.max(0.16, available / natural);
-          b.style.zoom = scale.toFixed(3);
-        }
-      });
-    }
-    applyStickyOffsets();
-    bindStickyScroll();
-  }
-  // Olho, código e cor NÃO usam position:sticky em <td>/<th>: suporte a
-  // sticky em célula de tabela é recente no Safari/WebKit e falhou no
-  // aparelho testado (a tabela inteira rolava junto). Em vez disso, cada
-  // bloco de categoria tem sua própria rolagem (.cat-block) e, a cada
-  // scroll, aplicamos um translateX igual ao scrollLeft só nessas células —
-  // cancela visualmente a rolagem para elas, sem depender de sticky nativo.
-  const STICKY_SEL = '.olho-col,.olho-cell,.code-col,.code,.color-col,.color-cell';
-  function applyStickyOffsets(){
-    document.querySelectorAll('.cat-block').forEach(block=>{
-      const x = block.scrollLeft;
-      block.querySelectorAll(STICKY_SEL).forEach(el=>{
-        el.style.transform = x ? 'translateX('+x+'px)' : '';
-      });
-    });
-  }
-  function bindStickyScroll(){
-    document.querySelectorAll('.cat-block').forEach(block=>{
-      let raf = null;
-      block.addEventListener('scroll', ()=>{
-        if(raf) return;
-        raf = requestAnimationFrame(()=>{
-          raf = null;
-          const x = block.scrollLeft;
-          block.querySelectorAll(STICKY_SEL).forEach(el=>{
-            el.style.transform = x ? 'translateX('+x+'px)' : '';
-          });
-        });
-      }, { passive:true });
+    void document.body.offsetWidth; // força reflow antes de medir
+    blocks.forEach(b=>{
+      const table = b.querySelector('table.price-table');
+      if(!table) return;
+      const cs = getComputedStyle(b);
+      const padX = parseFloat(cs.paddingLeft || 0) + parseFloat(cs.paddingRight || 0);
+      const available = b.clientWidth - padX;
+      // scrollWidth da tabela = largura mínima que o conteúdo exige
+      const natural = table.scrollWidth;
+      if(available > 0 && natural > available + 1){
+        const scale = Math.max(0.16, available / natural);
+        b.style.zoom = scale.toFixed(3);
+      }
     });
   }
   function scheduleFitTablesToScreen(){
@@ -1279,7 +1203,6 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
         <button data-val="en">EN</button>
       </div>
       <div class="clock-pill" id="clockPill">—</div>
-      <a class="hdr-chip" id="matrizLink" href="https://textilegroup.github.io/wendell-custos/" target="_blank" rel="noopener" hidden>Matriz de Custos</a>
       <button class="hdr-chip" id="themeBtn" type="button">Tema</button>
       <span class="clock-pill" id="whoPill" hidden></span>
       <button class="hdr-chip" id="sairBtn" type="button">Sair</button>
@@ -1360,14 +1283,6 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
           <button data-val="18" class="active">18%</button>
           <button data-val="17">17%</button>
           <button data-val="4">4%</button>
-        </div>
-      </div>
-      <div class="field" id="olhoFiltroField" style="display:none;">
-        <span class="field-label" id="txt-olhoFiltroLabel">Visibilidade</span>
-        <div class="segmented" id="olhoSeg">
-          <button data-val="todos" class="active" id="txt-olhoTodos">Todos</button>
-          <button data-val="visiveis" id="txt-olhoVisiveis">Visíveis</button>
-          <button data-val="invisiveis" id="txt-olhoInvisiveis">Invisíveis</button>
         </div>
       </div>
       <div class="field grow">
@@ -1527,7 +1442,7 @@ async function loadFromSupabase(){
 
       DATA.products = (data.products || []).map(p=>({
         cat: p.cat, code: p.code, color: p.color,
-        cost: Number(p.cost), ipi: Number(p.ipi), visivel: p.visivel !== false
+        cost: Number(p.cost), ipi: Number(p.ipi)
       }));
       normalizeCategories(DATA.products);
 
@@ -1611,64 +1526,6 @@ async function saveProductsToSupabase(products){
   }
 }
 
-// Olho: mostra/esconde um item na tabela do representante. Muda na tela
-// na hora (otimista) e grava no Supabase; se falhar, desfaz e avisa.
-async function toggleVisivel(code){
-  const p = DATA.products.find(x=>x.code === code);
-  if(!p) return;
-  const novo = !(p.visivel !== false);
-  p.visivel = novo;
-  render();
-  const { error } = await supabase.from('wgi_products').update({ visivel: novo }).eq('code', code);
-  if(error){
-    p.visivel = !novo;
-    render();
-    const detail = describeError(error);
-    console.warn('Falha ao salvar visibilidade:', detail, error);
-    toast(t('olhoSaveError'), true);
-  }
-}
-
-// Diz se o item tem vizinho acima/abaixo DENTRO DA MESMA CATEGORIA, na
-// ordem atual de DATA.products — usado só para habilitar/desabilitar as
-// setinhas (a troca em si é decidida pelo servidor, ver moverProduto).
-function vizinhosCategoria(code){
-  const idx = DATA.products.findIndex(p=>p.code === code);
-  if(idx < 0) return { temCima:false, temBaixo:false };
-  const cat = DATA.products[idx].cat;
-  let temCima = false, temBaixo = false;
-  for(let i=idx-1;i>=0;i--){ if(DATA.products[i].cat === cat){ temCima = true; break; } }
-  for(let i=idx+1;i<DATA.products.length;i++){ if(DATA.products[i].cat === cat){ temBaixo = true; break; } }
-  return { temCima, temBaixo };
-}
-
-// Ordem: sobe/desce o item na própria categoria. O servidor decide e troca
-// com o vizinho real (nunca atravessa para outra categoria); aqui só
-// espelhamos a mesma troca em DATA.products para atualizar a tela na hora.
-async function moverProduto(code, direcao){
-  const idx = DATA.products.findIndex(p=>p.code === code);
-  if(idx < 0) return;
-  const cat = DATA.products[idx].cat;
-  let vizIdx = -1;
-  if(direcao === 'cima'){
-    for(let i=idx-1;i>=0;i--){ if(DATA.products[i].cat === cat){ vizIdx = i; break; } }
-  } else {
-    for(let i=idx+1;i<DATA.products.length;i++){ if(DATA.products[i].cat === cat){ vizIdx = i; break; } }
-  }
-  if(vizIdx < 0) return;
-  const { error } = await supabase.rpc('wgi_produto_mover', { p_code: code, p_direcao: direcao });
-  if(error){
-    const detail = describeError(error);
-    console.warn('Falha ao mover item:', detail, error);
-    toast(t('ordemSaveError'), true);
-    return;
-  }
-  const tmp = DATA.products[idx];
-  DATA.products[idx] = DATA.products[vizIdx];
-  DATA.products[vizIdx] = tmp;
-  render();
-}
-
 async function saveCoefficientsToSupabase(versionKey){
   const p = DATA.params[versionKey];
   if(!p) return;
@@ -1699,7 +1556,6 @@ const state = {
   versionMode: 'vigente', // vigente | anterior (só gerência)
   cats: {},   // filtro de categoria: várias famílias ao mesmo tempo
   search: '',
-  olhoFiltro: 'todos', // todos | visiveis | invisiveis — só existe na Gerência (ver showOlho)
   lang: 'pt',
   coefVersion: 'ger18',
   // Preços e comissões digitados nas colunas de simulação (só Gerência), por
@@ -1745,11 +1601,6 @@ const I18N = {
     filtersTitle:"Filtros", icmsLabel:"ICMS", searchLabel:"Buscar produtos (código ou cor)",
     searchPlaceholder:"Ex.: 8J50PE, 7FB90PA, Branca — separe por vírgula", categoryLabel:"Categoria", allCat:"Todas",
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
-    olhoOnTip:"Visível para o representante — clique para esconder", olhoOffTip:"Escondido do representante — clique para mostrar",
-    olhoSaveError:"Não consegui salvar a visibilidade. Tente de novo.",
-    olhoFiltroLabel:"Visibilidade", olhoFiltroTodos:"Todos", olhoFiltroVisiveis:"Visíveis", olhoFiltroInvisiveis:"Invisíveis",
-    moverCimaTip:"Mover para cima (dentro desta categoria)", moverBaixoTip:"Mover para baixo (dentro desta categoria)",
-    ordemSaveError:"Não consegui salvar a nova ordem. Tente de novo.",
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
     quoteTitle:"Gerar orçamento com preços selecionados",
     quoteBtn:"Gerar orçamento com itens selecionados",
@@ -1825,11 +1676,6 @@ const I18N = {
     filtersTitle:"Filters", icmsLabel:"State VAT (ICMS)", searchLabel:"Search products (code or color)",
     searchPlaceholder:"e.g. 8J50PE, 7FB90PA, White — comma separated", categoryLabel:"Category", allCat:"All",
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
-    olhoOnTip:"Visible to sales reps — click to hide", olhoOffTip:"Hidden from sales reps — click to show",
-    olhoSaveError:"Could not save the visibility change. Please try again.",
-    olhoFiltroLabel:"Visibility", olhoFiltroTodos:"All", olhoFiltroVisiveis:"Visible", olhoFiltroInvisiveis:"Hidden",
-    moverCimaTip:"Move up (within this category)", moverBaixoTip:"Move down (within this category)",
-    ordemSaveError:"Could not save the new order. Please try again.",
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
     quoteTitle:"Generate quote with selected prices",
     quoteBtn:"Generate quote with selected items",
@@ -1992,7 +1838,6 @@ function currentBlock(){
     ? DATA.products.map(prod=>({
         cat: prod.cat, code: prod.code, color: prod.color, ipi: prod.ipi,
         cost: prod.cost, // necessário para calcular a margem da simulação
-        visivel: prod.visivel !== false,
         prices: p.margins.map((m,i)=>computePrice(prod.cost, p.icms, p.pis, m, p.commissions[i]))
       }))
     : ordemOriginal(((PRECOS[state.icms] && PRECOS[state.icms].rows) || []).map(r=>({
@@ -2240,10 +2085,6 @@ function applyStaticTexts(){
   document.getElementById('txt-versionHint').textContent = t('versionHint');
   document.getElementById('txt-filtersTitle').textContent = t('filtersTitle');
   document.getElementById('txt-icmsLabel').textContent = t('icmsLabel');
-  document.getElementById('txt-olhoFiltroLabel').textContent = t('olhoFiltroLabel');
-  document.getElementById('txt-olhoTodos').textContent = t('olhoFiltroTodos');
-  document.getElementById('txt-olhoVisiveis').textContent = t('olhoFiltroVisiveis');
-  document.getElementById('txt-olhoInvisiveis').textContent = t('olhoFiltroInvisiveis');
   document.getElementById('txt-searchLabel').textContent = t('searchLabel');
   document.getElementById('searchInput').placeholder = t('searchPlaceholder');
   document.getElementById('txt-categoryLabel').textContent = t('categoryLabel');
@@ -2303,16 +2144,10 @@ function renderControls(){
   document.getElementById('versionModeGroup').style.display = isGer ? 'flex' : 'none';
   document.getElementById('adminPanel').style.display = isGer ? 'block' : 'none';
   document.getElementById('coefPanel').style.display = isGer ? 'block' : 'none';
-  document.getElementById('matrizLink').hidden = !isGer;
   if(isGer) renderCoefPanel();
 
   const icmsSeg = document.getElementById('icmsSeg');
   icmsSeg.classList.toggle('disabled', isGer && state.versionMode === 'anterior');
-
-  // Filtro de visibilidade: só existe onde o olho existe (Gerência, catálogo
-  // vigente, fora do orçamento) — ver showOlho em render().
-  const showOlhoFiltro = isGer && !state.quoteMode && state.versionMode !== 'anterior';
-  document.getElementById('olhoFiltroField').style.display = showOlhoFiltro ? 'flex' : 'none';
 
   // Página larga só quando as colunas de simulação estão abertas
   const pageEl = document.querySelector('main.page');
@@ -2580,21 +2415,6 @@ function bindSelection(block, codigosEmTela){
       render();
     });
   });
-  // Olho: visibilidade do item na tabela do representante
-  document.querySelectorAll('.olho-btn').forEach(btn=>{
-    btn.addEventListener('click', (ev)=>{
-      ev.stopPropagation();
-      toggleVisivel(btn.dataset.olho);
-    });
-  });
-  // Ordem: sobe/desce o item dentro da própria categoria
-  document.querySelectorAll('.ordem-btn').forEach(btn=>{
-    btn.addEventListener('click', (ev)=>{
-      ev.stopPropagation();
-      if(btn.disabled) return;
-      moverProduto(btn.dataset.code, btn.dataset.mover);
-    });
-  });
 }
 
 function render(){
@@ -2617,10 +2437,6 @@ function render(){
   const showSim = simAvailable && state.simOpen;
   // Coluna de custo: informação interna da Gerência — nunca no orçamento.
   const showCost = showMargin && !quote;
-  // Olho: define se o item aparece na tabela do representante. Só faz
-  // sentido no catálogo vigente (não na tabela histórica JAN/26) e nunca
-  // no orçamento, que é documento para o cliente.
-  const showOlho = showMargin && !quote && !block.isLegacy;
   // No orçamento não entram margens nem comissões — é documento para o
   // cliente, não material interno.
   const showMarginPct = showMargin && !quote;
@@ -2653,10 +2469,6 @@ function render(){
           return terms.some(q => code.includes(q) || color.includes(q));
         });
       }
-    }
-    if(showOlho && state.olhoFiltro !== 'todos'){
-      const querVisivel = state.olhoFiltro === 'visiveis';
-      rows = rows.filter(r => (r.visivel !== false) === querVisivel);
     }
   }
 
@@ -2715,8 +2527,7 @@ function render(){
       table.className = 'price-table' + (quote ? ' quote-only' : '');
 
       let thead = '<thead><tr>';
-      if(showOlho){ thead += '<th class="olho-col"></th>'; }
-      thead += '<th class="left code-col">'+t('codeCol')+'</th><th class="left color-col">'+t('colorCol')+'</th>';
+      thead += '<th class="left">'+t('codeCol')+'</th><th class="left">'+t('colorCol')+'</th>';
       if(quote){
         // O orçamento traz só o preço escolhido — de qual tabela ele saiu é
         // controle interno e não vai para o documento do cliente.
@@ -2769,24 +2580,6 @@ function render(){
         // O item entra no orçamento clicando direto no preço desejado.
         const picked = state.selRows[r.code] ? rowColOf(r.code, block) : null;
         if(picked !== null) tr.classList.add('row-selected');
-        if(showOlho){
-          const vis = r.visivel !== false;
-          const viz = vizinhosCategoria(r.code);
-          tds += '<td class="olho-cell"><div class="olho-row">'
-              +  '<div class="ordem-grp">'
-              +    '<button type="button" class="ordem-btn" data-mover="cima" data-code="'+escAttr(r.code)+'"'
-              +      (viz.temCima ? '' : ' disabled') + ' title="'+escAttr(t('moverCimaTip'))+'">'
-              +      '<svg class="ico sm" aria-hidden="true"><use href="#i-chevron-up"></use></svg></button>'
-              +    '<button type="button" class="ordem-btn" data-mover="baixo" data-code="'+escAttr(r.code)+'"'
-              +      (viz.temBaixo ? '' : ' disabled') + ' title="'+escAttr(t('moverBaixoTip'))+'">'
-              +      '<svg class="ico sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg></button>'
-              +  '</div>'
-              +  '<button type="button" class="olho-btn'+(vis?'':' off')+
-                 '" data-olho="'+escAttr(r.code)+'" title="'+escAttr(vis ? t('olhoOnTip') : t('olhoOffTip'))+
-                 '"><svg class="ico sm" aria-hidden="true"><use href="#'+(vis?'i-eye':'i-eye-off')+
-                 '"></use></svg></button>'
-              +  '</div></td>';
-        }
         tds += '<td class="code" data-label="'+t('codeCol')+'">'+r.code+'</td>';
         tds += '<td class="color-cell" data-label="'+t('colorCol')+'"><span class="swatch" style="background:'+hex+'"></span>'+colorLabel(r.color||'—')+'</td>';
         if(quote){
@@ -2879,8 +2672,7 @@ function render(){
       // A coluna de marcação some no PDF, então ela precisa ser uma célula
       // própria — se entrasse no colspan do rótulo, os percentuais sairiam
       // deslocados uma coluna na impressão.
-      let cTds = showOlho ? '<td class="olho-cell"></td>' : '';
-      cTds += '<td class="commission-label" colspan="2">'+t('commissionsLabel')+'</td>';
+      let cTds = '<td class="commission-label" colspan="2">'+t('commissionsLabel')+'</td>';
       shownTiers.forEach(i=>{
         const c = block.commissions[i];
         cTds += '<td class="commission-value" data-label="'+tierLabels[i]+'">'
@@ -3090,15 +2882,6 @@ document.querySelectorAll('#icmsSeg button').forEach(btn=>{
 document.getElementById('searchInput').addEventListener('input', (e)=>{
   state.search = e.target.value;
   render();
-});
-
-document.querySelectorAll('#olhoSeg button').forEach(btn=>{
-  btn.onclick = ()=>{
-    document.querySelectorAll('#olhoSeg button').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    state.olhoFiltro = btn.dataset.val;
-    render();
-  };
 });
 
 // ---------- PDF (impressão) ----------
