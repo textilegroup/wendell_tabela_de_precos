@@ -160,6 +160,15 @@ body{
   cursor:pointer; white-space:nowrap;
 }
 .hdr-chip:hover{background:rgba(255,255,255,.16);}
+/* O chip de Custos é um link, não um botão: precisa anular o sublinhado e
+   alinhar o ícone de "abre em outra aba" ao texto. */
+.hdr-chip.hdr-link{
+  display:inline-flex; align-items:center; gap:5px;
+  text-decoration:none;
+}
+.hdr-chip.hdr-link .ico{opacity:.8;}
+.hdr-chip.hdr-link:hover .ico{opacity:1;}
+.hdr-chip[hidden]{display:none !important;}
 .clock-pill{
   font:inherit; font-size:11.5px; font-weight:600; letter-spacing:.03em;
   border:1px solid rgba(255,255,255,.35); border-radius:8px;
@@ -262,6 +271,18 @@ body{
 .input-box::placeholder{color:var(--ink-3);}
 .input-box:focus{outline:2px solid var(--wine-soft); outline-offset:-1px; border-color:var(--wine-soft);}
 select.input-box{cursor:pointer;}
+
+.status-pill{
+  font-size:11px; font-weight:600; color:var(--ink-2);
+  background:var(--chip); border:1px solid var(--line);
+  padding:6px 11px; border-radius:8px;
+  display:inline-flex; gap:6px; align-items:center;
+}
+.status-pill.gerencia{
+  color:var(--wine-ink);
+  background:color-mix(in srgb, var(--wine) 9%, transparent);
+  border-color:color-mix(in srgb, var(--wine) 30%, transparent);
+}
 
 /* ===== Botões ===== */
 .btn{
@@ -378,36 +399,42 @@ td.coef-readonly{background:var(--sunk); color:var(--ink-2); font-weight:600;}
 
 /* ===== Conteúdo / tabelas ===== */
 .print-summary{display:none;}
+.print-summary .icms-badge{
+  display:inline-block; background:var(--wine); color:#fff;
+  padding:3px 14px; border-radius:6px; font-weight:700;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
 .cat-block{
   --cat-accent:var(--wine-ink);
   margin:0 0 12px; padding:0;
-  width:max-content; max-width:100%; overflow:hidden;
+  width:max-content; max-width:100%; overflow:visible;
   border:1px solid var(--line);
   border-left:2px solid var(--cat-accent);
   border-radius:10px;
 }
 .cat-heading{
-  display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; row-gap:2px;
-  margin:0; padding:6px 11px 5px;
-  background:transparent;
+  display:flex; align-items:baseline; gap:9px;
+  margin:0; padding:5px 11px 4px;
+  /* Congelado na rolagem, logo abaixo do header fixo. O deslocamento vem de
+     --cat-sticky-top, que o JS recalcula por bloco: no celular o bloco pode
+     estar sob zoom, e aí o top precisa ser dividido pela escala. */
+  position:sticky; z-index:5;
+  top:var(--cat-sticky-top, var(--hdr-h, 58px));
+  background:var(--card);
   border-bottom:1px solid var(--line);
 }
+/* Sem overflow:hidden no card, o fundo da última linha encostaria no canto
+   quadrado; o arredondamento passa para ela. */
+.price-table tbody tr:last-child td:first-child{border-bottom-left-radius:9px;}
+.price-table tbody tr:last-child td:last-child{border-bottom-right-radius:9px;}
 .cat-heading h2{
-  margin:0; font:inherit; font-size:14px; font-weight:700;
-  letter-spacing:.07em; text-transform:uppercase; color:var(--cat-accent);
+  margin:0; font:inherit; font-size:11px; font-weight:700;
+  letter-spacing:.09em; text-transform:uppercase; color:var(--cat-accent);
 }
 .cat-count{
   margin-left:auto; padding-left:24px;
-  font-size:10px; color:var(--ink-3); letter-spacing:.03em;
+  font-size:10px; color:var(--ink-2); letter-spacing:.03em;
   font-variant-numeric:tabular-nums;
-}
-/* Orientação de como usar a tabela (clicar no preço marca o item no
-   orçamento) — sempre numa linha própria, abaixo do título, pra nunca
-   disputar espaço com ele nem com o contador em nenhuma largura de tela. */
-.cat-hint{
-  flex:1 1 100%; order:3;
-  font-size:10.5px; font-weight:400; letter-spacing:.01em;
-  text-transform:none; color:var(--ink-3);
 }
 
 /* Cada família de produtos é identificada apenas pelo filete da esquerda e
@@ -441,7 +468,7 @@ table.price-table{
 .price-table th.cost-col{min-width:74px;}
 .price-table th.ipi-col{min-width:58px;}
 .price-table thead th{
-  background:transparent; color:var(--ink-3);
+  background:transparent; color:var(--ink-2);
   font:inherit; font-size:9.5px; font-weight:700;
   letter-spacing:.08em; text-transform:uppercase;
   text-align:right; padding:5px 10px 4px; white-space:nowrap;
@@ -488,7 +515,7 @@ table.price-table{
 tr.commission-row td.commission-label{
   text-align:left; text-transform:uppercase;
   font-size:9.5px; font-weight:700; letter-spacing:.08em;
-  font-family:"Archivo",Arial,sans-serif; color:var(--ink-3);
+  font-family:"Archivo",Arial,sans-serif; color:var(--ink-2);
 }
 tr.commission-row td.commission-value{text-align:right;}
 
@@ -555,7 +582,7 @@ th.sim-col .tier-pct{font-size:9.5px;}
 /* Linha sem alteração/seleção: dados apagados, para deixar claro que o valor
    ainda não está sendo considerado. Ao editar (ou escolher o preço para o
    orçamento) ela volta ao contraste normal. */
-td.sim-col.sim-dim{opacity:.45;}
+td.sim-col.sim-dim{opacity:.6;}
 td.sim-col.sim-dim input.sim-input{color:var(--ink-3);}
 td.sim-col:not(.sim-dim){background:color-mix(in srgb, var(--wine) 4%, transparent);}
 input.sim-input{
@@ -596,7 +623,7 @@ td.sim-margin.negative{color:var(--neg);}
   font:inherit; font-size:8px; font-weight:700; letter-spacing:.06em;
   text-transform:uppercase; white-space:nowrap;
   border:1px solid var(--line); border-radius:20px;
-  background:transparent; color:var(--ink-3);
+  background:transparent; color:var(--ink-2);
   padding:1px 7px; cursor:pointer; line-height:1.5;
   transition:border-color .12s ease, color .12s ease;
 }
@@ -787,7 +814,6 @@ th.sim-group-head.collapsed button.sim-group-btn:hover{background:var(--wine-sof
 .footnote-item .fval{font-size:11.5px; line-height:1.45;}
 
 .hub-footer{text-align:center; padding:18px; font-size:11px; color:var(--ink-3);}
-.footer-version{margin-left:5px; opacity:.75; font-variant-numeric:tabular-nums;}
 
 /* ===== Modal de senha ===== */
 .modal-overlay{
@@ -841,7 +867,7 @@ th.sim-col .sim-mode-switch{
 th.sim-col .sim-mode-opt{
   flex:1 1 0; min-width:0; white-space:nowrap;
   font-size:8.5px; font-weight:600; letter-spacing:0; text-transform:none;
-  color:var(--ink-3); background:transparent;
+  color:var(--ink-2); background:transparent;
   border:0; border-radius:5px; padding:3px 5px; line-height:1.25;
 }
 th.sim-col .sim-mode-opt.on{background:var(--wine); color:#fff; font-weight:700;}
@@ -850,13 +876,17 @@ th.sim-col .sim-mode-opt:hover:not(.on){color:var(--wine-ink); background:var(--
 th.sim-group-head:not(.collapsed) button.sim-group-btn{
   display:inline-flex; align-items:center; gap:3px;
   font-size:8.5px; letter-spacing:.09em;
-  border:0; background:transparent; color:var(--ink-3);
+  border:0; background:transparent; color:var(--ink-2);
   padding:1px 2px; border-radius:6px;
 }
 th.sim-group-head:not(.collapsed) button.sim-group-btn:hover{
   background:transparent; color:var(--wine-ink);
 }
 th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:10px;}
+
+/* A busca virou o último controle do painel: sozinha na linha, ela esticaria
+   pelos 1900px da tela. Um campo de busca não precisa disso. */
+.field.search-field{flex:0 1 560px; max-width:560px;}
 
 /* ===== Aviso de marcação de célula (toast) ===== */
 #toastWrap{
@@ -888,58 +918,132 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
 @keyframes toast-out{to{opacity:0; transform:translateY(6px) scale(.98);}}
 @media (prefers-reduced-motion:reduce){.toast,.toast.leaving{animation:none;}}
 
-/* ===== Celular: a MESMA tabela do desktop, compacta =====
-   Mesmas colunas, mesma ordem, mesma leitura — só a escala muda: fonte menor,
-   espaçamento apertado e as larguras voltando a ser definidas pelo conteúdo
-   (table-layout:auto). O que sobrar de largura o fitTablesToScreen resolve,
-   encolhendo o bloco inteiro como antes — nunca há rolagem lateral. */
+/* ===== Celular: uma ficha por produto =====
+   Abaixo de 720px a tabela de colunas dá lugar a uma ficha por produto: o
+   cabeçalho da ficha traz código, cor e IPI; embaixo, UMA LINHA POR TABELA de
+   preço, com a comissão daquela tabela ao lado; e no rodapé da ficha, custo e
+   simulação. A comissão vem do atributo data-comm que o render grava em cada
+   célula de preço — CSS não consegue puxar a linha de comissões do rodapé.
+   Os rótulos de cada linha saem do data-label, que já existia. */
 @media (max-width:720px){
-  .cat-heading{padding:7px 9px 6px;}
-  .cat-heading h2{font-size:13px; letter-spacing:.05em;}
-  .cat-hint{font-size:9.5px;}
-  .cat-count{font-size:9.5px;}
-  /* Os pisos de largura em px são calibrados para a fonte do desktop: no
-     celular eles forçariam a tabela a 596px e o zoom teria de encolher tudo
-     para 0,58. Aqui o conteúdo manda, e o card volta a ocupar a largura da
-     tela em vez de se ajustar à tabela. */
   .cat-block{width:auto;}
-  table.price-table{width:100%; table-layout:auto; font-size:10px;}
-  .price-table th:first-child,
-  .price-table th:nth-child(2),
-  .price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col),
-  .price-table th.cost-col,
-  .price-table th.ipi-col{width:auto; min-width:0;}
-  .price-table thead th{
-    font-size:7.5px; letter-spacing:.04em; padding:5px 4px 4px;
+  .cat-heading{padding:6px 10px 5px;}
+  .cat-heading h2{font-size:11px; letter-spacing:.06em;}
+  .cat-count{font-size:9.5px;}
+
+  table.price-table{display:block; width:100%; table-layout:auto; font-size:11px;}
+  .price-table thead{display:none;}
+  .price-table tbody{display:block;}
+  /* A linha de comissões do rodapé sai: a comissão passou a viver em cada
+     linha de preço da ficha. */
+  .price-table tbody tr.commission-row{display:none;}
+
+  .price-table tbody tr{
+    display:grid; grid-template-columns:auto 1fr auto;
+    align-items:baseline;
+    padding:6px 10px 7px;
+    border-top:1px solid var(--line-2);
   }
-  .price-table thead th .tier-pct{font-size:8.5px; margin-top:1px;}
-  .price-table tbody td{padding:3px 4px;}
-  td.code{font-size:9.5px; letter-spacing:0;}
-  td.color-cell{font-size:9px;}
-  td.color-cell .swatch{width:7px; height:7px; margin-right:4px;}
-  td.price{font-size:10px;}
-  td.ipi, td.cost-col{font-size:9px;}
-  .col-pick{font-size:7px; padding:1px 5px; margin-bottom:3px;}
-  /* As comissões aplicáveis continuam na tabela, alinhadas às suas colunas */
-  tr.commission-row td{padding:5px 4px; font-size:10px;}
-  tr.commission-row td.commission-label{font-size:7.5px; letter-spacing:.05em;}
-  td.pick-cell.picked{box-shadow:inset 0 0 0 1.2px var(--wine-ink);}
-  /* Colunas de simulação: campos menores, para caberem na mesma linha */
-  th.sim-col{font-size:7.5px; padding-left:3px !important; padding-right:3px !important;}
-  .price-table th.sim-col.sim-group-head{width:auto; min-width:0;}
-  td.sim-col{padding-left:3px; padding-right:3px;}
-  input.sim-input{width:46px; font-size:10px; padding:2px 3px; border-radius:5px;}
-  input.sim-input.sim-comm, input.sim-input.sim-margin-in{width:36px;}
-  button.sim-clear{width:13px; height:13px; font-size:8px;}
-  button.pick-dot{width:13px; height:13px; margin-right:2px;}
-  /* No celular a chave volta a empilhar: lado a lado ela custaria ~90px de
-     largura da tabela, e é largura que vira zoom. */
-  th.sim-col .sim-mode-switch{flex-direction:column;}
-  th.sim-col .sim-mode-opt, .sim-mode-opt{font-size:8px; padding:2px 3px;}
-  /* O rótulo vertical do grupo recolhido estica o cabeçalho inteiro: no
-     celular ele encolhe, senão come meia tela de altura. */
-  th.sim-group-head.collapsed button.sim-group-btn{width:20px; height:20px;}
-  th.sim-group-head.collapsed button.sim-group-btn .ico{width:10px; height:10px;}
+  .price-table tbody tr:first-child{border-top:0;}
+  /* Fundo por linha, nunca por célula solta */
+  .price-table tbody tr:nth-child(even) td,
+  .price-table tbody tr.row-selected td{background:transparent !important;}
+  .price-table tbody tr:nth-child(even){background:color-mix(in srgb, var(--ink) 2.5%, transparent);}
+  .price-table tbody tr.row-selected{
+    background:color-mix(in srgb, var(--wine) 5%, transparent);
+    box-shadow:inset 2px 0 0 var(--wine-ink);
+  }
+  .price-table tbody tr:hover td{background:transparent;}
+  .price-table tbody tr:last-child td:first-child,
+  .price-table tbody tr:last-child td:last-child{border-radius:0;}
+
+  .price-table tbody td{
+    padding:1px 0; border:0 !important; text-align:right;
+    min-width:0; white-space:nowrap;
+  }
+  /* --- cabeçalho da ficha: código | cor | IPI, todos na linha 1 ---
+     O grid-row explícito é necessário: o IPI é a última célula do DOM e, sem
+     ele, a colocação automática jogaria o IPI para depois dos preços. */
+  .price-table tbody td.code{
+    grid-column:1; grid-row:1; text-align:left;
+    font-size:12.5px; padding-bottom:3px;
+  }
+  .price-table tbody td.color-cell{
+    grid-column:2; grid-row:1; text-align:left; padding-left:10px;
+    font-size:10.5px; color:var(--ink-2);
+  }
+  .price-table tbody td.color-cell .swatch{width:7px; height:7px; margin-right:5px;}
+  .price-table tbody td.ipi{
+    grid-column:3; grid-row:1;
+    font-size:10.5px; color:var(--ink-2); font-weight:600;
+  }
+  .price-table tbody td.ipi::before{
+    content:attr(data-label) " "; font-size:8.5px; font-weight:700;
+    letter-spacing:.07em; color:var(--ink-2);
+    font-family:"Archivo",Arial,sans-serif;
+  }
+  /* --- uma linha por tabela: rótulo | preço | comissão --- */
+  .price-table tbody td.price{
+    grid-column:1 / -1;
+    display:grid; grid-template-columns:1fr auto auto;
+    align-items:baseline; gap:0 10px;
+    font-size:12px;
+  }
+  .price-table tbody td.price::before{
+    content:attr(data-label);
+    font-family:"Archivo",Arial,sans-serif;
+    font-size:8.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--ink-2); text-align:left;
+    overflow:hidden; text-overflow:ellipsis;
+  }
+  .price-table tbody td.price::after{
+    content:attr(data-comm);
+    font-family:"Archivo",Arial,sans-serif;
+    font-size:9.5px; font-weight:600; color:var(--ink-2);
+    min-width:40px; text-align:right;
+  }
+  .price-table tbody td.price[data-comm=""]::after{content:"";}
+  /* --- rodapé da ficha: custo e simulação --- */
+  .price-table tbody td.cost-col,
+  .price-table tbody td.sim-col{
+    grid-column:1 / -1;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    font-size:11px;
+  }
+  .price-table tbody td.cost-col::before,
+  .price-table tbody td.sim-col::before{
+    content:attr(data-label);
+    font-family:"Archivo",Arial,sans-serif;
+    font-size:8.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--ink-2); text-align:left;
+    overflow:hidden; text-overflow:ellipsis;
+  }
+  /* No DOM a simulação vem antes do custo; na ficha a ordem pedida é custo e
+     depois simulação. Em grid, 'order' resolve sem mexer no render. */
+  .price-table tbody td.cost-col{
+    order:1; margin-top:4px; padding-top:4px;
+    border-top:1px solid var(--line-2) !important;
+  }
+  .price-table tbody td.sim-col{order:2;}
+  /* Sem custo (Representante), o traço de separação fica na simulação */
+  .price-table tbody td.sim-col:first-of-type{margin-top:4px;}
+  /* Grupo recolhido: a célula vazia que só segura o lugar da coluna some */
+  .price-table tbody td.sim-col:empty{display:none;}
+  .price-table tbody td.sim-col.sim-dim{opacity:.7;}
+  input.sim-input{width:66px; font-size:11px; padding:3px 5px; border-radius:6px;}
+  input.sim-input.sim-comm, input.sim-input.sim-margin-in{width:52px;}
+  button.sim-clear{width:14px; height:14px; font-size:8px;}
+  button.pick-dot{width:14px; height:14px; margin-right:3px;}
+
+  /* Marcado: contorno em volta da linha do preço */
+  .price-table tbody tr.row-selected td.pick-cell.picked,
+  .price-table tbody td.pick-cell.picked{
+    background:color-mix(in srgb, var(--wine) 7%, transparent) !important;
+    box-shadow:inset 0 0 0 1.2px var(--wine-ink);
+    border-radius:6px; padding:2px 7px !important;
+  }
+  td.pick-cell:not(.picked):hover{box-shadow:none; background:transparent !important;}
+
   /* Cabeçalho do painel recolhível: título numa linha, contador e botão na
      linha de baixo — em vez de espremer o título em três linhas. */
   .collapse-toggle{flex-wrap:wrap; row-gap:7px;}
@@ -956,15 +1060,11 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   }
   .toast .tcount{margin-left:auto; padding-left:0; border-left:0;}
 }
-/* Telas bem estreitas: mais um passo de compactação antes de precisar encolher */
+/* Telas bem estreitas: só aperta as margens da página */
 @media (max-width:430px){
   .page{padding-left:7px; padding-right:7px;}
-  table.price-table{font-size:9.5px;}
-  .price-table thead th{font-size:7px; padding:4px 3px;}
-  .price-table tbody td{padding:2.5px 3px;}
-  td.code{font-size:9px;}
-  td.price{font-size:9.5px;}
-  .col-pick{font-size:6.5px; padding:1px 4px;}
+  .price-table tbody tr{padding:5px 9px 6px;}
+  .price-table tbody td.color-cell{padding-left:8px;}
 }
 
 @media (max-width:640px){
@@ -1008,13 +1108,13 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
     background:var(--wine) !important; padding:6px 10px; position:static;
   }
+  .cat-heading{position:static !important; background:transparent !important;}
   .logo-badge{width:34px; height:34px; border-width:1px; padding:2px;}
   .brand-text h1{font-size:15px !important; margin:0;}
   .brand-text p{font-size:9px;}
   .page{padding:0; gap:0; max-width:none; display:block;}
   .panel{box-shadow:none; border:none; padding:0; margin:0;}
-  /* Título da tabela com o ICMS aplicável — texto corrido, sem destaque de
-     cor: o ICMS entra como mais um item da lista separada por "·". */
+  /* Título da tabela com o ICMS aplicável em destaque */
   .print-summary{
     display:block; font-size:16px; font-weight:700;
     color:var(--wine-deep); text-align:center;
@@ -1023,13 +1123,7 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
     border-bottom:3px solid var(--wine);
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  /* Data/hora da geração, pequena, numa linha própria abaixo do título — dá
-     pra saber se um PDF impresso antes reflete a versão mais recente. */
-  .print-stamp{
-    display:block; font-size:9px; font-weight:400;
-    text-transform:none; letter-spacing:.02em;
-    color:var(--ink-3);
-  }
+  .print-summary .icms-badge{font-size:16px; padding:3px 13px;}
   /* Blocos de categoria compactos */
   .cat-block{margin:0 0 3.5px; break-inside:avoid-page; overflow:visible;
     border:0; border-left:2.5px solid var(--cat-accent); border-radius:0;}
@@ -1038,7 +1132,6 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   .cat-heading h2{font-size:11.5px; letter-spacing:.07em; line-height:1.15;
     color:var(--cat-accent) !important;}
   .cat-count{font-size:9px;}
-  .cat-hint{display:none;} /* orientação de clique não faz sentido no papel */
   /* Tabelas: fonte máxima que ainda cabe numa página A4 retrato */
   table.price-table{border-collapse:collapse; border-radius:0; border:0; width:100%;}
   .price-table thead th{
@@ -1134,6 +1227,7 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m14.5 5-7 7 7 7"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5 10-11"/></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4.5h5.5V10"/><path d="M19.5 4.5 11 13"/><path d="M18 14.5V19a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H10"/></symbol>
 </svg>
 
 <div id="toastWrap" class="no-print" aria-live="polite" aria-atomic="false"></div>
@@ -1160,8 +1254,16 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   // (desktop, tablet ou celular) ela é encolhida até caber no espaço
   // disponível, mantendo o mesmo layout de colunas. Isso vale especialmente
   // quando o grupo de simulação é aberto e surgem 3 colunas a mais.
+  // Altura do header fixo -> --hdr-h. É de onde o título congelado da família
+  // se pendura.
+  function medirHeader(){
+    const h = document.querySelector('.wgi-header');
+    if(h) document.documentElement.style.setProperty('--hdr-h', h.offsetHeight + 'px');
+    return h ? h.offsetHeight : 58;
+  }
   let fitRaf = null;
   function fitTablesToScreen(){
+    const hdrH = medirHeader();
     const blocks = document.querySelectorAll('.cat-block');
     // Mede sempre sem zoom aplicado, senão a medida vem contaminada
     blocks.forEach(b=>{ b.style.zoom = ''; });
@@ -1174,16 +1276,21 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
       const available = b.clientWidth - padX;
       // scrollWidth da tabela = largura mínima que o conteúdo exige
       const natural = table.scrollWidth;
+      let scale = 1;
       if(available > 0 && natural > available + 1){
-        const scale = Math.max(0.16, available / natural);
+        scale = Math.max(0.16, available / natural);
         b.style.zoom = scale.toFixed(3);
       }
+      // O zoom encolhe também o "top" do sticky: sem dividir pela escala, o
+      // título congelaria por baixo do header.
+      b.style.setProperty('--cat-sticky-top', (hdrH / scale).toFixed(1) + 'px');
     });
   }
   function scheduleFitTablesToScreen(){
     if(fitRaf) cancelAnimationFrame(fitRaf);
     fitRaf = requestAnimationFrame(fitTablesToScreen);
   }
+  medirHeader();
   window.addEventListener('resize', scheduleFitTablesToScreen);
   window.addEventListener('orientationchange', scheduleFitTablesToScreen);
 </script>
@@ -1198,6 +1305,12 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
       </div>
     </div>
     <div class="header-actions no-print">
+      <a class="hdr-chip hdr-link" id="custosBtn"
+         href="https://textilegroup.github.io/wendell-custos/"
+         target="_blank" rel="noopener noreferrer" hidden>
+        <span id="txt-custosBtn">Custos</span>
+        <svg class="ico sm" aria-hidden="true"><use href="#i-external"></use></svg>
+      </a>
       <div class="lang-toggle" id="langToggle">
         <button data-val="pt" class="active">PT</button>
         <button data-val="en">EN</button>
@@ -1218,8 +1331,8 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
       <div class="field">
         <span class="field-label" id="txt-moduleLabel">Módulo</span>
         <div class="segmented" id="audienceSeg">
-          <button data-val="representante" class="active" id="txt-btn-repr">Representantes</button>
-          <button data-val="gerencia" class="locked" id="txt-btn-ger">Gerencial</button>
+          <button data-val="representante" class="active" id="txt-btn-repr">Representante</button>
+          <button data-val="gerencia" class="locked" id="txt-btn-ger">Gerência</button>
         </div>
       </div>
       <div class="field" id="versionModeGroup" style="display:none;">
@@ -1255,11 +1368,38 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
       <div class="coef-top" id="coefSide"></div>
       <div class="coef-scroll"><table class="coef-table" id="coefTable"></table></div>
     </div>
-    <p class="coef-hint" id="txt-coefMarkupHint">"Markup" é só informativo — 100/(100 − soma de ICMS, PIS/COFINS, comissão e margem), com o PIS/COFINS incidindo só sobre o que sobra do ICMS. Não pode ser editado diretamente.</p>
+    <p class="coef-hint" id="txt-coefAjusteHint">"Ajuste" não é aplicado na fórmula de preço atual — mantido apenas como referência da planilha original.</p>
     <p class="coef-hint" id="coefDirtyMsg" style="display:none;"></p>
     <div class="admin-actions">
       <button class="btn btn-ghost coef-reset" id="coefResetBtn"><span id="txt-coefReset">Restaurar valores originais desta versão</span></button>
       <button class="btn btn-primary" id="coefSaveBtn"><span id="txt-coefSave">Salvar alterações</span></button>
+    </div>
+  </section>
+
+  <section class="panel no-print" id="quotePanel">
+    <div class="panel-title-row collapse-head" id="quoteHead">
+      <button class="collapse-toggle" id="quoteToggle" type="button" aria-expanded="false" aria-controls="quoteBody">
+        <span class="collapse-chevron"><svg class="ico" aria-hidden="true"><use href="#i-chevron"></use></svg></span>
+        <h3 class="panel-title" id="txt-quoteTitle">Orçamento — selecione itens e colunas</h3>
+        <span class="collapse-badge" id="quoteHeadCount"></span>
+        <span class="collapse-btn" id="txt-quoteExpand">Expandir</span>
+      </button>
+    </div>
+    <div class="collapse-body" id="quoteBody" hidden>
+      <div class="quote-actions" style="margin-top:0; margin-bottom:14px;">
+        <button class="btn btn-primary" id="quoteBtn"><svg class="ico" aria-hidden="true"><use href="#i-quote"></use></svg><span id="txt-quoteBtn">Gerar orçamento (PDF)</span></button>
+      </div>
+      <div class="field-row">
+        <div class="field grow">
+          <span class="field-label" id="txt-quoteClientLabel">Cliente</span>
+          <input type="text" id="quoteClient" class="input-box" placeholder="Nome do cliente (opcional)">
+        </div>
+      </div>
+      <div class="quote-actions">
+        <button class="btn btn-ghost" id="selNoneBtn"><span id="txt-selNone">Limpar seleção</span></button>
+        <span class="quote-count" id="quoteCount"></span>
+      </div>
+      <p class="admin-hint" id="txt-quoteHint" style="margin:10px 0 0;">Clique no preço desejado para incluir o item; clique de novo para tirar. No cabeçalho de cada tabela há um botão que marca todos os itens em tela naquela coluna — depois é só clicar em outras células para trocar item a item. O orçamento sai sem margens nem comissões.</p>
     </div>
   </section>
 
@@ -1274,6 +1414,7 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
             <button class="sim-mode-opt" data-mode="precoPelaMargem" id="txt-simCtlB">Preço pela margem</button>
           </span>
         </div>
+        <button class="btn btn-outline" id="pdfBtn"><svg class="ico" aria-hidden="true"><use href="#i-print"></use></svg><span id="txt-pdfBtn">Gerar PDF</span></button>
       </div>
     </div>
     <div class="field-row">
@@ -1285,15 +1426,23 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
           <button data-val="4">4%</button>
         </div>
       </div>
-      <div class="field grow">
-        <span class="field-label" id="txt-searchLabel">Buscar código ou cor</span>
-        <input type="text" id="searchInput" class="input-box" placeholder="Ex.: 8J50PE ou Branca">
-      </div>
     </div>
     <div class="field-row" style="margin-top:16px;">
       <div class="field grow">
         <span class="field-label" id="txt-categoryLabel">Categoria</span>
         <div class="chipset" id="catChips"></div>
+      </div>
+      <div class="field">
+        <span class="field-label" id="txt-versionLabel2">Versão</span>
+        <div class="status-pill" id="versionNote"></div>
+      </div>
+    </div>
+    <!-- A busca é o último controle do painel: fica encostada nas tabelas,
+         que é onde o resultado dela aparece. -->
+    <div class="field-row" style="margin-top:16px;">
+      <div class="field grow search-field">
+        <span class="field-label" id="txt-searchLabel">Buscar código ou cor</span>
+        <input type="text" id="searchInput" class="input-box" placeholder="Ex.: 8J50PE ou Branca">
       </div>
     </div>
   </section>
@@ -1302,36 +1451,9 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
 
   <div id="content"></div>
 
-  <section class="panel no-print" id="quotePanel">
-    <div class="panel-title-row collapse-head" id="quoteHead">
-      <button class="collapse-toggle" id="quoteToggle" type="button" aria-expanded="false" aria-controls="quoteBody">
-        <span class="collapse-chevron"><svg class="ico" aria-hidden="true"><use href="#i-chevron"></use></svg></span>
-        <h3 class="panel-title" id="txt-quoteTitle">Gerar orçamento com preços selecionados</h3>
-        <span class="collapse-badge" id="quoteHeadCount"></span>
-        <span class="collapse-btn" id="txt-quoteExpand">Expandir</span>
-      </button>
-    </div>
-    <div class="collapse-body" id="quoteBody" hidden>
-      <div class="quote-actions" style="margin-top:0; margin-bottom:14px;">
-        <button class="btn btn-primary" id="quoteBtn"><svg class="ico" aria-hidden="true"><use href="#i-quote"></use></svg><span id="txt-quoteBtn">Gerar orçamento (PDF)</span></button>
-        <button class="btn btn-outline" id="pdfBtn"><svg class="ico" aria-hidden="true"><use href="#i-print"></use></svg><span id="txt-pdfBtn">Gerar lista de preços completa</span></button>
-      </div>
-      <div class="field-row">
-        <div class="field grow">
-          <span class="field-label" id="txt-quoteClientLabel">Cliente</span>
-          <input type="text" id="quoteClient" class="input-box" placeholder="Nome do cliente (opcional)">
-        </div>
-      </div>
-      <div class="quote-actions">
-        <button class="btn btn-ghost" id="selNoneBtn"><span id="txt-selNone">Limpar seleção</span></button>
-        <span class="quote-count" id="quoteCount"></span>
-      </div>
-    </div>
-  </section>
-
 </main>
 
-<footer class="hub-footer no-print"><span id="txt-footerNote">Wendell Global Interlining · Tabelas de preços de uso interno — gerado a partir da planilha comercial · consultar sempre a versão mais recente</span><span class="footer-version" id="versionBadge" title="Versão do HTML publicado"></span></footer>
+<footer class="hub-footer no-print" id="txt-footerNote">Wendell Global Interlining · Tabelas de preços de uso interno — gerado a partir da planilha comercial · consultar sempre a versão mais recente</footer>
 
 <!-- Password modal -->
 <div class="modal-overlay no-print" id="pwModal" hidden>
@@ -1372,17 +1494,6 @@ const supabase = APP.sb;
 const MODO_GER = APP.eAdmin();   // senha de gestao => modulo Gerencia
 const PRECOS = {};               // precos prontos por ICMS (representante)
 
-// Versão do HTML publicado — exibida no rodapé (#versionBadge), fora do
-// cabeçalho pra não disputar espaço com os controles no celular. Dá pra
-// confirmar visualmente se uma publicação nova já chegou. Convenção X.Y:
-// Y sobe a cada publicação; X sobe (e Y volta pra 1) só numa mudança
-// estrutural (ex.: reorganização de dados/esquema, refactor grande).
-const APP_VERSION = '2.3';
-{
-  const badge = document.getElementById('versionBadge');
-  if(badge) badge.textContent = '· v' + APP_VERSION;
-}
-
 const DATA = JSON.parse(document.getElementById('app-data').textContent);
 
 // Ordem em que o catálogo sempre foi exibido. Guardada agora, antes de
@@ -1395,6 +1506,11 @@ const ORDEM_CATALOGO = {};
 // verdadeiro, e o servidor só entrega custo e margem para esses.
 const gerenciaUnlocked = MODO_GER;   // decidido pela senha da Central de Acesso
 
+// Garante campo "adjust" (uso interno, não afeta o preço) em cada versão
+// e guarda uma cópia de fábrica para permitir "restaurar valores originais".
+Object.keys(DATA.params).forEach(k=>{
+  if(!DATA.params[k].adjust){ DATA.params[k].adjust = DATA.params[k].margins.map(()=>0); }
+});
 // Cópia de fábrica (dados embutidos no HTML) — usada pelo botão "Restaurar valores originais"
 // e como fallback caso o Supabase esteja indisponível.
 const DEFAULT_PARAMS = JSON.parse(JSON.stringify(DATA.params));
@@ -1461,6 +1577,7 @@ async function loadFromSupabase(){
           DATA.params[key].pis = Number(row.pis);
           DATA.params[key].margins = row.margins;
           DATA.params[key].commissions = row.commissions;
+          DATA.params[key].adjust = row.adjust || row.margins.map(()=>0);
         }
       });
       setDbStatus('Gerência — ' + DATA.products.length + ' produtos e ' +
@@ -1531,7 +1648,7 @@ async function saveCoefficientsToSupabase(versionKey){
   if(!p) return;
   const { error } = await supabase.from('wgi_price_coefficients').upsert({
     version_key: versionKey,
-    icms: p.icms, pis: p.pis, margins: p.margins, commissions: p.commissions,
+    icms: p.icms, pis: p.pis, margins: p.margins, commissions: p.commissions, adjust: p.adjust,
     updated_at: new Date().toISOString()
   }, { onConflict: 'version_key' });
   if(error){
@@ -1557,7 +1674,7 @@ const state = {
   cats: {},   // filtro de categoria: várias famílias ao mesmo tempo
   search: '',
   lang: 'pt',
-  coefVersion: 'ger18',
+  coefVersion: 'repr18',
   // Preços e comissões digitados nas colunas de simulação (só Gerência), por
   // código de produto. Vazio = usa os valores da última tabela como padrão.
   simPrices: {},
@@ -1571,6 +1688,8 @@ const state = {
   selRows: {},
   rowCol: {},
   quoteMode: false,
+  // Impressão da tabela de preços restrita aos itens marcados
+  tableMode: false,
   quoteClient: '',
   // Bloco "Orçamento": recolhido por padrão (só título + botão de expandir).
   quoteOpen: false,
@@ -1592,9 +1711,6 @@ const I18N = {
     title:"Lista de Preços", subtitle:"Wendell Global Interlining",
     profileTitle:"Perfil de acesso", moduleLabel:"Módulo",
     repr:"Representante", ger:"Gerência",
-    // Só os botões do Perfil de acesso usam este texto — as demais telas
-    // (coluna da 5ª tabela, resumo do módulo no PDF) continuam com repr/ger.
-    profileRepr:"Representantes", profileGer:"Gerencial",
     statusRepr:"Módulo representante — margens ocultas", statusGer:"Módulo gerência — margens visíveis",
     versionLabel:"Versão", versionVigente:"Vigente (MAR/26)", versionAnterior:"Anterior (JAN/26)",
     versionHint:"Disponível apenas no módulo Gerência.",
@@ -1602,7 +1718,7 @@ const I18N = {
     searchPlaceholder:"Ex.: 8J50PE, 7FB90PA, Branca — separe por vírgula", categoryLabel:"Categoria", allCat:"Todas",
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
-    quoteTitle:"Gerar orçamento com preços selecionados",
+    quoteTitle:"Orçamento — selecione itens e colunas",
     quoteBtn:"Gerar orçamento com itens selecionados",
     quoteClientLabel:"Cliente", quoteClientPlaceholder:"Nome do cliente (opcional)",
     quoteBulkLabel:"Aplicar tabela a todos os itens marcados",
@@ -1610,7 +1726,7 @@ const I18N = {
     quoteSimOption:"Simulação", quoteBulkPlaceholder:"— escolher —",
     selAll:"Selecionar todos os itens", selNone:"Limpar seleção",
     quoteExpand:"Expandir", quoteCollapse:"Recolher",
-    catPickHint:"Selecione a opção de preço para incluir no orçamento",
+    quoteHint:"Clique no preço desejado para incluir o item; clique de novo para tirar. No cabeçalho de cada tabela há um botão que marca todos os itens em tela naquela coluna — depois é só clicar em outras células para trocar item a item. O orçamento sai sem margens nem comissões.",
     quoteCount:(n)=> n + " item(ns) selecionado(s)",
     toastIn:(code,col)=> "Incluído no orçamento",
     toastOut:(code)=> "Removido do orçamento",
@@ -1628,7 +1744,6 @@ const I18N = {
     priceCol:"Preço",
     quoteEmpty:"Selecione ao menos um item para gerar o orçamento.",
     quoteDocTitle:"Orçamento", quoteClientPrefix:"Cliente:",
-    printedAt:"Gerado em",
     simResetBtn:"Limpar simulação",
     simNote:"Colunas de simulação (6 e 7) — visíveis só na Gerência e não saem no PDF.",
     emptyState:"Nenhum item encontrado para os filtros selecionados.",
@@ -1638,11 +1753,14 @@ const I18N = {
     pwTitle:"Acesso restrito — Gerência",
     pwText:"Esta área contém margens comerciais sensíveis. Informe a senha do módulo de gerência para continuar.",
     pwPlaceholder:"Senha", pwError:"Senha incorreta. Tente novamente.", cancel:"Cancelar", enter:"Entrar",
-    pdfBtn:"Gerar lista de preços completa",
+    pdfBtn:"Gerar tabela em PDF com itens selecionados",
+    pdfEmpty:"Marque ao menos um item para gerar a tabela em PDF.",
     colPickAll:"Marcar todos os itens em tela nesta coluna",
     colPickNone:"Limpar todos os itens desta coluna",
     colPickAllShort:"todos", colPickNoneShort:"limpar",
+    selectedSuffix:"selecionados",
     theme:"Tema", sair:"Sair", sairTip:"Encerrar a sessão da Central de Acesso",
+    custosBtn:"Custos", custosTip:"Abrir a tabela de custos completa em outra aba",
     adminTitle:"Matriz de custos",
     adminHint:"Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.",
     exportBtn:"Exportar custos (XLSX)", importBtn:"Importar planilha (XLSX)",
@@ -1657,9 +1775,9 @@ const I18N = {
     viewingLegacy:"Visualizando tabela anterior — Representante 18% (JAN/26)",
     coefTitle:"Coeficientes de Venda por Versão",
     coefHint:"Ajuste margem, comissão, ICMS e PIS/COFINS de cada versão. Os preços de todas as tabelas são recalculados automaticamente.",
-    coefMarkup:"Markup", coefMargem:"Margem", coefComissao:"Comissão", coefVartabs:"Var. entre tabelas",
+    coefAjuste:"Ajuste", coefMargem:"Margem", coefComissao:"Comissão", coefVartabs:"Var. entre tabelas",
     coefIcms:"ICMS", coefPis:"PIS/COFINS",
-    coefMarkupHint:"\"Markup\" é só informativo — quantas vezes o custo vira preço (ex.: 1,45 = preço é 1,45× o custo), considerando ICMS, PIS/COFINS (sem incidir sobre o ICMS), comissão e margem. Não pode ser editado diretamente.",
+    coefAjusteHint:"\"Ajuste\" não é aplicado na fórmula de preço atual — mantido apenas como referência da planilha original.",
     coefReset:"Restaurar valores originais desta versão",
     coefSave:"Salvar alterações",
     coefResetConfirm:"Restaurar os valores originais desta versão? As alterações feitas nela serão perdidas.",
@@ -1669,7 +1787,6 @@ const I18N = {
     title:"Price List", subtitle:"Wendell Global Interlining",
     profileTitle:"Access profile", moduleLabel:"Module",
     repr:"Sales rep", ger:"Management",
-    profileRepr:"Sales rep", profileGer:"Management",
     statusRepr:"Sales rep module — margins hidden", statusGer:"Management module — margins visible",
     versionLabel:"Version", versionVigente:"Current (MAR/26)", versionAnterior:"Previous (JAN/26)",
     versionHint:"Available only in the Management module.",
@@ -1677,7 +1794,7 @@ const I18N = {
     searchPlaceholder:"e.g. 8J50PE, 7FB90PA, White — comma separated", categoryLabel:"Category", allCat:"All",
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
-    quoteTitle:"Generate quote with selected prices",
+    quoteTitle:"Quote — select items and columns",
     quoteBtn:"Generate quote with selected items",
     quoteClientLabel:"Customer", quoteClientPlaceholder:"Customer name (optional)",
     quoteBulkLabel:"Apply table to all ticked items",
@@ -1685,7 +1802,7 @@ const I18N = {
     quoteSimOption:"Simulation", quoteBulkPlaceholder:"— choose —",
     selAll:"Select all items", selNone:"Clear selection",
     quoteExpand:"Expand", quoteCollapse:"Collapse",
-    catPickHint:"Select the price option to add it to the quote",
+    quoteHint:"Click the price you want to add the item; click it again to remove. Each table header has a button that selects every item on screen in that column — then just click other cells to change an item. The quote has no margins or commissions.",
     quoteCount:(n)=> n + " item(s) selected",
     toastIn:(code,col)=> "Added to the quote",
     toastOut:(code)=> "Removed from the quote",
@@ -1703,7 +1820,6 @@ const I18N = {
     priceCol:"Price",
     quoteEmpty:"Select at least one item to generate the quote.",
     quoteDocTitle:"Quote", quoteClientPrefix:"Customer:",
-    printedAt:"Generated on",
     simResetBtn:"Clear simulation",
     simNote:"Simulation columns (6 and 7) — visible only in Management and excluded from the PDF.",
     emptyState:"No items found for the selected filters.",
@@ -1713,11 +1829,14 @@ const I18N = {
     pwTitle:"Restricted access — Management",
     pwText:"This area contains sensitive commercial margins. Enter the management password to continue.",
     pwPlaceholder:"Password", pwError:"Incorrect password. Try again.", cancel:"Cancel", enter:"Enter",
-    pdfBtn:"Generate complete price list",
+    pdfBtn:"Generate PDF table with selected items",
+    pdfEmpty:"Select at least one item to generate the PDF table.",
     colPickAll:"Select every item on screen in this column",
     colPickNone:"Clear every item in this column",
     colPickAllShort:"all", colPickNoneShort:"clear",
+    selectedSuffix:"selected",
     theme:"Theme", sair:"Sign out", sairTip:"End the Central de Acesso session",
+    custosBtn:"Costs", custosTip:"Open the full cost table in a new tab",
     adminTitle:"Cost matrix",
     adminHint:"Update each product's cost and the app recalculates every price automatically. Export to edit in a spreadsheet and import it back.",
     exportBtn:"Export costs (XLSX)", importBtn:"Import spreadsheet (XLSX)",
@@ -1732,9 +1851,9 @@ const I18N = {
     viewingLegacy:"Viewing previous table — Sales rep 18% (JAN/26)",
     coefTitle:"Sales Coefficients by Version",
     coefHint:"Adjust margin, commission, ICMS and PIS/COFINS for each version. Every price table is recalculated automatically.",
-    coefMarkup:"Markup", coefMargem:"Margin", coefComissao:"Commission", coefVartabs:"Var. between tables",
+    coefAjuste:"Adjustment", coefMargem:"Margin", coefComissao:"Commission", coefVartabs:"Var. between tables",
     coefIcms:"ICMS", coefPis:"PIS/COFINS",
-    coefMarkupHint:"\"Markup\" is informational only — how many times the cost the price represents (e.g. 1.45 = price is 1.45× the cost), considering ICMS, PIS/COFINS (excluding ICMS from its base), commission and margin. It can't be edited directly.",
+    coefAjusteHint:"\"Adjustment\" is not applied in the current price formula — kept only as a reference from the original spreadsheet.",
     coefReset:"Restore this version's original values",
     coefSave:"Save changes",
     coefResetConfirm:"Restore the original values for this version? Changes made to it will be lost.",
@@ -1777,30 +1896,8 @@ function marginFromPrice(cost, icms, pis, price, commission){
   return 1 - (icms + pis*(1-icms)) - comm - (cost/price);
 }
 
+function roleOf(key){ return key.indexOf('ger') === 0 ? 'ger' : 'repr'; }
 function icmsOf(key){ return key.match(/\d+/)[0]; }
-
-// O Representante nunca teve uma sistemática própria de coeficientes: sempre
-// foi a mesma tabela da Gerência, só sem a Tabela 5. Em vez de manter repr18/
-// 17/4 como versões editáveis à parte (a extinta "aba de representante" do
-// painel de Coeficientes), elas agora só espelham as 4 primeiras colunas da
-// versão Gerência correspondente — a chave repr* continua existindo apenas
-// porque o Supabase (wgi_precos_repr / wgi_price_coefficients) ainda lê preços
-// do Representante por esse version_key.
-const REPR_TABLE_COUNT = 4;
-function syncReprFromGer(gerKey){
-  const reprKey = 'repr' + icmsOf(gerKey);
-  const gp = DATA.params[gerKey];
-  const rp = DATA.params[reprKey];
-  if(!gp || !rp) return;
-  rp.icms = gp.icms;
-  rp.pis = gp.pis;
-  rp.margins = gp.margins.slice(0, REPR_TABLE_COUNT);
-  rp.commissions = gp.commissions.slice(0, REPR_TABLE_COUNT);
-}
-// Rótulo de uma coluna de tabela pelo índice (0-based). A 5ª (índice 4) só
-// existe na Gerência — sem equivalente no Representante — então usa o texto
-// "Gerência" em vez de "Tabela 5"; as demais continuam "Tabela 1".."Tabela 4".
-function tierLabel(i){ return i===REPR_TABLE_COUNT ? t('ger') : (t('tableCol')+' '+(i+1)); }
 
 // O servidor devolve as linhas em ordem de código. A tabela sempre foi
 // exibida na ordem do catálogo, então reordenamos para o representante ver
@@ -1825,10 +1922,9 @@ function currentBlock(){
       rows: lg.rows, isLegacy:true
     };
   }
-  // Na Gerência, a tabela em tela sempre espelha a versão Gerência selecionada
-  // no painel de Coeficientes (ger18/17/4, já com as 5 tabelas) — assim dá pra
-  // simular o efeito de uma mudança antes de salvar. As colunas 1-4 dessa
-  // simulação também valem para o Representante (syncReprFromGer).
+  // Na Gerência, a tabela em tela sempre espelha a versão selecionada no painel
+  // de Coeficientes (repr18/17/4 ou ger18/17/4) — assim dá pra simular o efeito
+  // de uma mudança antes de salvar, inclusive nas tabelas de Representante.
   const key = state.audience === 'gerencia' ? state.coefVersion : PARAM_KEY[state.audience+'-'+state.icms];
   const p = DATA.params[key];
   // Gerência calcula na hora (precisa disso para simular antes de salvar).
@@ -1862,35 +1958,17 @@ function computeVarTabs(key){
   const denom = p.margins.map((m,i)=>1-(base+(p.commissions[i]||0)+m));
   return denom.map((d,i)=> i===denom.length-1 ? 0 : (denom[i+1]/d)-1);
 }
-// Markup: quantas vezes o custo o preço representa — 100/(100-soma), com
-// soma = ICMS + PIS/COFINS + comissão + margem. O PIS/COFINS não incide
-// sobre o ICMS: sua base é (1-ICMS), a mesma que computePrice já usa no
-// denominador do preço. Só informativo — não é campo editável.
-function computeMarkup(key){
-  const p = DATA.params[key];
-  const base = p.icms + p.pis*(1-p.icms); // PIS/COFINS fora da base do ICMS
-  return p.margins.map((m,i)=>{
-    const denom = 1 - (base + (p.commissions[i]||0) + m);
-    return denom > 0.0001 ? 1/denom : null; // markup impossível
-  });
-}
 
-// Painel de Coeficientes: só existe a Gerência aqui (ver syncReprFromGer),
-// então o rótulo "Gerência" é redundante — as abas diferenciam só por ICMS.
 function versionLabelFor(key){
   const p = DATA.params[key];
-  return Math.round(p.icms*100) + '%';
+  const lbl = state.lang==='en' ? p.label_en : p.label;
+  return lbl + ' ' + Math.round(p.icms*100) + '%';
 }
 
-// Só existe uma sistemática de coeficientes por ICMS agora (repr18/17/4
-// deixaram de ter aba própria aqui — ver syncReprFromGer). O painel inteiro
-// já é exclusivo da Gerência, então as abas diferenciam só por ICMS (sem
-// repetir "Gerência" — ver versionLabelFor) e cada uma mostra as 5 tabelas
-// direto, sem lógica condicional de audiência.
 function renderCoefTabs(){
   const wrap = document.getElementById('coefTabs');
   wrap.innerHTML = '';
-  Object.keys(DATA.params).filter(key=>key.indexOf('ger')===0).forEach(key=>{
+  Object.keys(DATA.params).forEach(key=>{
     const b = document.createElement('button');
     b.className = 'coef-tab' + (state.coefVersion === key ? ' active' : '');
     b.textContent = versionLabelFor(key);
@@ -1913,7 +1991,7 @@ function coefInput(value, cls, extraAttrs){
 function renderCoefPanel(){
   document.getElementById('txt-coefTitle').textContent = t('coefTitle');
   document.getElementById('txt-coefHint').textContent = t('coefHint');
-  document.getElementById('txt-coefMarkupHint').textContent = t('coefMarkupHint');
+  document.getElementById('txt-coefAjusteHint').textContent = t('coefAjusteHint');
   document.getElementById('txt-coefReset').textContent = t('coefReset');
   document.getElementById('txt-coefSave').textContent = t('coefSave');
 
@@ -1923,13 +2001,9 @@ function renderCoefPanel(){
   const p = DATA.params[key];
   const n = p.margins.length;
   const varTabs = computeVarTabs(key);
-  const markup = computeMarkup(key);
   const locale = state.lang==='en' ? 'en-US' : 'pt-BR';
   const pctFmt = v => (v*100).toLocaleString(locale, {minimumFractionDigits:2, maximumFractionDigits:2});
   const pctInput = v => (v*100).toFixed(2); // sempre com ponto — exigido por <input type="number">
-  // Markup como multiplicador do custo (ex.: 1,45 = preço é 1,45× o custo),
-  // não como percentual — diferente das outras linhas da tabela.
-  const markupFmt = v => v.toLocaleString(locale, {minimumFractionDigits:2, maximumFractionDigits:2});
 
   const table = document.getElementById('coefTable');
   // table-layout fixo: a primeira coluna (rótulos) tem largura fixa e as
@@ -1938,22 +2012,22 @@ function renderCoefPanel(){
   for(let i=0;i<n;i++){ cols += '<col>'; }
   cols += '</colgroup>';
   let thead = '<thead><tr><th></th>';
-  for(let i=0;i<n;i++){ thead += '<th>'+tierLabel(i)+'</th>'; }
+  for(let i=0;i<n;i++){ thead += '<th>'+t('tableCol')+' '+(i+1)+'</th>'; }
   thead += '</tr></thead>';
 
-  let rowMarkup = '<tr><th>'+t('coefMarkup')+'</th>';
+  let rowAjuste = '<tr><th>'+t('coefAjuste')+'</th>';
   let rowMargem = '<tr><th>'+t('coefMargem')+'</th>';
   let rowComissao = '<tr><th>'+t('coefComissao')+'</th>';
   let rowVarTabs = '<tr><th>'+t('coefVartabs')+'</th>';
   for(let i=0;i<n;i++){
-    rowMarkup += '<td class="coef-readonly">'+(markup[i]===null ? '—' : markupFmt(markup[i]))+'</td>';
+    rowAjuste += '<td>'+coefInput(pctInput(p.adjust[i]), 'coef-in', 'data-field="adjust" data-index="'+i+'"')+'</td>';
     rowMargem += '<td class="coef-yellow">'+coefInput(pctInput(p.margins[i]), 'coef-in', 'data-field="margins" data-index="'+i+'"')+'</td>';
     rowComissao += '<td>'+coefInput(pctInput(p.commissions[i]), 'coef-in', 'data-field="commissions" data-index="'+i+'"')+'</td>';
     rowVarTabs += '<td class="coef-readonly">'+pctFmt(varTabs[i])+'%</td>';
   }
-  rowMarkup += '</tr>'; rowMargem += '</tr>'; rowComissao += '</tr>'; rowVarTabs += '</tr>';
+  rowAjuste += '</tr>'; rowMargem += '</tr>'; rowComissao += '</tr>'; rowVarTabs += '</tr>';
 
-  table.innerHTML = cols + thead + '<tbody>' + rowMargem + rowComissao + rowMarkup + rowVarTabs + '</tbody>';
+  table.innerHTML = cols + thead + '<tbody>' + rowMargem + rowComissao + rowAjuste + rowVarTabs + '</tbody>';
 
   // ICMS e PIS/COFINS são os mesmos para toda a versão: ficam numa faixa
   // acima da tabela, e não em uma coluna lateral (economiza largura).
@@ -2009,7 +2083,6 @@ function onCoefChange(e){
   } else {
     p[field][parseInt(idx,10)] = frac;
   }
-  syncReprFromGer(state.coefVersion); // Tabela 1-4 do Representante seguem junto, ao vivo
   renderCoefPanel();
   render(); // simula: recalcula e mostra a tabela na hora, sem salvar ainda
 }
@@ -2018,23 +2091,16 @@ document.getElementById('coefResetBtn').onclick = ()=>{
   if(!window.confirm(t('coefResetConfirm'))) return;
   const key = state.coefVersion;
   DATA.params[key] = JSON.parse(JSON.stringify(DEFAULT_PARAMS[key]));
-  syncReprFromGer(key);
   renderCoefPanel();
   render();
 };
 
 document.getElementById('coefSaveBtn').onclick = async ()=>{
   const key = state.coefVersion;
-  const reprKey = 'repr' + icmsOf(key);
   const btn = document.getElementById('coefSaveBtn');
   btn.disabled = true;
-  syncReprFromGer(key);
-  await Promise.all([
-    saveCoefficientsToSupabase(key),
-    saveCoefficientsToSupabase(reprKey)
-  ]);
+  await saveCoefficientsToSupabase(key);
   SAVED_PARAMS[key] = JSON.parse(JSON.stringify(DATA.params[key]));
-  SAVED_PARAMS[reprKey] = JSON.parse(JSON.stringify(DATA.params[reprKey]));
   updateCoefDirtyUI();
   showAdminMsg(t('coefUpdated'), true);
 };
@@ -2077,9 +2143,10 @@ function applyStaticTexts(){
   document.getElementById('txt-subtitle').textContent = t('subtitle');
   document.getElementById('txt-profileTitle').textContent = t('profileTitle');
   document.getElementById('txt-moduleLabel').textContent = t('moduleLabel');
-  document.getElementById('txt-btn-repr').textContent = t('profileRepr');
-  document.getElementById('txt-btn-ger').textContent = t('profileGer');
+  document.getElementById('txt-btn-repr').textContent = t('repr');
+  document.getElementById('txt-btn-ger').textContent = t('ger');
   document.getElementById('txt-versionLabel').textContent = t('versionLabel');
+  document.getElementById('txt-versionLabel2').textContent = t('versionLabel');
   document.getElementById('txt-btn-vigente').textContent = t('versionVigente');
   document.getElementById('txt-btn-anterior').textContent = t('versionAnterior');
   document.getElementById('txt-versionHint').textContent = t('versionHint');
@@ -2092,11 +2159,17 @@ function applyStaticTexts(){
   document.getElementById('themeBtn').textContent = t('theme');
   const bSair = document.getElementById('sairBtn');
   if(bSair){ bSair.textContent = t('sair'); bSair.title = t('sairTip'); }
+  const bCustos = document.getElementById('custosBtn');
+  if(bCustos){
+    document.getElementById('txt-custosBtn').textContent = t('custosBtn');
+    bCustos.title = t('custosTip');
+  }
   document.getElementById('txt-quoteTitle').textContent = t('quoteTitle');
   document.getElementById('txt-quoteBtn').textContent = t('quoteBtn');
   document.getElementById('txt-quoteClientLabel').textContent = t('quoteClientLabel');
   document.getElementById('quoteClient').placeholder = t('quoteClientPlaceholder');
   document.getElementById('txt-selNone').textContent = t('selNone');
+  document.getElementById('txt-quoteHint').textContent = t('quoteHint');
   renderQuoteCollapse();
   document.getElementById('txt-adminTitle').textContent = t('adminTitle');
   document.getElementById('txt-adminHint').textContent = t('adminHint') + ' ' + t('adminHintFull');
@@ -2277,7 +2350,7 @@ function simCount(){
 // coluna de simulação.
 function quoteColOptions(block){
   const opts = [];
-  block.margins.forEach((m,i)=>{ opts.push({ value:String(i), label:tierLabel(i) }); });
+  block.margins.forEach((m,i)=>{ opts.push({ value:String(i), label:t('tableCol')+' '+(i+1) }); });
   if(state.audience === 'gerencia' && !block.isLegacy){
     opts.push({ value:'sim', label:t('quoteSimOption') });
   }
@@ -2425,6 +2498,8 @@ function render(){
   renderCatChips(block);
   renderQuoteCount();
 
+  document.getElementById('versionNote').textContent = block.date + ' · ' + block.note;
+
   const showMargin = state.audience === 'gerencia';
   const quote = state.quoteMode;
   // As colunas de simulação são da Gerência, dependem do módulo "Visualizar
@@ -2441,18 +2516,20 @@ function render(){
   // cliente, não material interno.
   const showMarginPct = showMargin && !quote;
   const tierCount = block.margins.length;
-  const tierLabels = block.margins.map((m,i)=> tierLabel(i));
+  const tierLabels = block.margins.map((m,i)=> t('tableCol') + ' ' + (i+1));
   const shownTiers = block.margins.map((m,i)=>i);
 
+  // Tanto o orçamento quanto a "tabela em PDF" saem apenas com os itens
+  // marcados: são dois documentos diferentes da MESMA seleção.
+  const soMarcados = quote || state.tableMode;
+
   let rows = block.rows;
-  if(quote){
+  if(soMarcados){
     // O orçamento traz exatamente os itens marcados pelo usuário — nada
     // além disso. Os filtros de categoria e busca são só para NAVEGAR na
-    // tela; se ficarem ativos, não podem esconder do orçamento um item que
-    // já foi selecionado (ele pode ter sido marcado numa categoria ou busca
-    // diferente da que está em tela agora). A "lista de preços completa" em
-    // PDF é outro documento: sai com os MESMOS filtros da tela, sem exigir
-    // seleção — é a tabela inteira, não um recorte por cliente.
+    // tela; se ficarem ativos, não podem esconder do PDF um item que já
+    // foi selecionado (ele pode ter sido marcado numa categoria ou busca
+    // diferente da que está em tela agora).
     rows = rows.filter(r => state.selRows[r.code]);
   } else {
     const selCats = Object.keys(state.cats).filter(k=>state.cats[k]);
@@ -2484,24 +2561,17 @@ function render(){
   // resumo para impressão
   const modTxt = state.audience==='gerencia' ? t('ger') : t('repr');
   const icmsTxt = (state.audience==='gerencia' && state.versionMode==='anterior') ? '18%' : state.icms+'%';
-  // Data e hora da geração, em fonte pequena numa linha própria — dá pra
-  // saber se um PDF já impresso está desatualizado em relação à tela atual.
-  const locale = state.lang==='en' ? 'en-US' : 'pt-BR';
-  const now = new Date();
-  const stampTxt = t('printedAt') + ' ' + now.toLocaleDateString(locale)
-    + ' ' + now.toLocaleTimeString(locale, {hour:'2-digit', minute:'2-digit'});
-  const stampHtml = '<span class="print-stamp">' + stampTxt + '</span>';
   if(quote){
     const cli = (state.quoteClient||'').trim();
     document.getElementById('printSummary').innerHTML =
-      t('quoteDocTitle') + ' · ICMS ' + icmsTxt
+      t('quoteDocTitle') + ' &nbsp;<span class="icms-badge">ICMS ' + icmsTxt + '</span>&nbsp;'
       + (cli ? ' · ' + t('quoteClientPrefix') + ' ' + cli : '')
-      + stampHtml;
+      + ' · ' + new Date().toLocaleDateString(state.lang==='en'?'en-US':'pt-BR');
   } else {
     document.getElementById('printSummary').innerHTML =
-      t('title') + ' · ICMS ' + icmsTxt + ' · '
+      t('title') + ' &nbsp;<span class="icms-badge">ICMS ' + icmsTxt + '</span>&nbsp; · '
       + modTxt + ' · ' + block.date + ' · ' + block.note
-      + stampHtml;
+      + (state.tableMode ? ' · ' + rows.length + ' ' + t('selectedSuffix') : '');
   }
 
   if(rows.length === 0){
@@ -2516,11 +2586,7 @@ function render(){
 
       const heading = document.createElement('div');
       heading.className = 'cat-heading';
-      // No orçamento em si (quote) não há preço pra clicar — a orientação só
-      // faz sentido na tabela normal, onde cada preço é clicável.
-      heading.innerHTML = '<h2>'+catLabel(catName)+'</h2>'
-        + (quote ? '' : '<span class="cat-hint">'+t('catPickHint')+'</span>')
-        + '<span class="cat-count">'+catRows.length+' '+t('itemsSuffix')+'</span>';
+      heading.innerHTML = '<h2>'+catLabel(catName)+'</h2><span class="cat-count">'+catRows.length+' '+t('itemsSuffix')+'</span>';
       section.appendChild(heading);
 
       const table = document.createElement('table');
@@ -2587,8 +2653,14 @@ function render(){
         } else {
           shownTiers.forEach(i=>{
             const on = (picked === String(i));
+            // data-comm: a comissão daquela tabela viaja junto do preço. No
+            // celular a ficha mostra "Tabela N | preço | comissão" na mesma
+            // linha, e a linha de comissões do rodapé fica escondida.
+            const ci = block.commissions[i];
+            const cTxt = (ci !== null && ci !== undefined) ? fmtPct(ci) : '';
             tds += '<td class="price pick-cell'+(on?' picked':'')+'"'
                 +  ' data-code="'+escAttr(r.code)+'" data-col="'+i+'"'
+                +  ' data-comm="'+escAttr(cTxt)+'"'
                 +  ' data-label="'+tierLabels[i]+'">'+fmtBRL(r.prices[i])+'</td>';
           });
         }
@@ -2711,7 +2783,7 @@ function render(){
   document.getElementById('content').appendChild(foot);
 
   // Fora do orçamento, liga os controles de seleção da tabela
-  if(!state.quoteMode) bindSelection(block, codigosEmTela);
+  if(!state.quoteMode && !state.tableMode) bindSelection(block, codigosEmTela);
   // Os inputs de simulação só existem com o módulo aberto
   if(showSim) bindSimInputs(block);
 
@@ -2875,7 +2947,7 @@ document.querySelectorAll('#icmsSeg button').forEach(btn=>{
     state.icms = btn.dataset.val;
     state.cats = {};
     state.simPrices = {}; state.simComms = {}; state.simMargins = {}; // muda a tabela base -> zera a simulação
-    if(state.audience==='gerencia'){ state.coefVersion = 'ger' + state.icms; }
+    if(state.audience==='gerencia'){ state.coefVersion = roleOf(state.coefVersion) + state.icms; }
     render();
   };
 });
@@ -2885,12 +2957,17 @@ document.getElementById('searchInput').addEventListener('input', (e)=>{
 });
 
 // ---------- PDF (impressão) ----------
-// "Gerar lista de preços completa" não depende de seleção: imprime a tabela
-// exatamente como está em tela, com todos os itens que passam pelos filtros
-// atuais (ICMS, categoria, busca) — ao contrário do orçamento, que só leva
-// os itens marcados pelo usuário.
+// A tabela de preços em PDF sai com os MESMOS itens marcados que o orçamento
+// usaria — a diferença é o formato: aqui vão todas as colunas de tabela, lá
+// vai só o preço escolhido de cada item.
 document.getElementById('pdfBtn').onclick = ()=>{
-  window.print();
+  if(selectedRowCount() === 0){
+    window.alert(t('pdfEmpty'));
+    return;
+  }
+  state.tableMode = true;
+  render();
+  setTimeout(()=>{ window.print(); }, 80);
 };
 
 // ---------- Admin: export / import custos ----------
@@ -3132,8 +3209,9 @@ document.getElementById('quoteBtn').onclick = ()=>{
   setTimeout(()=>{ window.print(); }, 80);
 };
 window.addEventListener('afterprint', ()=>{
-  if(state.quoteMode){
+  if(state.quoteMode || state.tableMode){
     state.quoteMode = false;
+    state.tableMode = false;
     render();
   }
 });
@@ -3183,6 +3261,12 @@ window.addEventListener('afterprint', ()=>{
 (function(){
   const btn = document.getElementById('txt-btn-ger');
   if(btn) btn.classList.toggle('locked', !MODO_GER);
+  // A tabela de custos completa é área de gestão: o atalho só existe para
+  // quem entrou com credencial de gestão, igual à coluna de custo e aos
+  // painéis de coeficientes. (O wendell-custos tem o guard dele próprio;
+  // esconder aqui é para o representante não ver um atalho que não abre.)
+  const bCustos = document.getElementById('custosBtn');
+  if(bCustos) bCustos.hidden = !MODO_GER;
 })();
 
 render();
