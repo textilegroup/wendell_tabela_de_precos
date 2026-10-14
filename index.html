@@ -462,9 +462,9 @@ table.price-table{
    todas as tabelas saem com as MESMAS colunas e a borda direita dos cards fica
    alinhada. Em px, não em ch: o ch de um th (9,5px) é outro tamanho do ch de
    uma célula (12px), e o cálculo viraria adivinhação. */
-.price-table th:first-child{min-width:132px;}                  /* código: 7GCP120HPF 0100 */
-.price-table th:nth-child(2){min-width:110px;}                 /* cor: Branco Óptico */
-.price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col){min-width:74px;}
+.price-table th.code-col{min-width:132px;}                     /* código: 7GCP120HPF 0100 */
+.price-table th.color-col{min-width:110px;}                    /* cor: Branco Óptico */
+.price-table th:not(.left):not(.ipi-col):not(.cost-col):not(.sim-col):not(.adm-col){min-width:74px;}
 .price-table th.cost-col{min-width:74px;}
 .price-table th.ipi-col{min-width:58px;}
 .price-table thead th{
@@ -888,6 +888,37 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
    pelos 1900px da tela. Um campo de busca não precisa disso. */
 .field.search-field{flex:0 1 560px; max-width:560px;}
 
+/* ===== Coluna de administração (só Gerência, nunca no papel) =====
+   Olho = aparece ou não na tabela do Representante. Setas = ordem dentro da
+   família. As duas coisas vivem no banco, não no navegador: o que o gestor
+   decide aqui é o que o representante abre depois. */
+th.adm-col, td.adm-col{
+  width:71px; min-width:71px; white-space:nowrap; text-align:left !important;
+  padding-left:6px !important; padding-right:3px !important;
+}
+.adm-ctl{display:inline-flex; align-items:center; gap:1px;}
+.adm-ctl button{
+  display:inline-grid; place-items:center;
+  width:21px; height:21px; padding:0;
+  border:1px solid transparent; border-radius:6px;
+  background:transparent; color:var(--ink-3); cursor:pointer;
+  transition:color .12s ease, background .12s ease, border-color .12s ease;
+}
+.adm-ctl button:hover:not(:disabled){
+  color:var(--wine-ink);
+  background:color-mix(in srgb, var(--wine) 9%, transparent);
+  border-color:color-mix(in srgb, var(--wine) 26%, transparent);
+}
+.adm-ctl button:disabled{opacity:.22; cursor:default;}
+.adm-ctl button.ocupado{opacity:.4; cursor:progress;}
+.adm-ctl .adm-eye.off{color:var(--neg);}
+.adm-ctl .ico{width:13px; height:13px;}
+.adm-ctl .adm-move .ico{width:11px; height:11px;}
+/* Linha que o representante não vê: fica em segundo plano, mas legível */
+tr.row-oculto td{opacity:.48;}
+tr.row-oculto td.adm-col{opacity:1;}
+tr.row-oculto td.code{text-decoration:line-through; text-decoration-thickness:1px;}
+
 /* ===== Aviso de marcação de célula (toast) ===== */
 #toastWrap{
   position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
@@ -939,7 +970,7 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   .price-table tbody tr.commission-row{display:none;}
 
   .price-table tbody tr{
-    display:grid; grid-template-columns:auto 1fr auto;
+    display:grid; grid-template-columns:auto 1fr auto auto;
     align-items:baseline;
     padding:6px 10px 7px;
     border-top:1px solid var(--line-2);
@@ -977,6 +1008,12 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
     grid-column:3; grid-row:1;
     font-size:10.5px; color:var(--ink-2); font-weight:600;
   }
+  /* Controles de gestão no canto da primeira linha da ficha */
+  .price-table tbody td.adm-col{
+    grid-column:4; grid-row:1; justify-self:end;
+    padding:0 0 0 8px !important;
+  }
+  .adm-ctl button{width:24px; height:24px;}
   .price-table tbody td.ipi::before{
     content:attr(data-label) " "; font-size:8.5px; font-weight:700;
     letter-spacing:.07em; color:var(--ink-2);
@@ -1227,6 +1264,10 @@ th.sim-group-head:not(.collapsed) button.sim-group-btn .ico{width:10px; height:1
   <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m14.5 5-7 7 7 7"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5 10-11"/></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M9.9 5.8A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3 3.9"/><path d="M6.4 7.7A17 17 0 0 0 2.5 12S6 18.5 12 18.5a9.3 9.3 0 0 0 3.8-.8"/><path d="M10 10a2.8 2.8 0 0 0 4 4"/><path d="m4 4 16 16"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5.5"/><path d="m6.5 11 5.5-5.5 5.5 5.5"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v13.5"/><path d="m6.5 13 5.5 5.5 5.5-5.5"/></symbol>
   <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4.5h5.5V10"/><path d="M19.5 4.5 11 13"/><path d="M18 14.5V19a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H10"/></symbol>
 </svg>
 
@@ -1558,7 +1599,10 @@ async function loadFromSupabase(){
 
       DATA.products = (data.products || []).map(p=>({
         cat: p.cat, code: p.code, color: p.color,
-        cost: Number(p.cost), ipi: Number(p.ipi)
+        cost: Number(p.cost), ipi: Number(p.ipi),
+        // wgi_precos_ger devolve TODOS os produtos, com a marca de visibilidade;
+        // wgi_precos_repr já vem filtrado pelo servidor.
+        visivel: p.visivel !== false
       }));
       normalizeCategories(DATA.products);
 
@@ -1761,6 +1805,13 @@ const I18N = {
     selectedSuffix:"selecionados",
     theme:"Tema", sair:"Sair", sairTip:"Encerrar a sessão da Central de Acesso",
     custosBtn:"Custos", custosTip:"Abrir a tabela de custos completa em outra aba",
+    admColTip:"Visibilidade e ordem",
+    hideTip:"Ocultar este item da tabela do Representante",
+    showTip:"Mostrar este item na tabela do Representante",
+    upTip:"Subir o item dentro da família",
+    downTip:"Descer o item dentro da família",
+    admHidden:"Oculto para o Representante", admShown:"Visível para o Representante",
+    admMoved:"Ordem alterada", admErro:"Não foi possível salvar no banco",
     adminTitle:"Matriz de custos",
     adminHint:"Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.",
     exportBtn:"Exportar custos (XLSX)", importBtn:"Importar planilha (XLSX)",
@@ -1837,6 +1888,13 @@ const I18N = {
     selectedSuffix:"selected",
     theme:"Theme", sair:"Sign out", sairTip:"End the Central de Acesso session",
     custosBtn:"Costs", custosTip:"Open the full cost table in a new tab",
+    admColTip:"Visibility and order",
+    hideTip:"Hide this item from the Sales rep table",
+    showTip:"Show this item on the Sales rep table",
+    upTip:"Move the item up within its family",
+    downTip:"Move the item down within its family",
+    admHidden:"Hidden from the Sales rep", admShown:"Visible to the Sales rep",
+    admMoved:"Order changed", admErro:"Could not save to the database",
     adminTitle:"Cost matrix",
     adminHint:"Update each product's cost and the app recalculates every price automatically. Export to edit in a spreadsheet and import it back.",
     exportBtn:"Export costs (XLSX)", importBtn:"Import spreadsheet (XLSX)",
@@ -1904,11 +1962,11 @@ function icmsOf(key){ return key.match(/\d+/)[0]; }
 // exatamente a mesma sequência de antes. Produto novo, que ainda não existe
 // no catálogo do arquivo, entra no fim em vez de sumir.
 function ordemOriginal(rows){
-  return rows.slice().sort((a,b)=>{
-    const ia = ORDEM_CATALOGO[a.code] === undefined ? Number.MAX_SAFE_INTEGER : ORDEM_CATALOGO[a.code];
-    const ib = ORDEM_CATALOGO[b.code] === undefined ? Number.MAX_SAFE_INTEGER : ORDEM_CATALOGO[b.code];
-    return ia - ib || a.code.localeCompare(b.code);
-  });
+  // O servidor já entrega na ordem certa — `order by category, ordem, code` —
+  // e essa ordem agora é editável na Gerência. Reordenar aqui pelo índice do
+  // bloco app-data (ORDEM_CATALOGO, montado ANTES do carregamento) desfazia
+  // exatamente o que o gestor acabou de salvar.
+  return rows.slice();
 }
 
 function currentBlock(){
@@ -1933,6 +1991,7 @@ function currentBlock(){
   const rows = MODO_GER
     ? DATA.products.map(prod=>({
         cat: prod.cat, code: prod.code, color: prod.color, ipi: prod.ipi,
+        visivel: prod.visivel !== false,
         cost: prod.cost, // necessário para calcular a margem da simulação
         prices: p.margins.map((m,i)=>computePrice(prod.cost, p.icms, p.pis, m, p.commissions[i]))
       }))
@@ -2435,6 +2494,104 @@ function colPickBtn(col, codes, block){
        + '</button>';
 }
 
+// ---------- Gerência: visibilidade e ordem dos itens ----------
+// Olho: grava wgi_products.visivel. O filtro mora no servidor
+// (wgi_precos_calc tem `where coalesce(p.visivel, true)`), então o item oculto
+// simplesmente não é devolvido ao representante — o preço dele nem chega ao
+// navegador do representante.
+// Setas: wgi_produto_mover troca a `ordem` com o vizinho da MESMA família.
+let admOcupado = false;
+
+function admCell(r, pos){
+  const vis = r.visivel !== false;
+  const noTopo = !pos || pos.i === 0;
+  const noFim  = !pos || pos.i === pos.n - 1;
+  const btn = (cls, extra, tip, icone, off) =>
+      '<button class="' + cls + (off ? ' off' : '') + '" type="button"'
+    + ' data-code="' + escAttr(r.code) + '"' + extra
+    + ' title="' + escAttr(tip) + '">'
+    + '<svg class="ico" aria-hidden="true"><use href="#' + icone + '"></use></svg></button>';
+  return '<td class="adm-col no-print"><span class="adm-ctl">'
+    + btn('adm-eye', ' data-vis="' + (vis ? '1' : '0') + '" aria-pressed="' + (vis ? 'true' : 'false') + '"',
+          vis ? t('hideTip') : t('showTip'), vis ? 'i-eye' : 'i-eye-off', !vis)
+    + btn('adm-move', ' data-dir="cima"'  + (noTopo ? ' disabled' : ''), t('upTip'),   'i-arrow-up')
+    + btn('adm-move', ' data-dir="baixo"' + (noFim  ? ' disabled' : ''), t('downTip'), 'i-arrow-down')
+    + '</span></td>';
+}
+
+// Posição de cada item dentro da família, medida sobre o catálogo INTEIRO e
+// não sobre o que está filtrado em tela: é ela que decide se a seta ainda pode
+// subir ou descer. Com busca ligada, a posição em tela mentiria.
+function posPorCategoria(){
+  const porCat = {}, mapa = {};
+  (DATA.products || []).forEach(p=>{ (porCat[p.cat] = porCat[p.cat] || []).push(p.code); });
+  Object.keys(porCat).forEach(c=>{
+    porCat[c].forEach((code,i)=>{ mapa[code] = { i: i, n: porCat[c].length }; });
+  });
+  return mapa;
+}
+
+// Depois de mover, releio a lista do servidor em vez de adivinhar a nova ordem
+// aqui — é uma chamada pequena e evita que a tela discorde do banco.
+async function recarregarProdutos(){
+  try{
+    const { data, error } = await supabase.rpc('wgi_precos_ger');
+    if(error || !data) return false;
+    DATA.products = (data.products || []).map(p=>({
+      cat: p.cat, code: p.code, color: p.color,
+      cost: Number(p.cost), ipi: Number(p.ipi), visivel: p.visivel !== false
+    }));
+    normalizeCategories(DATA.products);
+    return true;
+  }catch(e){ return false; }
+}
+
+function admFalhou(btn, code, err, oque){
+  admOcupado = false;
+  btn.classList.remove('ocupado');
+  console.warn('Falha ao ' + oque + ':', describeError(err), err);
+  toast('<span>' + t('admErro') + '</span><b>' + escAttr(code) + '</b>', true);
+}
+
+function bindAdmControls(){
+  document.querySelectorAll('button.adm-eye').forEach(btn=>{
+    btn.addEventListener('click', async (ev)=>{
+      ev.stopPropagation();
+      if(admOcupado) return;
+      admOcupado = true; btn.classList.add('ocupado');
+      const code = btn.dataset.code;
+      const novo = btn.dataset.vis !== '1';
+      const { error } = await supabase.rpc('wgi_produto_visivel',
+                                           { p_code: code, p_visivel: novo });
+      if(error){ admFalhou(btn, code, error, 'salvar a visibilidade'); return; }
+      const prod = (DATA.products || []).find(p=>p.code === code);
+      if(prod) prod.visivel = novo;
+      admOcupado = false;
+      toast('<span>' + (novo ? t('admShown') : t('admHidden')) + '</span>'
+            + '<b>' + escAttr(code) + '</b>', !novo);
+      render();
+    });
+  });
+  document.querySelectorAll('button.adm-move').forEach(btn=>{
+    btn.addEventListener('click', async (ev)=>{
+      ev.stopPropagation();
+      if(admOcupado || btn.disabled) return;
+      admOcupado = true; btn.classList.add('ocupado');
+      const code = btn.dataset.code;
+      const { data, error } = await supabase.rpc('wgi_produto_mover',
+                                                { p_code: code, p_direcao: btn.dataset.dir });
+      if(error){ admFalhou(btn, code, error, 'mover o produto'); return; }
+      if(data && data.movido === false){
+        admOcupado = false; btn.classList.remove('ocupado'); return;
+      }
+      await recarregarProdutos();
+      admOcupado = false;
+      toast('<span>' + t('admMoved') + '</span><b>' + escAttr(code) + '</b>');
+      render();
+    });
+  });
+}
+
 // Seleção do orçamento direto na célula: clicar no preço escolhe aquele item
 // naquela coluna; clicar de novo na mesma célula tira o item da seleção.
 function bindSelection(block, codigosEmTela){
@@ -2515,6 +2672,10 @@ function render(){
   // No orçamento não entram margens nem comissões — é documento para o
   // cliente, não material interno.
   const showMarginPct = showMargin && !quote;
+  // Coluna de gestão (olho + setas): Gerência, na tabela vigente, fora do
+  // orçamento e fora do PDF de itens selecionados.
+  const showAdm = showMargin && !block.isLegacy && !quote && !state.tableMode;
+  const posCat = showAdm ? posPorCategoria() : {};
   const tierCount = block.margins.length;
   const tierLabels = block.margins.map((m,i)=> t('tableCol') + ' ' + (i+1));
   const shownTiers = block.margins.map((m,i)=>i);
@@ -2593,7 +2754,11 @@ function render(){
       table.className = 'price-table' + (quote ? ' quote-only' : '');
 
       let thead = '<thead><tr>';
-      thead += '<th class="left">'+t('codeCol')+'</th><th class="left">'+t('colorCol')+'</th>';
+      if(showAdm){
+        thead += '<th class="adm-col no-print" title="'+escAttr(t('admColTip'))+'"></th>';
+      }
+      thead += '<th class="left code-col">'+t('codeCol')+'</th>'
+            +  '<th class="left color-col">'+t('colorCol')+'</th>';
       if(quote){
         // O orçamento traz só o preço escolhido — de qual tabela ele saiu é
         // controle interno e não vai para o documento do cliente.
@@ -2646,6 +2811,8 @@ function render(){
         // O item entra no orçamento clicando direto no preço desejado.
         const picked = state.selRows[r.code] ? rowColOf(r.code, block) : null;
         if(picked !== null) tr.classList.add('row-selected');
+        if(r.visivel === false) tr.classList.add('row-oculto');
+        if(showAdm){ tds += admCell(r, posCat[r.code]); }
         tds += '<td class="code" data-label="'+t('codeCol')+'">'+r.code+'</td>';
         tds += '<td class="color-cell" data-label="'+t('colorCol')+'"><span class="swatch" style="background:'+hex+'"></span>'+colorLabel(r.color||'—')+'</td>';
         if(quote){
@@ -2744,7 +2911,8 @@ function render(){
       // A coluna de marcação some no PDF, então ela precisa ser uma célula
       // própria — se entrasse no colspan do rótulo, os percentuais sairiam
       // deslocados uma coluna na impressão.
-      let cTds = '<td class="commission-label" colspan="2">'+t('commissionsLabel')+'</td>';
+      let cTds = (showAdm ? '<td class="adm-col no-print"></td>' : '')
+               + '<td class="commission-label" colspan="2">'+t('commissionsLabel')+'</td>';
       shownTiers.forEach(i=>{
         const c = block.commissions[i];
         cTds += '<td class="commission-value" data-label="'+tierLabels[i]+'">'
@@ -2786,6 +2954,8 @@ function render(){
   if(!state.quoteMode && !state.tableMode) bindSelection(block, codigosEmTela);
   // Os inputs de simulação só existem com o módulo aberto
   if(showSim) bindSimInputs(block);
+  // Olho e setas da Gerência
+  if(showAdm) bindAdmControls();
 
   if(typeof fitTablesToScreen === 'function') fitTablesToScreen();
 }
