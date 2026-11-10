@@ -10,8 +10,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@400;500;600;700&display=swap">
-<!-- SheetJS: leitura e geração dos arquivos .xlsx -->
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
 /* =====================================================================
    WGI — Lista de Preços
@@ -1211,6 +1209,9 @@ tr.row-oculto td.code{text-decoration:line-through; text-decoration-thickness:1p
   .col-pick{display:none !important;}
   /* Na tela o card tem a largura da tabela; no papel ele ocupa a folha. */
   .cat-block{width:auto !important;}
+  /* Item oculto para o representante não entra na folha: o PDF é a lista de
+     preços, não o cadastro. Na tela da Gerência ele continua, riscado. */
+  tr.row-oculto{display:none !important;}
   /* Nada de destaque de seleção no PDF: o realce de escolha é só de tela.
      Especificidade alta de propósito — as regras de tela usam !important. */
   .price-table tbody tr.row-selected td,
@@ -1387,19 +1388,6 @@ tr.row-oculto td.code{text-decoration:line-through; text-decoration-thickness:1p
     </div>
   </section>
 
-  <section class="panel admin-panel no-print" id="adminPanel" style="display:none;">
-    <div class="panel-title-row"><h3 class="panel-title" id="txt-adminTitle">Matriz de custos</h3></div>
-    <p class="admin-hint" id="txt-adminHint">Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.</p>
-    <div class="admin-actions">
-      <button class="btn btn-outline" id="exportBtn"><svg class="ico" aria-hidden="true"><use href="#i-download"></use></svg><span id="txt-exportBtn">Exportar custos (XLSX)</span></button>
-      <button class="btn btn-outline" id="exportFullBtn"><svg class="ico" aria-hidden="true"><use href="#i-download"></use></svg><span id="txt-exportFullBtn">Exportar planilha completa (XLSX)</span></button>
-      <label class="btn btn-primary file-btn"><svg class="ico" aria-hidden="true"><use href="#i-upload"></use></svg><span id="txt-importBtn">Importar planilha (XLSX)</span>
-        <input type="file" id="importInput" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-      </label>
-    </div>
-    <div class="admin-msg" id="adminMsg"></div>
-  </section>
-
   <section class="panel admin-panel no-print" id="coefPanel" style="display:none;">
     <div class="panel-title-row"><h3 class="panel-title" id="txt-coefTitle">Coeficientes de Venda por Versão</h3></div>
     <p class="admin-hint" id="txt-coefHint">Ajuste margem, comissão, ICMS e PIS/COFINS de cada versão. Os preços de todas as tabelas são recalculados automaticamente.</p>
@@ -1415,6 +1403,7 @@ tr.row-oculto td.code{text-decoration:line-through; text-decoration-thickness:1p
       <button class="btn btn-ghost coef-reset" id="coefResetBtn"><span id="txt-coefReset">Restaurar valores originais desta versão</span></button>
       <button class="btn btn-primary" id="coefSaveBtn"><span id="txt-coefSave">Salvar alterações</span></button>
     </div>
+    <div class="admin-msg" id="adminMsg"></div>
   </section>
 
   <section class="panel no-print" id="quotePanel">
@@ -1673,20 +1662,6 @@ async function loadFromSupabase(){
 }
 
 // ---------- Grava alterações de volta no Supabase ----------
-async function saveProductsToSupabase(products){
-  if(!products || !products.length) return;
-  const rows = products.map(p=>({ code: p.code, category: p.cat, color: p.color, cost: p.cost, ipi: p.ipi, updated_at: new Date().toISOString() }));
-  const { error } = await supabase.from('wgi_products').upsert(rows, { onConflict: 'code' });
-  if(error){
-    const detail = describeError(error);
-    console.warn('Falha ao salvar produtos no Supabase:', detail, error);
-    setDbStatus('Falha ao salvar produtos. Detalhe: ' + detail, false);
-    showAdminMsg(t('saveError'), false);
-  } else {
-    setDbStatus('Custos salvos no Supabase com sucesso.', true);
-  }
-}
-
 async function saveCoefficientsToSupabase(versionKey){
   const p = DATA.params[versionKey];
   if(!p) return;
@@ -1703,6 +1678,32 @@ async function saveCoefficientsToSupabase(versionKey){
   } else {
     setDbStatus('Coeficientes salvos no Supabase com sucesso.', true);
   }
+}
+
+// ---------- O catálogo segue a lista de custos ----------
+// A lista de produtos da tabela de preços é a da lista de custos do Wendell
+// Custos (guia "Lista de preços"). Antes de carregar, a gestão sincroniza: o
+// que apareceu lá entra aqui. Como a lista de custos não traz IPI nem cor, o
+// item novo entra OCULTO — aparece na Gerência riscado, esperando conferência
+// e o clique no olho. Quem não é gestão não sincroniza nada: já recebe do
+// servidor a lista pronta.
+let SYNC_INFO = null;
+if(MODO_GER){
+  try{
+    const { data, error } = await supabase.rpc('wgi_produtos_sincronizar');
+    if(error){
+      console.warn('Falha ao sincronizar o catálogo:', describeError(error), error);
+    } else {
+      SYNC_INFO = data;
+      if(data && data.n_novos){
+        console.info('[catálogo] ' + data.n_novos + ' item(ns) novo(s) da lista de custos: '
+                     + (data.novos || []).join(', '));
+      }
+      if(data && (data.orfaos || []).length){
+        console.info('[catálogo] sem custo na lista: ' + data.orfaos.join(', '));
+      }
+    }
+  }catch(e){ console.warn('Falha ao sincronizar o catálogo:', e); }
 }
 
 await loadFromSupabase();
@@ -1812,15 +1813,9 @@ const I18N = {
     downTip:"Descer o item dentro da família",
     admHidden:"Oculto para o Representante", admShown:"Visível para o Representante",
     admMoved:"Ordem alterada", admErro:"Não foi possível salvar no banco",
-    adminTitle:"Matriz de custos",
-    adminHint:"Atualize o custo de cada produto e o app recalcula todos os preços automaticamente. Exporte para editar em planilha e importe de volta.",
-    exportBtn:"Exportar custos (XLSX)", importBtn:"Importar planilha (XLSX)",
-    exportFullBtn:"Exportar planilha completa (XLSX)",
-    adminHintFull:"A planilha completa traz custo e todos os preços (linha = produto, colunas para a direita). Ao importar, são aplicados Código, Categoria, Cor, Custo e IPI — os preços são recalculados pelo app.",
-    importSuccess:(n)=> n + " produto(s) atualizado(s).",
-    importAdded:"novo(s)",
-    exportOk:(n)=> "Planilha gerada com " + n + " produto(s).",
-    importError:"Não foi possível importar o arquivo. Verifique o formato da planilha.",
+    syncNovos:(n)=> n + (n === 1
+      ? " item novo da lista de custos — entrou oculto, confira IPI e cor"
+      : " itens novos da lista de custos — entraram ocultos, confira IPI e cor"),
     saveError:"Não foi possível salvar no banco. As alterações valem só nesta tela.",
     printSummary:(mod,icmsTxt,dateTxt,noteTxt)=> mod+' · '+icmsTxt+' · '+dateTxt+' · '+noteTxt,
     viewingLegacy:"Visualizando tabela anterior — Representante 18% (JAN/26)",
@@ -1895,15 +1890,9 @@ const I18N = {
     downTip:"Move the item down within its family",
     admHidden:"Hidden from the Sales rep", admShown:"Visible to the Sales rep",
     admMoved:"Order changed", admErro:"Could not save to the database",
-    adminTitle:"Cost matrix",
-    adminHint:"Update each product's cost and the app recalculates every price automatically. Export to edit in a spreadsheet and import it back.",
-    exportBtn:"Export costs (XLSX)", importBtn:"Import spreadsheet (XLSX)",
-    exportFullBtn:"Export full spreadsheet (XLSX)",
-    adminHintFull:"The full spreadsheet has cost and every price (one row per product, columns expanding to the right). On import, Code, Category, Color, Cost and IPI are applied — prices are recalculated by the app.",
-    importSuccess:(n)=> n + " product(s) updated.",
-    importAdded:"new",
-    exportOk:(n)=> "Spreadsheet generated with " + n + " product(s).",
-    importError:"Could not import the file. Check the spreadsheet format.",
+    syncNovos:(n)=> n + (n === 1
+      ? " new item from the cost list — added hidden, check IPI and colour"
+      : " new items from the cost list — added hidden, check IPI and colour"),
     saveError:"Could not save to the database. Changes apply to this screen only.",
     printSummary:(mod,icmsTxt,dateTxt,noteTxt)=> mod+' · '+icmsTxt+' · '+dateTxt+' · '+noteTxt,
     viewingLegacy:"Viewing previous table — Sales rep 18% (JAN/26)",
@@ -2230,11 +2219,6 @@ function applyStaticTexts(){
   document.getElementById('txt-selNone').textContent = t('selNone');
   document.getElementById('txt-quoteHint').textContent = t('quoteHint');
   renderQuoteCollapse();
-  document.getElementById('txt-adminTitle').textContent = t('adminTitle');
-  document.getElementById('txt-adminHint').textContent = t('adminHint') + ' ' + t('adminHintFull');
-  document.getElementById('txt-exportBtn').textContent = t('exportBtn');
-  document.getElementById('txt-exportFullBtn').textContent = t('exportFullBtn');
-  document.getElementById('txt-importBtn').textContent = t('importBtn');
   document.getElementById('txt-footerNote').textContent = t('footerNote');
   document.getElementById('txt-pwTitle').innerHTML = withIcon('i-lock', t('pwTitle'));
   document.getElementById('txt-pwText').textContent = t('pwText');
@@ -2274,7 +2258,6 @@ document.getElementById('quoteToggle').addEventListener('click', ()=>{
 function renderControls(){
   const isGer = state.audience === 'gerencia';
   document.getElementById('versionModeGroup').style.display = isGer ? 'flex' : 'none';
-  document.getElementById('adminPanel').style.display = isGer ? 'block' : 'none';
   document.getElementById('coefPanel').style.display = isGer ? 'block' : 'none';
   if(isGer) renderCoefPanel();
 
@@ -3140,216 +3123,12 @@ document.getElementById('pdfBtn').onclick = ()=>{
   setTimeout(()=>{ window.print(); }, 80);
 };
 
-// ---------- Admin: export / import custos ----------
+// ---------- Aviso do painel de Coeficientes ----------
 function showAdminMsg(msg, ok){
   const el = document.getElementById('adminMsg');
   el.textContent = msg;
   el.className = 'admin-msg ' + (ok ? 'ok' : 'err');
 }
-
-// ---------- Planilhas XLSX (SheetJS) ----------
-// Cabeçalhos aceitos na importação (a comparação ignora acentos e maiúsculas).
-const SHEET_COLS = {
-  code:   ['codigo','code'],
-  cat:    ['categoria','category','familia','família'],
-  color:  ['cor','color'],
-  cost:   ['custo','cost'],
-  ipi:    ['ipi','excise tax (ipi)','excise tax']
-};
-function normHeader(s){
-  return String(s == null ? '' : s).trim().toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-}
-function findCol(header, keys){
-  for(let i=0;i<header.length;i++){
-    if(keys.indexOf(normHeader(header[i])) >= 0) return i;
-  }
-  return -1;
-}
-// Aceita "2,214" e "2.214" — o Excel pt-BR grava com vírgula.
-function parseNum(v){
-  if(v === null || v === undefined || v === '') return NaN;
-  if(typeof v === 'number') return v;
-  return parseFloat(String(v).trim().replace(',', '.'));
-}
-// Monta uma aba a partir de uma matriz linha/coluna.
-// pctCols / numCols recebem índices de coluna que devem sair formatados como
-// porcentagem ou número com casas decimais no Excel.
-function buildSheet(aoa, colWidths, pctCols, numCols){
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-  if(colWidths) ws['!cols'] = colWidths.map(w=>({wch:w}));
-  ws['!freeze'] = { xSplit:0, ySplit:1 };
-  const fmt = (cols, z)=>{
-    if(!cols) return;
-    for(let r=1; r<aoa.length; r++){
-      cols.forEach(c=>{
-        const ref = XLSX.utils.encode_cell({r:r, c:c});
-        if(ws[ref] && ws[ref].t === 'n') ws[ref].z = z;
-      });
-    }
-  };
-  fmt(pctCols, '0.00%');
-  fmt(numCols, '0.0000');
-  return ws;
-}
-function downloadWorkbook(sheets, fileName){
-  const wb = XLSX.utils.book_new();
-  sheets.forEach(s=>{ XLSX.utils.book_append_sheet(wb, s.ws, s.name); });
-  XLSX.writeFile(wb, fileName);
-}
-function downloadSheet(aoa, sheetName, fileName, colWidths){
-  downloadWorkbook([{ name: sheetName, ws: buildSheet(aoa, colWidths) }], fileName);
-}
-
-// Aba "Coeficientes": a sistemática que gera cada preço das tabelas.
-// preço = custo / (1 - (ICMS + PIS/COFINS×(1-ICMS) + comissão + margem))
-// Uma linha por versão × tabela, com o multiplicador final sobre o custo.
-function buildCoefSheet(){
-  const header = ['Versao','Perfil','ICMS','PIS/COFINS','Impostos efetivos',
-                  'Tabela','Margem','Comissao','Soma no markup','Denominador',
-                  'Multiplicador sobre o custo','Preco de um custo de R$ 1,00'];
-  const aoa = [header];
-  Object.keys(DATA.params).forEach(key=>{
-    const v = DATA.params[key];
-    const perfil = (key.indexOf('ger') === 0) ? 'Gerencia' : 'Representante';
-    const impostos = v.icms + v.pis*(1 - v.icms);
-    v.margins.forEach((m,i)=>{
-      const comm = v.commissions[i] || 0;
-      const soma = impostos + comm + m;
-      const denom = 1 - soma;
-      const mult = denom > 0.0001 ? (1/denom) : null;
-      aoa.push([
-        key, perfil, v.icms, v.pis, impostos,
-        'Tabela ' + (i+1), m, comm, soma, denom,
-        mult === null ? '' : Math.round(mult*10000)/10000,
-        mult === null ? '' : Math.round(mult*100)/100
-      ]);
-    });
-  });
-  const widths = [12,15,9,12,17,10,10,10,15,13,26,26];
-  // colunas em % : ICMS, PIS, impostos, margem, comissão, soma, denominador
-  return buildSheet(aoa, widths, [2,3,4,6,7,8,9], [10,11]);
-}
-function stamp(){
-  const d = new Date(), pad = n => String(n).padStart(2,'0');
-  return d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate());
-}
-
-// ---------- Exportação 1: só custos ----------
-document.getElementById('exportBtn').onclick = ()=>{
-  const aoa = [['Codigo','Categoria','Cor','Custo','IPI']];
-  DATA.products.forEach(p=>{
-    aoa.push([p.code, p.cat, p.color, Number(p.cost),
-              (p.ipi !== null && p.ipi !== undefined) ? Number(p.ipi) : '']);
-  });
-  downloadSheet(aoa, 'Custos', 'wgi_custos_' + stamp() + '.xlsx', [20,16,16,12,10]);
-  showAdminMsg(t('exportOk')(DATA.products.length), true);
-};
-
-// ---------- Exportação 2: planilha completa ----------
-// Uma linha por produto; colunas crescendo para a direita:
-// Codigo | Categoria | Cor | Custo | IPI | <preço de cada versão x cada tabela>
-// Sem títulos de seção, sem linhas em branco, sem agrupamento — só grade.
-document.getElementById('exportFullBtn').onclick = ()=>{
-  const versions = Object.keys(DATA.params);
-  const header = ['Codigo','Categoria','Cor','Custo','IPI'];
-  const priceCols = [];
-  versions.forEach(key=>{
-    const v = DATA.params[key];
-    const role = (key.indexOf('ger') === 0) ? 'Gerencia' : 'Representante';
-    const icmsTxt = Math.round(v.icms*100) + '%';
-    v.margins.forEach((m,i)=>{
-      header.push(role + ' ICMS ' + icmsTxt + ' - Tabela ' + (i+1));
-      priceCols.push({ key: key, tier: i });
-    });
-  });
-  const aoa = [header];
-  DATA.products.forEach(p=>{
-    const row = [p.code, p.cat, p.color, Number(p.cost),
-                 (p.ipi !== null && p.ipi !== undefined) ? Number(p.ipi) : ''];
-    priceCols.forEach(pc=>{
-      const v = DATA.params[pc.key];
-      const price = computePrice(p.cost, v.icms, v.pis, v.margins[pc.tier], v.commissions[pc.tier]);
-      row.push(price === null ? '' : Math.round(price*100)/100);
-    });
-    aoa.push(row);
-  });
-  const widths = [20,16,16,12,10].concat(priceCols.map(()=>22));
-  downloadWorkbook([
-    { name: 'Tabela de precos', ws: buildSheet(aoa, widths, [4]) },
-    { name: 'Coeficientes',     ws: buildCoefSheet() }
-  ], 'wgi_tabela_completa_' + stamp() + '.xlsx');
-  showAdminMsg(t('exportOk')(DATA.products.length), true);
-};
-
-// ---------- Importação: aceita a planilha de custos ou a completa ----------
-// Só Codigo, Categoria, Cor, Custo e IPI são aplicados; as colunas de preço
-// são saída calculada e por isso ignoradas na leitura.
-document.getElementById('importInput').addEventListener('change', function(e){
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(ev){
-    try{
-      const wb = XLSX.read(new Uint8Array(ev.target.result), { type:'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      if(!ws) throw new Error('empty');
-      const aoa = XLSX.utils.sheet_to_json(ws, { header:1, blankrows:false, defval:'' });
-      if(aoa.length < 2) throw new Error('empty');
-
-      const header = aoa[0];
-      const iCode  = findCol(header, SHEET_COLS.code);
-      const iCost  = findCol(header, SHEET_COLS.cost);
-      const iCat   = findCol(header, SHEET_COLS.cat);
-      const iColor = findCol(header, SHEET_COLS.color);
-      const iIpi   = findCol(header, SHEET_COLS.ipi);
-      if(iCode < 0 || iCost < 0) throw new Error('headers');
-
-      const byCode = {};
-      DATA.products.forEach(p=>{ byCode[String(p.code).trim().toLowerCase()] = p; });
-
-      let updated = 0, added = 0;
-      for(let r=1; r<aoa.length; r++){
-        const row = aoa[r] || [];
-        const code = String(row[iCode] == null ? '' : row[iCode]).trim();
-        if(!code) continue;
-        const cost = parseNum(row[iCost]);
-        if(isNaN(cost)) continue;
-
-        let prod = byCode[code.toLowerCase()];
-        if(!prod){
-          // Produto novo na planilha entra no catálogo
-          prod = { code: code, cat: '9. Especiais', color: '', cost: 0, ipi: 0 };
-          DATA.products.push(prod);
-          byCode[code.toLowerCase()] = prod;
-          added++;
-        } else {
-          updated++;
-        }
-        prod.cost = cost;
-        if(iCat   >= 0 && String(row[iCat]).trim()   !== '') prod.cat   = String(row[iCat]).trim();
-        if(iColor >= 0 && String(row[iColor]).trim() !== '') prod.color = String(row[iColor]).trim();
-        if(iIpi   >= 0){
-          const ipi = parseNum(row[iIpi]);
-          if(!isNaN(ipi)) prod.ipi = ipi;
-        }
-      }
-      if(updated === 0 && added === 0) throw new Error('none');
-
-      // A família continua sendo definida pelo prefixo do código
-      normalizeCategories(DATA.products);
-      showAdminMsg(t('importSuccess')(updated + added)
-        + (added ? ' (' + added + ' ' + t('importAdded') + ')' : ''), true);
-      render();
-      saveProductsToSupabase(DATA.products);
-    }catch(err){
-      console.warn('Falha ao importar planilha:', err);
-      showAdminMsg(t('importError'), false);
-    }
-    e.target.value = '';
-  };
-  reader.readAsArrayBuffer(file);
-});
 
 // ---------- Botões do orçamento ----------
 document.getElementById('simCtlToggle').onclick = ()=>{
@@ -3440,6 +3219,16 @@ window.addEventListener('afterprint', ()=>{
 })();
 
 render();
+
+// Catálogo sincronizado: avisa uma vez, já com a tela montada.
+if(SYNC_INFO && SYNC_INFO.n_novos){
+  const novos = SYNC_INFO.novos || [];
+  setTimeout(()=>{
+    toast('<span>' + t('syncNovos')(SYNC_INFO.n_novos) + '</span>'
+        + '<b>' + escAttr(novos.slice(0, 3).join(', ')) + '</b>'
+        + (novos.length > 3 ? '<span class="tcount">+' + (novos.length - 3) + '</span>' : ''));
+  }, 500);
+}
 </script>
 </body>
 </html>
