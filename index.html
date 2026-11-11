@@ -2257,6 +2257,11 @@ document.getElementById('quoteToggle').addEventListener('click', ()=>{
 
 function renderControls(){
   const isGer = state.audience === 'gerencia';
+  // A tabela de custos completa é área de gestão: o atalho acompanha o módulo
+  // aberto, não a credencial. No módulo Representante ele some mesmo para quem
+  // entrou como gestão — é a tela do representante que está em exibição.
+  const bCustos = document.getElementById('custosBtn');
+  if(bCustos) bCustos.hidden = !(isGer && MODO_GER);
   document.getElementById('versionModeGroup').style.display = isGer ? 'flex' : 'none';
   document.getElementById('coefPanel').style.display = isGer ? 'block' : 'none';
   if(isGer) renderCoefPanel();
@@ -3210,12 +3215,6 @@ window.addEventListener('afterprint', ()=>{
 (function(){
   const btn = document.getElementById('txt-btn-ger');
   if(btn) btn.classList.toggle('locked', !MODO_GER);
-  // A tabela de custos completa é área de gestão: o atalho só existe para
-  // quem entrou com credencial de gestão, igual à coluna de custo e aos
-  // painéis de coeficientes. (O wendell-custos tem o guard dele próprio;
-  // esconder aqui é para o representante não ver um atalho que não abre.)
-  const bCustos = document.getElementById('custosBtn');
-  if(bCustos) bCustos.hidden = !MODO_GER;
 })();
 
 render();
