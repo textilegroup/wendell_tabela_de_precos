@@ -54,7 +54,7 @@
   /* simulação (só Gerência, nunca no PDF) */
   --sim-bg:#FBF6EA; --sim-bg-on:#F3E8CE; --sim-sel:#2C6B4F;
   /* campos editáveis (coeficientes) */
-  --edit-bg:#FBF0C4;
+  --edit-bg:#FBF0C4; --edit-bg-ok:#E9F3DA;
   --overlay:rgba(38,37,42,.55);
 }
 
@@ -76,7 +76,7 @@
     --ipi-ink:var(--ink-2); --ipi-border:var(--line);
     --cost-ink:var(--ink-3); --cost-border:var(--line);
     --sim-bg:#282217; --sim-bg-on:#3A3120; --sim-sel:#5FA37E;
-    --edit-bg:#3A3120;
+    --edit-bg:#3A3120; --edit-bg-ok:#26331D;
     --wine-ink:#C4536A;
     --overlay:rgba(10,9,12,.62);
   }
@@ -97,7 +97,7 @@
   --ipi-ink:var(--ink-2); --ipi-border:var(--line);
   --cost-ink:var(--ink-3); --cost-border:var(--line);
   --sim-bg:#282217; --sim-bg-on:#3A3120; --sim-sel:#5FA37E;
-  --edit-bg:#3A3120;
+  --edit-bg:#3A3120; --edit-bg-ok:#26331D;
   --wine-ink:#C4536A;
   --overlay:rgba(10,9,12,.62);
 }
@@ -381,8 +381,8 @@ table.coef-table input{
   padding:4px 2px; text-align:center;
 }
 table.coef-table input:focus{outline:2px solid var(--s2); outline-offset:-1px;}
-td.coef-yellow{background:var(--edit-bg);}
-td.coef-yellow input{background:var(--edit-bg);}
+td.coef-yellow{background:var(--edit-bg-ok);}
+td.coef-yellow input{background:var(--edit-bg-ok);}
 td.coef-readonly{background:var(--sunk); color:var(--ink-2); font-weight:600;}
 @media (max-width:560px){
   table.coef-table th, table.coef-table td{padding:4px 2px; font-size:10.5px;}
@@ -1899,7 +1899,7 @@ const I18N = {
     coefUpdated:"Coeficientes salvos no Supabase — válido para todo mundo agora.",
     coefDiscard:"Descartar alterações",
     coefBarTitle:"Simulação em edição",
-    coefBarSub:"Os preços ainda não mudaram. Atribua para ver o efeito na tabela.",
+    coefBarSub:"Os preços ainda não mudaram. Atribua para simular na tabela — e, mesmo depois de atribuir, será preciso salvar para publicar.",
     coefBarApply:"Atribuir mudanças à tabela",
     coefBarCancel:"Descartar",
     coefNaoPubTitulo:"Atribuído, mas ainda não publicado.",
@@ -1985,7 +1985,7 @@ const I18N = {
     coefUpdated:"Coefficients saved to Supabase — live for everyone now.",
     coefDiscard:"Discard changes",
     coefBarTitle:"Simulation in progress",
-    coefBarSub:"Prices have not changed yet. Apply to see the effect on the table.",
+    coefBarSub:"Prices have not changed yet. Apply to simulate on the table — and even after applying, you still have to save to publish.",
     coefBarApply:"Apply changes to the table",
     coefBarCancel:"Discard",
     coefNaoPubTitulo:"Applied, but not published yet.",
