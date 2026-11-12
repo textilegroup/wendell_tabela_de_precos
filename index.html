@@ -917,6 +917,61 @@ tr.row-oculto td{opacity:.48;}
 tr.row-oculto td.adm-col{opacity:1;}
 tr.row-oculto td.code{text-decoration:line-through; text-decoration-thickness:1px;}
 
+/* ===== Coeficientes: simular, atribuir, publicar =====
+   Com edição pendente o resto da tela sai de foco: o que está em jogo é só a
+   tabela de coeficientes, e a barra do rodapé é a única saída. */
+body.coef-foco .wgi-header,
+body.coef-foco .page > *:not(#coefPanel),
+body.coef-foco .hub-footer{
+  filter:blur(3px); opacity:.5;
+  pointer-events:none; user-select:none;
+}
+body.coef-foco #coefPanel{
+  position:relative; z-index:60;
+  box-shadow:0 0 0 2px var(--s2), 0 12px 44px rgba(0,0,0,.18);
+}
+/* Trocar de versão no meio de uma edição perderia o que foi digitado. */
+body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
+
+#coefBar{
+  position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+  z-index:125; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  background:var(--card); color:var(--ink);
+  border:1px solid var(--line); border-left:3px solid var(--s2);
+  border-radius:12px; box-shadow:0 12px 44px rgba(0,0,0,.24);
+  padding:11px 16px; max-width:calc(100vw - 24px);
+}
+#coefBar[hidden]{display:none !important;}
+#coefBar .cb-txt{font-size:12px; font-weight:700; line-height:1.35;}
+#coefBar .cb-txt small{
+  display:block; font-size:11px; font-weight:500; color:var(--ink-2); margin-top:2px;
+}
+#coefBar .cb-acoes{display:flex; gap:8px; margin-left:auto;}
+
+/* Atribuído e ainda no forno: o aviso deixa de ser uma linha discreta */
+.coef-alerta{
+  display:flex; align-items:flex-start; gap:10px;
+  margin:12px 0 0; padding:10px 13px;
+  background:color-mix(in srgb, var(--s2) 12%, transparent);
+  border:1px solid color-mix(in srgb, var(--s2) 45%, transparent);
+  border-left:3px solid var(--s2);
+  border-radius:9px;
+  font-size:11.5px; line-height:1.45; color:var(--ink);
+}
+.coef-alerta .ico{color:var(--s2); flex:none; margin-top:1px;}
+.coef-alerta[hidden]{display:none !important;}
+@media (max-width:720px){
+  #coefBar{left:12px; right:12px; transform:none; max-width:none;}
+  #coefBar .cb-acoes{margin-left:0; width:100%;}
+  #coefBar .cb-acoes .btn{flex:1; justify-content:center;}
+}
+@media print{
+  body.coef-foco .wgi-header,
+  body.coef-foco .page > *,
+  body.coef-foco .hub-footer{filter:none !important; opacity:1 !important;}
+  #coefBar, .coef-alerta{display:none !important;}
+}
+
 /* ===== Aviso de marcação de célula (toast) ===== */
 #toastWrap{
   position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
@@ -1265,6 +1320,7 @@ tr.row-oculto td.code{text-decoration:line-through; text-decoration-thickness:1p
   <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m14.5 5-7 7 7 7"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5 10-11"/></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.5 2.8 20h18.4L12 4.5Z"/><path d="M12 10v4.5"/><path d="M12 17.4h.01"/></symbol>
   <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
   <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M9.9 5.8A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3 3.9"/><path d="M6.4 7.7A17 17 0 0 0 2.5 12S6 18.5 12 18.5a9.3 9.3 0 0 0 3.8-.8"/><path d="M10 10a2.8 2.8 0 0 0 4 4"/><path d="m4 4 16 16"/></symbol>
   <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5.5"/><path d="m6.5 11 5.5-5.5 5.5 5.5"/></symbol>
@@ -1273,6 +1329,15 @@ tr.row-oculto td.code{text-decoration:line-through; text-decoration-thickness:1p
 </svg>
 
 <div id="toastWrap" class="no-print" aria-live="polite" aria-atomic="false"></div>
+
+<!-- Barra da simulação de coeficientes: só aparece com edição pendente. -->
+<div id="coefBar" class="no-print" hidden role="status" aria-live="polite">
+  <span class="cb-txt" id="txt-coefBarTxt"></span>
+  <span class="cb-acoes">
+    <button class="btn btn-ghost" id="coefBarCancel" type="button"><span id="txt-coefBarCancel">Descartar</span></button>
+    <button class="btn btn-primary" id="coefBarApply" type="button"><span id="txt-coefBarApply">Atribuir mudanças à tabela</span></button>
+  </span>
+</div>
 
 <script>
   // A impressão em A4 RETRATO usa tamanhos fixos definidos no @media print do
@@ -1398,9 +1463,10 @@ tr.row-oculto td.code{text-decoration:line-through; text-decoration-thickness:1p
       <div class="coef-scroll"><table class="coef-table" id="coefTable"></table></div>
     </div>
     <p class="coef-hint" id="txt-coefAjusteHint">"Ajuste" não é aplicado na fórmula de preço atual — mantido apenas como referência da planilha original.</p>
-    <p class="coef-hint" id="coefDirtyMsg" style="display:none;"></p>
+    <div class="coef-alerta" id="coefDirtyMsg" hidden></div>
     <div class="admin-actions">
       <button class="btn btn-ghost coef-reset" id="coefResetBtn"><span id="txt-coefReset">Restaurar valores originais desta versão</span></button>
+      <button class="btn btn-ghost" id="coefDiscardBtn" hidden><span id="txt-coefDiscard">Descartar alterações</span></button>
       <button class="btn btn-primary" id="coefSaveBtn"><span id="txt-coefSave">Salvar alterações</span></button>
     </div>
     <div class="admin-msg" id="adminMsg"></div>
@@ -1444,6 +1510,7 @@ tr.row-oculto td.code{text-decoration:line-through; text-decoration-thickness:1p
             <button class="sim-mode-opt" data-mode="precoPelaMargem" id="txt-simCtlB">Preço pela margem</button>
           </span>
         </div>
+        <button class="btn btn-outline" id="pdfFullBtn"><svg class="ico" aria-hidden="true"><use href="#i-print"></use></svg><span id="txt-pdfFullBtn">Gerar tabela completa em PDF</span></button>
         <button class="btn btn-outline" id="pdfBtn"><svg class="ico" aria-hidden="true"><use href="#i-print"></use></svg><span id="txt-pdfBtn">Gerar PDF</span></button>
       </div>
     </div>
@@ -1800,6 +1867,8 @@ const I18N = {
     pwPlaceholder:"Senha", pwError:"Senha incorreta. Tente novamente.", cancel:"Cancelar", enter:"Entrar",
     pdfBtn:"Gerar tabela em PDF com itens selecionados",
     pdfEmpty:"Marque ao menos um item para gerar a tabela em PDF.",
+    pdfFullBtn:"Gerar tabela completa em PDF",
+    pdfFullEmpty:"Não há itens na tela para gerar a tabela em PDF.",
     colPickAll:"Marcar todos os itens em tela nesta coluna",
     colPickNone:"Limpar todos os itens desta coluna",
     colPickAllShort:"todos", colPickNoneShort:"limpar",
@@ -1827,7 +1896,14 @@ const I18N = {
     coefReset:"Restaurar valores originais desta versão",
     coefSave:"Salvar alterações",
     coefResetConfirm:"Restaurar os valores originais desta versão? As alterações feitas nela serão perdidas.",
-    coefUpdated:"Coeficientes salvos no Supabase — válido para todo mundo agora."
+    coefUpdated:"Coeficientes salvos no Supabase — válido para todo mundo agora.",
+    coefDiscard:"Descartar alterações",
+    coefBarTitle:"Simulação em edição",
+    coefBarSub:"Os preços ainda não mudaram. Atribua para ver o efeito na tabela.",
+    coefBarApply:"Atribuir mudanças à tabela",
+    coefBarCancel:"Descartar",
+    coefNaoPubTitulo:"Atribuído, mas ainda não publicado.",
+    coefNaoPubTexto:"Os preços na tela já são os da simulação; o representante continua vendo os antigos. Salve para publicar, ou descarte para voltar ao que está no ar."
   },
   en:{
     title:"Price List", subtitle:"Wendell Global Interlining",
@@ -1877,6 +1953,8 @@ const I18N = {
     pwPlaceholder:"Password", pwError:"Incorrect password. Try again.", cancel:"Cancel", enter:"Enter",
     pdfBtn:"Generate PDF table with selected items",
     pdfEmpty:"Select at least one item to generate the PDF table.",
+    pdfFullBtn:"Generate full PDF table",
+    pdfFullEmpty:"There are no items on screen to generate the PDF table.",
     colPickAll:"Select every item on screen in this column",
     colPickNone:"Clear every item in this column",
     colPickAllShort:"all", colPickNoneShort:"clear",
@@ -1904,7 +1982,14 @@ const I18N = {
     coefReset:"Restore this version's original values",
     coefSave:"Save changes",
     coefResetConfirm:"Restore the original values for this version? Changes made to it will be lost.",
-    coefUpdated:"Coefficients saved to Supabase — live for everyone now."
+    coefUpdated:"Coefficients saved to Supabase — live for everyone now.",
+    coefDiscard:"Discard changes",
+    coefBarTitle:"Simulation in progress",
+    coefBarSub:"Prices have not changed yet. Apply to see the effect on the table.",
+    coefBarApply:"Apply changes to the table",
+    coefBarCancel:"Discard",
+    coefNaoPubTitulo:"Applied, but not published yet.",
+    coefNaoPubTexto:"The prices on screen are the simulated ones; the sales rep still sees the old ones. Save to publish, or discard to go back to what is live."
   }
 };
 
@@ -1999,8 +2084,16 @@ function currentBlock(){
 }
 
 // ---------- Coeficientes de venda (margem, comissão, ICMS, PIS/COFINS) ----------
+// Enquanto a edição está pendente, o painel mostra o que está sendo simulado
+// — inclusive a linha "Var. entre tabelas" — sem tocar nos preços ainda.
+let COEF_PEND = null;   // { key, params } — cópia em edição, fora do DATA
+function coefPendente(){ return !!(COEF_PEND && COEF_PEND.key === state.coefVersion); }
+function coefAtual(key){
+  return (COEF_PEND && COEF_PEND.key === key) ? COEF_PEND.params : DATA.params[key];
+}
+
 function computeVarTabs(key){
-  const p = DATA.params[key];
+  const p = coefAtual(key);
   const base = p.icms + p.pis*(1-p.icms);
   // mesmo denominador do preço: impostos + comissão + margem
   const denom = p.margins.map((m,i)=>1-(base+(p.commissions[i]||0)+m));
@@ -2042,11 +2135,14 @@ function renderCoefPanel(){
   document.getElementById('txt-coefAjusteHint').textContent = t('coefAjusteHint');
   document.getElementById('txt-coefReset').textContent = t('coefReset');
   document.getElementById('txt-coefSave').textContent = t('coefSave');
+  document.getElementById('txt-coefDiscard').textContent = t('coefDiscard');
+  document.getElementById('txt-coefBarApply').textContent = t('coefBarApply');
+  document.getElementById('txt-coefBarCancel').textContent = t('coefBarCancel');
 
   renderCoefTabs();
 
   const key = state.coefVersion;
-  const p = DATA.params[key];
+  const p = coefAtual(key);
   const n = p.margins.length;
   const varTabs = computeVarTabs(key);
   const locale = state.lang==='en' ? 'en-US' : 'pt-BR';
@@ -2102,20 +2198,31 @@ function isDirty(key){
 }
 
 function updateCoefDirtyUI(){
-  const key = state.coefVersion;
-  const dirty = isDirty(key);
-  const msg = document.getElementById('coefDirtyMsg');
-  const saveBtn = document.getElementById('coefSaveBtn');
-  if(dirty){
-    msg.style.display = 'block';
-    msg.textContent = state.lang==='en'
-      ? '● Unsaved simulation — prices below already reflect it. Click "Save changes" to apply it for everyone.'
-      : '● Simulação não salva — os preços abaixo já refletem essa mudança. Clique em "Salvar alterações" para valer pra todo mundo.';
-    saveBtn.disabled = false;
-  } else {
-    msg.style.display = 'none';
-    saveBtn.disabled = true;
+  const key   = state.coefVersion;
+  const pend  = coefPendente();                 // digitado, não atribuído
+  const naoPub = !pend && isDirty(key);         // atribuído, não publicado
+
+  // 1) edição pendente: tela fora de foco e barra no rodapé
+  document.body.classList.toggle('coef-foco', pend);
+  const bar = document.getElementById('coefBar');
+  if(bar){
+    bar.hidden = !pend;
+    if(pend){
+      document.getElementById('txt-coefBarTxt').innerHTML =
+        escAttr(t('coefBarTitle')) + '<small>' + escAttr(t('coefBarSub')) + '</small>';
+    }
   }
+
+  // 2) atribuído e ainda não publicado: aviso em destaque e o par salvar/descartar
+  const alerta = document.getElementById('coefDirtyMsg');
+  alerta.hidden = !naoPub;
+  if(naoPub){
+    alerta.innerHTML = '<svg class="ico" aria-hidden="true"><use href="#i-alert"></use></svg>'
+      + '<span><b>' + escAttr(t('coefNaoPubTitulo')) + '</b> '
+      + escAttr(t('coefNaoPubTexto')) + '</span>';
+  }
+  document.getElementById('coefSaveBtn').disabled = !naoPub;
+  document.getElementById('coefDiscardBtn').hidden = !naoPub;
 }
 
 function onCoefChange(e){
@@ -2124,20 +2231,46 @@ function onCoefChange(e){
   const idx = el.dataset.index;
   const raw = parseFloat(String(el.value).replace(',', '.'));
   if(isNaN(raw)) return;
-  const frac = raw/100;
-  const p = DATA.params[state.coefVersion];
-  if(field === 'icms' || field === 'pis'){
-    p[field] = frac;
-  } else {
-    p[field][parseInt(idx,10)] = frac;
+  const key = state.coefVersion;
+  // A alteração entra numa CÓPIA. Os preços só mudam no "atribuir".
+  if(!coefPendente()){
+    COEF_PEND = { key: key, params: JSON.parse(JSON.stringify(DATA.params[key])) };
   }
-  renderCoefPanel();
-  render(); // simula: recalcula e mostra a tabela na hora, sem salvar ainda
+  const p = COEF_PEND.params;
+  if(field === 'icms' || field === 'pis'){
+    p[field] = raw/100;
+  } else {
+    p[field][parseInt(idx,10)] = raw/100;
+  }
+  // Digitou de volta o valor que já estava: não há nada pendente.
+  if(JSON.stringify(COEF_PEND.params) === JSON.stringify(DATA.params[key])) COEF_PEND = null;
+  renderCoefPanel();   // reformata os campos e recalcula a Var. entre tabelas
 }
+
+// Atribuir: a cópia vira o valor corrente e os preços são recalculados.
+document.getElementById('coefBarApply').onclick = ()=>{
+  if(!coefPendente()) return;
+  DATA.params[COEF_PEND.key] = COEF_PEND.params;
+  COEF_PEND = null;
+  render();            // renderControls -> renderCoefPanel -> updateCoefDirtyUI
+};
+// Descartar o que foi digitado e ainda não atribuído.
+document.getElementById('coefBarCancel').onclick = ()=>{
+  COEF_PEND = null;
+  renderCoefPanel();
+};
+// Descartar o que já foi atribuído mas não publicado: volta ao que está no ar.
+document.getElementById('coefDiscardBtn').onclick = ()=>{
+  const key = state.coefVersion;
+  DATA.params[key] = JSON.parse(JSON.stringify(SAVED_PARAMS[key]));
+  COEF_PEND = null;
+  render();
+};
 
 document.getElementById('coefResetBtn').onclick = ()=>{
   if(!window.confirm(t('coefResetConfirm'))) return;
   const key = state.coefVersion;
+  COEF_PEND = null;
   DATA.params[key] = JSON.parse(JSON.stringify(DEFAULT_PARAMS[key]));
   renderCoefPanel();
   render();
@@ -2204,6 +2337,7 @@ function applyStaticTexts(){
   document.getElementById('searchInput').placeholder = t('searchPlaceholder');
   document.getElementById('txt-categoryLabel').textContent = t('categoryLabel');
   document.getElementById('txt-pdfBtn').textContent = t('pdfBtn');
+  document.getElementById('txt-pdfFullBtn').textContent = t('pdfFullBtn');
   document.getElementById('themeBtn').textContent = t('theme');
   const bSair = document.getElementById('sairBtn');
   if(bSair){ bSair.textContent = t('sair'); bSair.title = t('sairTip'); }
@@ -3118,6 +3252,18 @@ document.getElementById('searchInput').addEventListener('input', (e)=>{
 // A tabela de preços em PDF sai com os MESMOS itens marcados que o orçamento
 // usaria — a diferença é o formato: aqui vão todas as colunas de tabela, lá
 // vai só o preço escolhido de cada item.
+// Tabela completa: imprime o que está na tela, sem o recorte dos itens
+// marcados. Categoria e busca continuam filtrando — o que você vê é o que sai.
+document.getElementById('pdfFullBtn').onclick = ()=>{
+  state.tableMode = false;
+  render();
+  if(!document.querySelector('#content table.price-table')){
+    window.alert(t('pdfFullEmpty'));
+    return;
+  }
+  setTimeout(()=>{ window.print(); }, 80);
+};
+
 document.getElementById('pdfBtn').onclick = ()=>{
   if(selectedRowCount() === 0){
     window.alert(t('pdfEmpty'));
