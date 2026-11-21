@@ -1305,21 +1305,42 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
 }
 
 /* ===== Visualizar um item =========================================
-   Consulta rápida de um produto só. A tabela inteira sai da tela e
-   fica a ficha do item, em corpo grande — é o modo de uso no celular,
-   onde a tabela precisa ser encolhida para caber. */
+   Consulta rápida de produtos escolhidos a dedo. A tabela inteira sai
+   da tela e ficam as fichas, em corpo grande — é o modo de uso no
+   celular, onde a tabela precisa ser encolhida para caber. */
 .foco-wrap{max-width:560px; margin:0 auto;}
 .foco-hint{
   background:var(--card); border:1px dashed var(--line); border-radius:14px;
   padding:30px 22px; text-align:center; display:grid; gap:7px; justify-items:center;
 }
 .foco-hint .ico{width:26px; height:26px; color:var(--ink-3); margin-bottom:2px;}
-.foco-hint b{font-size:13.5px; font-weight:800; color:var(--ink); letter-spacing:.01em;}
-.foco-hint span{font-size:12.5px; color:var(--ink-2); line-height:1.5; max-width:40ch;}
+.foco-hint b{font-size:14.5px; font-weight:800; color:var(--ink); letter-spacing:.01em;}
+.foco-hint span{font-size:13.5px; color:var(--ink-2); line-height:1.5; max-width:40ch;}
 
-.foco-pick{display:grid; gap:8px;}
+/* Itens já escolhidos: minicards com ✕, logo abaixo da busca */
+.foco-chosen{display:flex; flex-wrap:wrap; gap:6px; margin-top:9px;}
+.fc-chip{
+  display:inline-flex; align-items:center; gap:7px;
+  background:var(--card); border:1px solid var(--line); border-radius:999px;
+  padding:4px 5px 4px 11px;
+  font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  font-size:13.5px; font-weight:800; color:var(--ink);
+}
+.fc-chip .swatch{
+  display:inline-block; width:9px; height:9px; border-radius:50%; flex:none;
+  border:1px solid var(--line); box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+}
+button.fc-x{
+  border:0; background:var(--sunk); color:var(--ink-3); cursor:pointer;
+  width:19px; height:19px; border-radius:50%; flex:none; padding:0;
+  font:700 11px/1 Archivo,Arial,sans-serif;
+  display:inline-flex; align-items:center; justify-content:center;
+}
+button.fc-x:hover{background:var(--wine); color:#fff;}
+
+.foco-pick{display:grid; gap:8px; margin-bottom:14px;}
 .foco-pick-title{
-  margin:0 0 2px; font-size:10.5px; font-weight:700; letter-spacing:.09em;
+  margin:0 0 2px; font-size:11.5px; font-weight:700; letter-spacing:.09em;
   text-transform:uppercase; color:var(--ink-3);
 }
 button.foco-opt{
@@ -1332,17 +1353,59 @@ button.foco-opt .swatch{
   display:inline-block; width:11px; height:11px; border-radius:50%; flex:none;
   border:1px solid var(--line); box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
 }
-.fo-code{font-family:"Archivo Narrow",Archivo,Arial,sans-serif; font-size:15px; font-weight:800;}
-.fo-color{font-size:12px; color:var(--ink-2);}
-.fo-cat{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.07em;
+.fo-code{font-family:"Archivo Narrow",Archivo,Arial,sans-serif; font-size:16px; font-weight:800;}
+.fo-color{font-size:13px; color:var(--ink-2);}
+.fo-cat{margin-left:auto; font-size:10px; font-weight:700; letter-spacing:.07em;
   text-transform:uppercase; color:var(--ink-3); white-space:nowrap;}
 
 .foco-card{
   background:var(--card); border:1px solid var(--line); border-radius:14px;
   overflow:hidden; box-shadow:var(--shadow);
 }
-.foco-head{padding:17px 18px 15px; border-bottom:2px solid var(--wine-ink);}
-.foco-cat{font-size:9.5px; font-weight:700; letter-spacing:.11em;
+.foco-card + .foco-card{margin-top:14px;}
+.foco-head{
+  padding:17px 18px 15px; border-bottom:2px solid var(--wine-ink);
+  display:flex; align-items:flex-start; gap:12px;
+}
+.fh-txt{flex:1; min-width:0;}
+/* Miniatura da foto do produto. Vem do cadastro do Wendell Custos; quando o
+   item não tem foto, o quadrado simplesmente não existe. */
+button.foco-thumb{
+  flex:none; width:74px; height:74px; padding:0; cursor:zoom-in;
+  background:var(--sunk); border:1px solid var(--line); border-radius:8px;
+  overflow:hidden; display:block;
+}
+button.foco-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+button.foco-thumb:hover{border-color:var(--wine-ink);}
+button.foco-thumb:focus-visible{outline:2px solid var(--wine-ink); outline-offset:2px;}
+
+.foto-modal{
+  position:fixed; inset:0; z-index:200; background:var(--overlay);
+  display:grid; place-items:center; padding:24px; cursor:zoom-out;
+}
+.foto-modal[hidden]{display:none !important;}
+.foto-modal figure{margin:0; display:grid; gap:10px; justify-items:center; cursor:default;}
+.foto-modal img{
+  max-width:min(92vw,900px); max-height:82vh; display:block;
+  border-radius:10px; background:var(--card);
+  box-shadow:0 18px 60px rgba(0,0,0,.4);
+}
+.foto-modal figcaption{
+  font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  font-size:15px; font-weight:700; color:#fff; letter-spacing:.02em;
+  text-shadow:0 1px 3px rgba(0,0,0,.5);
+}
+button.foto-fechar{
+  position:absolute; top:14px; right:16px; width:36px; height:36px;
+  border-radius:50%; border:1px solid rgba(255,255,255,.35); cursor:pointer;
+  background:rgba(0,0,0,.35); color:#fff; font:700 15px/1 Archivo,Arial,sans-serif;
+  display:flex; align-items:center; justify-content:center;
+}
+button.foto-fechar:hover{background:var(--wine); border-color:var(--wine);}
+@media (max-width:420px){
+  button.foco-thumb{width:62px; height:62px;}
+}
+.foco-cat{font-size:10px; font-weight:700; letter-spacing:.11em;
   text-transform:uppercase; color:var(--wine-ink);}
 .foco-code{
   font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
@@ -1353,7 +1416,7 @@ button.foco-opt .swatch{
 .foco-chip{
   display:inline-flex; align-items:center; gap:6px;
   background:var(--sunk); border:1px solid var(--line); border-radius:999px;
-  padding:4px 10px; font-size:11px; font-weight:700; color:var(--ink-2);
+  padding:4px 10px; font-size:12px; font-weight:700; color:var(--ink-2);
   letter-spacing:.03em;
 }
 .foco-chip .swatch{
@@ -1368,9 +1431,9 @@ button.foco-opt .swatch{
 }
 .foco-tier:last-child{border-bottom:0;}
 .ft-l{display:flex; flex-direction:column; gap:2px; min-width:0;}
-.ft-name{font-size:11px; font-weight:700; letter-spacing:.08em;
+.ft-name{font-size:13px; font-weight:700; letter-spacing:.07em;
   text-transform:uppercase; color:var(--ink-2);}
-.ft-sub{font-size:11px; color:var(--ink-3);}
+.ft-sub{font-size:12.5px; color:var(--ink-3);}
 .ft-price{
   font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
   font-size:27px; font-weight:800; line-height:1; color:var(--wine-ink);
@@ -1380,19 +1443,19 @@ button.foco-opt .swatch{
 .foco-cost{
   display:flex; align-items:center; justify-content:space-between;
   padding:11px 18px; background:var(--sunk); border-top:1px solid var(--line);
-  font-size:10.5px; font-weight:700; letter-spacing:.09em;
+  font-size:12px; font-weight:700; letter-spacing:.09em;
   text-transform:uppercase; color:var(--cost-ink);
 }
 .foco-cost b{font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
-  font-size:17px; font-weight:800; letter-spacing:0; text-transform:none; color:var(--ink-2);}
+  font-size:19px; font-weight:800; letter-spacing:0; text-transform:none; color:var(--ink-2);}
 
 .foco-sim{padding:14px 18px 16px; border-top:1px solid var(--line); background:var(--sim-bg);}
 .foco-sim-head{display:flex; align-items:center; justify-content:space-between;
   gap:10px; flex-wrap:wrap; margin-bottom:11px;}
-.foco-sim-title{font-size:10.5px; font-weight:700; letter-spacing:.09em;
+.foco-sim-title{font-size:12px; font-weight:700; letter-spacing:.09em;
   text-transform:uppercase; color:var(--ink-2);}
 button.foco-mode{
-  font:inherit; font-size:11px; font-weight:700; cursor:pointer;
+  font:inherit; font-size:12.5px; font-weight:700; cursor:pointer;
   background:var(--card); color:var(--ink-2);
   border:1px solid var(--line); border-radius:7px; padding:5px 10px;
 }
@@ -1400,13 +1463,13 @@ button.foco-mode + button.foco-mode{margin-left:5px;}
 button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff;}
 .foco-sim-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .fs-field{display:flex; flex-direction:column; gap:4px;}
-.fs-field span{font-size:9.5px; font-weight:700; letter-spacing:.07em;
+.fs-field span{font-size:11.5px; font-weight:700; letter-spacing:.06em;
   text-transform:uppercase; color:var(--ink-3);}
 .fs-field input{
   font:inherit; font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
-  font-size:16px; font-weight:700; text-align:center; color:var(--ink);
+  font-size:19px; font-weight:700; text-align:center; color:var(--ink);
   background:var(--card); border:1px solid var(--line); border-radius:8px;
-  padding:9px 8px; width:100%; box-sizing:border-box; appearance:textfield;
+  padding:8px 8px; width:100%; box-sizing:border-box; appearance:textfield;
   -moz-appearance:textfield;
 }
 .fs-field input:focus{outline:2px solid var(--sim-sel); outline-offset:-1px;}
@@ -1414,19 +1477,19 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
 .fs-field input::-webkit-inner-spin-button{appearance:none; margin:0;}
 .foco-sim-out{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
-  margin-top:11px; padding:11px 14px; background:var(--card);
+  margin-top:11px; padding:10px 14px; background:var(--card);
   border:1px solid var(--line); border-radius:10px;
-  font-size:10.5px; font-weight:700; letter-spacing:.08em;
+  font-size:12px; font-weight:700; letter-spacing:.07em;
   text-transform:uppercase; color:var(--ink-3);
 }
 .foco-sim-out b{
   font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
-  font-size:23px; font-weight:800; letter-spacing:0; text-transform:none;
+  font-size:26px; font-weight:800; letter-spacing:0; text-transform:none;
   color:var(--sim-sel);
 }
 .foco-sim-out b.negative{color:var(--neg);}
-.foco-foot{padding:12px 18px; border-top:1px solid var(--line); display:flex; gap:8px;}
-.foco-foot .btn{flex:1;}
+.foco-foot{padding:12px 18px; border-top:1px solid var(--line); display:flex;}
+.foco-foot .btn{flex:1; font-size:13px;}
 
 @media (max-width:420px){
   .foco-code{font-size:25px;}
@@ -1437,6 +1500,7 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
 @media print{
   .foco-foot, .foco-sim{display:none !important;}
   .foco-card{box-shadow:none;}
+  .foco-card + .foco-card{page-break-inside:avoid;}
 }
 </style>
 </head>
@@ -1663,8 +1727,10 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
         <div class="status-pill" id="versionNote"></div>
       </div>
     </div>
-    <!-- Exibição: tabela inteira ou um item só. No modo "um item" a tabela
-         some e a busca logo abaixo passa a ser o seletor da ficha. -->
+    <!-- Exibição: tabela inteira ou fichas de itens escolhidos. No modo
+         "um item" a tabela some e a busca logo abaixo passa a ser o
+         seletor: cada item escolhido vira um minicard aqui e uma ficha
+         grande na área das tabelas. -->
     <div class="field-row" style="margin-top:16px;">
       <div class="field">
         <span class="field-label" id="txt-viewModeLabel">Exibição</span>
@@ -1680,6 +1746,7 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
       <div class="field grow search-field">
         <span class="field-label" id="txt-searchLabel">Buscar código ou cor</span>
         <input type="text" id="searchInput" class="input-box" placeholder="Ex.: 8J50PE ou Branca">
+        <div class="foco-chosen" id="focoChosen" hidden></div>
       </div>
     </div>
   </section>
@@ -1691,6 +1758,15 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
 </main>
 
 <footer class="hub-footer no-print" id="txt-footerNote">Wendell Global Interlining · Tabelas de preços de uso interno — gerado a partir da planilha comercial · consultar sempre a versão mais recente</footer>
+
+<!-- Foto do produto ampliada -->
+<div class="foto-modal no-print" id="fotoModal" hidden>
+  <button class="foto-fechar" id="fotoFechar" type="button">&#10005;</button>
+  <figure>
+    <img id="fotoGrande" src="" alt="">
+    <figcaption id="fotoLegenda"></figcaption>
+  </figure>
+</div>
 
 <!-- Password modal -->
 <div class="modal-overlay no-print" id="pwModal" hidden>
@@ -1796,6 +1872,8 @@ async function loadFromSupabase(){
       DATA.products = (data.products || []).map(p=>({
         cat: p.cat, code: p.code, color: p.color,
         cost: Number(p.cost), ipi: Number(p.ipi),
+        // Foto cadastrada no Wendell Custos; aqui é só exibição.
+        foto: p.foto || null,
         // wgi_precos_ger devolve TODOS os produtos, com a marca de visibilidade;
         // wgi_precos_repr já vem filtrado pelo servidor.
         visivel: p.visivel !== false
@@ -1948,9 +2026,11 @@ const state = {
   // Módulo "Visualizar simulação": recolhido por padrão.
   simOpen: false,
   // "Visualizar um item": esconde a tabela inteira e mostra a ficha grande
-  // de um produto só, escolhido pela busca.
+  // dos produtos escolhidos pela busca — um card por item, na ordem em que
+  // foram adicionados. focoModes guarda o modo de simulação de cada card.
   focoOn: false,
-  focoCode: null
+  focoCodes: [],
+  focoModes: {}
 };
 
 const PARAM_KEY = {
@@ -1975,11 +2055,13 @@ const I18N = {
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
     viewModeLabel:"Exibição", viewTable:"Tabela completa", viewItem:"Visualizar um item",
-    focoHintTitle:"Visualização de um item",
-    focoHintText:"Digite o código ou a cor no campo de busca abaixo. A tabela completa fica oculta até você escolher o item.",
+    focoHintTitle:"Visualização de itens",
+    focoHintText:"Digite o código ou a cor no campo de busca acima e toque no item. Pode adicionar quantos quiser — cada um vira um card.",
     focoNoMatch:"Nenhum item encontrado para essa busca.",
-    focoPickTitle:(n)=> n + " itens encontrados — escolha um",
-    focoChange:"Trocar item", focoClearSim:"Limpar simulação",
+    focoPickTitle:(n)=> n + (n===1 ? " item encontrado — toque para adicionar"
+                                   : " itens encontrados — toque para adicionar"),
+    focoRemove:"Tirar este item", focoClearSim:"Limpar simulação",
+    fotoAmpliar:"Ampliar a foto do produto", fotoFechar:"Fechar",
     focoComm:"Comissão", focoMargin:"Margem", focoHidden:"Oculto para o representante",
     quoteTitle:"Orçamento — selecione itens e colunas",
     quoteBtn:"Gerar orçamento com itens selecionados",
@@ -2068,11 +2150,12 @@ const I18N = {
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
     viewModeLabel:"Display", viewTable:"Full table", viewItem:"Single item",
-    focoHintTitle:"Single-item view",
-    focoHintText:"Type the code or colour in the search field below. The full table stays hidden until you pick an item.",
+    focoHintTitle:"Item view",
+    focoHintText:"Type the code or colour in the search field above and tap the item. Add as many as you like — each one becomes a card.",
     focoNoMatch:"No item found for this search.",
-    focoPickTitle:(n)=> n + " items found — pick one",
-    focoChange:"Change item", focoClearSim:"Clear simulation",
+    focoPickTitle:(n)=> n + (n===1 ? " item found — tap to add" : " items found — tap to add"),
+    focoRemove:"Remove this item", focoClearSim:"Clear simulation",
+    fotoAmpliar:"Enlarge the product photo", fotoFechar:"Close",
     focoComm:"Commission", focoMargin:"Margin", focoHidden:"Hidden from the sales rep",
     quoteTitle:"Quote — select items and columns",
     quoteBtn:"Generate quote with selected items",
@@ -2223,12 +2306,14 @@ function currentBlock(){
   const rows = MODO_GER
     ? DATA.products.map(prod=>({
         cat: prod.cat, code: prod.code, color: prod.color, ipi: prod.ipi,
+        foto: prod.foto || null,
         visivel: prod.visivel !== false,
         cost: prod.cost, // necessário para calcular a margem da simulação
         prices: p.margins.map((m,i)=>computePrice(prod.cost, p.icms, p.pis, m, p.commissions[i]))
       }))
     : ordemOriginal(((PRECOS[state.icms] && PRECOS[state.icms].rows) || []).map(r=>({
         cat: r.cat, code: r.code, color: r.color, ipi: r.ipi,
+        foto: r.foto || null,
         prices: r.prices
       })));
   return {
@@ -2927,8 +3012,8 @@ function bindSelection(block, codigosEmTela){
 }
 
 // ---------- Visualizar um item ----------
-// A busca do painel de filtros é o seletor: um resultado abre direto, vários
-// viram lista. Enquanto nada for escolhido, não há tabela na tela.
+// A busca do painel de filtros é o seletor: cada item escolhido vira um
+// minicard ali e uma ficha grande aqui embaixo, uma debaixo da outra.
 function focoCandidatos(block){
   const q = (state.search || '').trim().toLowerCase();
   if(!q) return [];
@@ -2939,6 +3024,17 @@ function focoCandidatos(block){
     return terms.some(x => code.includes(x) || color.includes(x));
   });
 }
+// Itens escolhidos que ainda existem na tabela em exibição. Trocar de módulo
+// pode tirar um item do catálogo visível — ele some da lista sem avisar.
+function focoSelecionados(block){
+  const achados = [];
+  state.focoCodes.forEach(code=>{
+    const r = block.rows.find(x=>x.code === code);
+    if(r) achados.push(r);
+  });
+  state.focoCodes = achados.map(r=>r.code);
+  return achados;
+}
 function focoSwatch(color){
   const hex = COLOR_HEX[(color||'').toLowerCase()] || '#D9D6D1';
   return '<span class="swatch" style="background:'+hex+'"></span>';
@@ -2947,62 +3043,72 @@ function focoSaida(sv, byMargin){
   if(byMargin) return sv.impossible ? t('simImpossible') : fmtBRL(sv.price);
   return (sv.margin !== null && sv.margin !== undefined) ? fmtPct(sv.margin) : '—';
 }
-function focoItemAtual(block){
-  const cands = focoCandidatos(block);
-  let row = null;
-  if(state.focoCode) row = cands.find(r=>r.code === state.focoCode) || null;
-  // Busca que resolve num item só abre a ficha direto — um toque a menos.
-  if(!row && cands.length === 1) row = cands[0];
-  state.focoCode = row ? row.code : null;
-  return { row: row, cands: cands };
+// Cada card simula no seu próprio modo, sem arrastar os outros junto.
+// simValues() lê state.simMode, então a troca é feita só durante a conta.
+function focoSim(row, block){
+  const modo = state.focoModes[row.code] || state.simMode;
+  const anterior = state.simMode;
+  state.simMode = modo;
+  const sv = simValues(row, block);
+  state.simMode = anterior;
+  return { sv: sv, byMargin: modo === 'precoPelaMargem' };
+}
+function focoAdicionar(code){
+  if(state.focoCodes.indexOf(code) < 0) state.focoCodes.push(code);
+  // Busca limpa deixa o campo pronto para o próximo item.
+  state.search = '';
+  const si = document.getElementById('searchInput');
+  if(si) si.value = '';
+  render();
+  if(si) si.focus();
 }
 
-function renderFoco(block, cont){
-  const { row, cands } = focoItemAtual(block);
-  const wrap = document.createElement('div');
-  wrap.className = 'foco-wrap';
+// Minicards dos itens escolhidos, logo abaixo da busca.
+function renderFocoChips(block){
+  const wrap = document.getElementById('focoChosen');
+  if(!wrap) return;
+  if(!state.focoOn || !state.focoCodes.length){ wrap.hidden = true; wrap.innerHTML = ''; return; }
+  wrap.hidden = false;
+  let html = '';
+  focoSelecionados(block).forEach(r=>{
+    html += '<span class="fc-chip">'+focoSwatch(r.color)+escAttr(r.code)
+         +  '<button class="fc-x" type="button" data-code="'+escAttr(r.code)+'"'
+         +  ' title="'+escAttr(t('focoRemove'))+'" aria-label="'+escAttr(t('focoRemove'))+'">✕</button></span>';
+  });
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('button.fc-x').forEach(b=>{
+    b.onclick = ()=>{
+      state.focoCodes = state.focoCodes.filter(c=>c !== b.dataset.code);
+      delete state.focoModes[b.dataset.code];
+      render();
+    };
+  });
+}
 
-  if(!row){
-    if(!(state.search||'').trim()){
-      wrap.innerHTML = '<div class="foco-hint">'
-        + '<svg class="ico" aria-hidden="true"><use href="#i-search"></use></svg>'
-        + '<b>'+escAttr(t('focoHintTitle'))+'</b>'
-        + '<span>'+escAttr(t('focoHintText'))+'</span></div>';
-    } else if(!cands.length){
-      wrap.innerHTML = '<div class="foco-hint">'
-        + '<svg class="ico" aria-hidden="true"><use href="#i-search"></use></svg>'
-        + '<b>'+escAttr(t('focoNoMatch'))+'</b>'
-        + '<span>'+escAttr(t('focoHintText'))+'</span></div>';
-    } else {
-      let html = '<div class="foco-pick"><p class="foco-pick-title">'
-               + escAttr(t('focoPickTitle')(cands.length)) + '</p>';
-      cands.forEach(r=>{
-        html += '<button class="foco-opt" type="button" data-code="'+escAttr(r.code)+'">'
-             +  focoSwatch(r.color)
-             +  '<span class="fo-code">'+escAttr(r.code)+'</span>'
-             +  '<span class="fo-color">'+escAttr(colorLabel(r.color||'—'))+'</span>'
-             +  '<span class="fo-cat">'+escAttr(catLabel(r.cat))+'</span></button>';
-      });
-      wrap.innerHTML = html + '</div>';
-    }
-    cont.appendChild(wrap);
-    return;
-  }
-
+function focoFicha(row, block){
   const isGer = state.audience === 'gerencia';
   const icmsTxt = (isGer && state.versionMode === 'anterior') ? '18' : state.icms;
   let html = '<div class="foco-card">'
     + '<div class="foco-head">'
-    +   '<div class="foco-cat">'+escAttr(catLabel(row.cat))+'</div>'
+    + '<span class="fh-txt">'
+    +   '<span class="foco-cat">'+escAttr(catLabel(row.cat))+'</span>'
     +   '<h2 class="foco-code">'+escAttr(row.code)+'</h2>'
-    +   '<div class="foco-chips">'
+    +   '<span class="foco-chips">'
     +     '<span class="foco-chip">'+focoSwatch(row.color)+escAttr(colorLabel(row.color||'—'))+'</span>'
     +     '<span class="foco-chip">'+t('ipiCol')+' '
     +       ((row.ipi!==null && row.ipi!==undefined) ? fmtPct(row.ipi) : '—')+'</span>'
     +     '<span class="foco-chip">ICMS '+icmsTxt+'%</span>'
     +     (row.visivel === false
         ? '<span class="foco-chip alerta">'+escAttr(t('focoHidden'))+'</span>' : '')
-    +   '</div>'
+    +   '</span>'
+    + '</span>'
+    // Quadrado da foto, à direita do código. Clicar amplia.
+    + (row.foto
+       ? '<button class="foco-thumb" type="button" data-foto="'+escAttr(row.foto)+'"'
+         + ' data-code="'+escAttr(row.code)+'" title="'+escAttr(t('fotoAmpliar'))+'"'
+         + ' aria-label="'+escAttr(t('fotoAmpliar'))+'">'
+         + '<img src="'+escAttr(row.foto)+'" alt="'+escAttr(row.code)+'" loading="lazy"></button>'
+       : '')
     + '</div>';
 
   // As tabelas disponíveis, uma por linha e em corpo grande. A comissão
@@ -3022,82 +3128,114 @@ function renderFoco(block, cont){
   // Custo e simulação são do módulo Gerencial. No Representante a ficha
   // termina nas tabelas — o custo não chega nem ao navegador dele.
   if(isGer && !block.isLegacy){
+    const cod = escAttr(row.code);
     html += '<div class="foco-cost"><span>'+t('costCol')+'</span><b>'+fmtCost(row.cost)+'</b></div>';
-    const sv = simValues(row, block);
-    const byMargin = (state.simMode === 'precoPelaMargem');
+    const r = focoSim(row, block);
+    const sv = r.sv, byMargin = r.byMargin;
     const mTxt = (sv.margin !== null && sv.margin !== undefined)
       ? (sv.margin*100).toFixed(2) : '0.00';
     const pTxt = (sv.price !== null && sv.price > 0) ? sv.price.toFixed(2) : '0.00';
     html += '<div class="foco-sim">'
       + '<div class="foco-sim-head"><span class="foco-sim-title">'+t('simGroupLabel')+'</span>'
       +   '<span>'
-      +     '<button class="foco-mode'+(!byMargin?' on':'')+'" type="button" data-mode="margemPeloPreco">'+t('simModeMarginFromPrice')+'</button>'
-      +     '<button class="foco-mode'+(byMargin?' on':'')+'" type="button" data-mode="precoPelaMargem">'+t('simModePriceFromMargin')+'</button>'
+      +     '<button class="foco-mode'+(!byMargin?' on':'')+'" type="button" data-code="'+cod+'" data-mode="margemPeloPreco">'+t('simModeMarginFromPrice')+'</button>'
+      +     '<button class="foco-mode'+(byMargin?' on':'')+'" type="button" data-code="'+cod+'" data-mode="precoPelaMargem">'+t('simModePriceFromMargin')+'</button>'
       +   '</span></div>'
       + '<div class="foco-sim-grid">'
       +   '<label class="fs-field"><span>'+(byMargin ? t('simMarginInCol') : t('simPriceCol'))+'</span>'
-      +     '<input type="number" class="foco-in" data-kind="'+(byMargin?'margin':'price')+'"'
+      +     '<input type="number" class="foco-in" data-code="'+cod+'" data-kind="'+(byMargin?'margin':'price')+'"'
       +     ' step="'+(byMargin?'0.1':'0.01')+'" value="'+(byMargin ? mTxt : pTxt)+'"></label>'
       +   '<label class="fs-field"><span>'+t('simCommCol')+'</span>'
-      +     '<input type="number" class="foco-in" data-kind="comm" step="0.1" min="0"'
+      +     '<input type="number" class="foco-in" data-code="'+cod+'" data-kind="comm" step="0.1" min="0"'
       +     ' value="'+(sv.comm*100).toFixed(2)+'"></label>'
       + '</div>'
       + '<div class="foco-sim-out"><span>'+(byMargin ? t('simPriceOutCol') : t('simMarginCol'))+'</span>'
-      +   '<b id="focoOut">'+focoSaida(sv, byMargin)+'</b></div>'
+      +   '<b data-out="'+cod+'">'+focoSaida(sv, byMargin)+'</b></div>'
+      + '</div>'
+      + '<div class="foco-foot">'
+      +   '<button class="btn btn-ghost foco-sim-clear" type="button" data-code="'+cod+'">'+t('focoClearSim')+'</button>'
       + '</div>';
   }
+  return html + '</div>';
+}
 
-  html += '<div class="foco-foot">'
-       +  '<button class="btn btn-ghost" type="button" id="focoTrocar">'+t('focoChange')+'</button>'
-       +  (isGer && !block.isLegacy
-          ? '<button class="btn btn-ghost" type="button" id="focoSimClear">'+t('focoClearSim')+'</button>' : '')
-       +  '</div></div>';
+function renderFoco(block, cont){
+  const sel = focoSelecionados(block);
+  // Quem já está escolhido sai da lista de sugestões.
+  const cands = focoCandidatos(block).filter(r=>state.focoCodes.indexOf(r.code) < 0);
+  const busca = (state.search || '').trim();
+  const wrap = document.createElement('div');
+  wrap.className = 'foco-wrap';
+  let html = '';
+
+  if(busca && cands.length){
+    html += '<div class="foco-pick"><p class="foco-pick-title">'
+          + escAttr(t('focoPickTitle')(cands.length)) + '</p>';
+    cands.forEach(r=>{
+      html += '<button class="foco-opt" type="button" data-code="'+escAttr(r.code)+'">'
+           +  focoSwatch(r.color)
+           +  '<span class="fo-code">'+escAttr(r.code)+'</span>'
+           +  '<span class="fo-color">'+escAttr(colorLabel(r.color||'—'))+'</span>'
+           +  '<span class="fo-cat">'+escAttr(catLabel(r.cat))+'</span></button>';
+    });
+    html += '</div>';
+  } else if(busca && !cands.length && !sel.length){
+    html += '<div class="foco-hint">'
+         +  '<svg class="ico" aria-hidden="true"><use href="#i-search"></use></svg>'
+         +  '<b>'+escAttr(t('focoNoMatch'))+'</b>'
+         +  '<span>'+escAttr(t('focoHintText'))+'</span></div>';
+  } else if(!busca && !sel.length){
+    html += '<div class="foco-hint">'
+         +  '<svg class="ico" aria-hidden="true"><use href="#i-search"></use></svg>'
+         +  '<b>'+escAttr(t('focoHintTitle'))+'</b>'
+         +  '<span>'+escAttr(t('focoHintText'))+'</span></div>';
+  }
+
+  sel.forEach(r=>{ html += focoFicha(r, block); });
   wrap.innerHTML = html;
   cont.appendChild(wrap);
 }
 
 function bindFoco(block){
+  const porCodigo = {};
+  block.rows.forEach(r=>{ porCodigo[r.code] = r; });
+
   document.querySelectorAll('button.foco-opt').forEach(b=>{
-    b.onclick = ()=>{ state.focoCode = b.dataset.code; render(); };
+    b.onclick = ()=>{ focoAdicionar(b.dataset.code); };
   });
-  const trocar = document.getElementById('focoTrocar');
-  if(trocar) trocar.onclick = ()=>{
-    state.focoCode = null;
-    state.search = '';
-    const si = document.getElementById('searchInput');
-    if(si){ si.value = ''; si.focus(); }
-    render();
-  };
+  document.querySelectorAll('button.foco-thumb').forEach(b=>{
+    b.onclick = ()=>{ abrirFoto(b.dataset.foto, b.dataset.code); };
+  });
   document.querySelectorAll('button.foco-mode').forEach(b=>{
-    b.onclick = ()=>{ state.simMode = b.dataset.mode; render(); };
+    b.onclick = ()=>{ state.focoModes[b.dataset.code] = b.dataset.mode; render(); };
   });
-  const row = block.rows.find(r=>r.code === state.focoCode);
-  if(!row) return;
-  const limpar = document.getElementById('focoSimClear');
-  if(limpar) limpar.onclick = ()=>{
-    delete state.simPrices[row.code];
-    delete state.simMargins[row.code];
-    delete state.simComms[row.code];
-    render();
-  };
-  // Recalcula só o resultado, sem re-render — senão o campo perde o foco
-  // no meio da digitação.
+  document.querySelectorAll('button.foco-sim-clear').forEach(b=>{
+    b.onclick = ()=>{
+      const c = b.dataset.code;
+      delete state.simPrices[c]; delete state.simMargins[c]; delete state.simComms[c];
+      render();
+    };
+  });
+  // Recalcula só o resultado do próprio card, sem re-render — senão o campo
+  // perde o foco no meio da digitação.
   document.querySelectorAll('input.foco-in').forEach(inp=>{
     inp.addEventListener('input', ()=>{
+      const code = inp.dataset.code;
+      const row = porCodigo[code];
+      if(!row) return;
       const kind = inp.dataset.kind;
       const store = kind === 'comm' ? state.simComms
                   : (kind === 'margin' ? state.simMargins : state.simPrices);
       const raw = String(inp.value).replace(',', '.').trim();
       const val = parseFloat(raw);
-      if(raw === '' || isNaN(val)) delete store[row.code];
-      else store[row.code] = (kind === 'price') ? val : val/100;
-      const sv = simValues(row, block);
-      const byMargin = (state.simMode === 'precoPelaMargem');
-      const out = document.getElementById('focoOut');
+      if(raw === '' || isNaN(val)) delete store[code];
+      else store[code] = (kind === 'price') ? val : val/100;
+      const r = focoSim(row, block);
+      const out = document.querySelector('.foco-sim-out b[data-out="'+CSS.escape(code)+'"]');
       if(out){
-        out.textContent = focoSaida(sv, byMargin);
+        out.textContent = focoSaida(r.sv, r.byMargin);
         out.classList.toggle('negative',
-          byMargin ? sv.impossible : (sv.margin !== null && sv.margin < 0));
+          r.byMargin ? r.sv.impossible : (r.sv.margin !== null && r.sv.margin < 0));
       }
     });
   });
@@ -3194,6 +3332,7 @@ function render(){
       + (state.tableMode ? ' · ' + rows.length + ' ' + t('selectedSuffix') : '');
   }
 
+  renderFocoChips(block);
   if(focoAtivo){
     renderFoco(block, cont);
   } else if(rows.length === 0){
@@ -3511,6 +3650,25 @@ function bindSimInputs(block){
 function updateSimLegend(){ /* contador vive no cabeçalho do grupo */ }
 
 
+// ---------- Foto ampliada ----------
+const fotoModal = document.getElementById('fotoModal');
+function abrirFoto(url, code){
+  document.getElementById('fotoGrande').src = url;
+  document.getElementById('fotoGrande').alt = code || '';
+  document.getElementById('fotoLegenda').textContent = code || '';
+  fotoModal.hidden = false;
+}
+function fecharFoto(){
+  fotoModal.hidden = true;
+  document.getElementById('fotoGrande').src = '';
+}
+document.getElementById('fotoFechar').onclick = fecharFoto;
+// Clicar no fundo fecha; clicar na própria imagem, não.
+fotoModal.onclick = (ev)=>{ if(ev.target === fotoModal) fecharFoto(); };
+document.addEventListener('keydown', (ev)=>{
+  if(ev.key === 'Escape' && !fotoModal.hidden) fecharFoto();
+});
+
 // ---------- language ----------
 document.querySelectorAll('#langToggle button').forEach(btn=>{
   btn.onclick = ()=>{
@@ -3588,17 +3746,20 @@ document.querySelectorAll('#icmsSeg button').forEach(btn=>{
 });
 document.getElementById('searchInput').addEventListener('input', (e)=>{
   state.search = e.target.value;
-  // Mudou a busca, mudou o item da ficha: a escolha anterior é refeita a
-  // partir do que casar agora.
-  state.focoCode = null;
   render();
+});
+// Enter adiciona o primeiro item da lista — digitou o código, já entrou.
+document.getElementById('searchInput').addEventListener('keydown', (e)=>{
+  if(e.key !== 'Enter' || !state.focoOn) return;
+  e.preventDefault();
+  const primeiro = document.querySelector('button.foco-opt');
+  if(primeiro) focoAdicionar(primeiro.dataset.code);
 });
 document.querySelectorAll('#viewModeSeg button').forEach(btn=>{
   btn.onclick = ()=>{
     const umItem = btn.dataset.val === 'item';
     if(state.focoOn === umItem) return;
     state.focoOn = umItem;
-    state.focoCode = null;
     render();
     if(umItem){
       const si = document.getElementById('searchInput');
