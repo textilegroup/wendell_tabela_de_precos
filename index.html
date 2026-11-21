@@ -1310,27 +1310,35 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
    voltar à tabela. Pensada para o celular — ocupa a tela inteira e
    rola só na vertical. */
 .foco-modal{
-  position:fixed; inset:0; z-index:150; background:var(--overlay);
-  display:flex; align-items:center; justify-content:center;
+  position:fixed; inset:0; z-index:300; background:var(--bg);
+  display:flex; flex-direction:column;
+  height:100vh; height:100dvh;   /* dvh: não pula com a barra do navegador */
 }
 .foco-modal[hidden]{display:none !important;}
+/* Tela exclusiva: o resto do sistema sai de cena, não fica por baixo. */
 body.foco-aberto{overflow:hidden;}
+body.foco-aberto .wgi-header,
+body.foco-aberto main.page,
+body.foco-aberto .hub-footer{display:none !important;}
 .foco-box{
-  background:var(--bg); width:100%; height:100%; max-width:560px;
+  background:var(--bg); width:100%; height:100%; max-width:none;
   display:flex; flex-direction:column; overflow:hidden;
-  box-shadow:0 20px 70px rgba(0,0,0,.35);
 }
-@media (min-width:600px){
-  .foco-modal{padding:26px;}
-  .foco-box{height:auto; max-height:min(900px,92vh); border-radius:16px;}
-}
+/* A régua interna: o conteúdo usa a largura toda, com um limite para não
+   esticar além da conta em monitor largo. */
+.foco-lim{width:100%; max-width:1400px; margin:0 auto;}
 .foco-box-top{
-  flex:none; display:flex; align-items:center; gap:10px;
-  padding:13px 14px; background:var(--wine); color:#fff;
+  flex:none; padding:11px 14px; color:#fff;
+  background:linear-gradient(100deg, var(--wine-deep), var(--wine));
 }
+.foco-top-lim{display:flex; align-items:center; gap:12px;}
+.foco-top-txt{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
 .foco-box-top h3{
-  margin:0; flex:1; min-width:0;
-  font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+  margin:0; font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+}
+.foco-contexto{
+  font-size:11px; font-weight:600; letter-spacing:.03em;
+  color:rgba(255,255,255,.78); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 button.foco-x{
   flex:none; width:34px; height:34px; border-radius:50%; padding:0; cursor:pointer;
@@ -1343,22 +1351,33 @@ button.foco-x:hover{background:#fff; color:var(--wine); border-color:#fff;}
   flex:none; padding:12px 14px; background:var(--card);
   border-bottom:1px solid var(--line);
 }
-.foco-box-busca label{
+.foco-busca-lim{display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap;}
+.foco-campo{flex:1 1 220px; min-width:0; display:block;}
+.foco-campo > span,
+.foco-icms-campo > span{
   display:block; margin-bottom:5px;
   font-size:10px; font-weight:700; letter-spacing:.09em;
   text-transform:uppercase; color:var(--ink-3);
 }
-.foco-box-busca input{
+.foco-campo input{
   width:100%; box-sizing:border-box; font:inherit; font-size:16px;
   color:var(--ink); background:var(--card);
   border:1px solid var(--line); border-radius:9px; padding:10px 12px;
 }
-.foco-box-busca input:focus{outline:2px solid var(--wine-ink); outline-offset:-1px;}
+.foco-campo input:focus{outline:2px solid var(--wine-ink); outline-offset:-1px;}
+/* O painel de filtros fica fora de cena nesta tela, então o ICMS vem junto. */
+.foco-icms-campo{flex:none;}
+.foco-icms-campo[hidden]{display:none !important;}
 .foco-box-corpo{
   flex:1; min-height:0; padding:14px;
   overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;
 }
 .foco-wrap{max-width:none; margin:0;}
+/* As fichas ocupam a área toda: uma coluna no celular, mais colunas
+   conforme a tela dá espaço. */
+.foco-grade{display:grid; gap:14px; grid-template-columns:1fr; align-items:start;}
+@media (min-width:780px){ .foco-grade{grid-template-columns:repeat(2,minmax(0,1fr));} }
+@media (min-width:1260px){ .foco-grade{grid-template-columns:repeat(3,minmax(0,1fr));} }
 .foco-hint{
   background:var(--card); border:1px dashed var(--line); border-radius:14px;
   padding:30px 22px; text-align:center; display:grid; gap:7px; justify-items:center;
@@ -1388,7 +1407,7 @@ button.fc-x{
 }
 button.fc-x:hover{background:var(--wine); color:#fff;}
 
-.foco-pick{display:grid; gap:8px; margin-bottom:14px;}
+.foco-pick{display:grid; gap:8px; margin-bottom:14px; max-width:720px;}
 .foco-pick-title{
   margin:0 0 2px; font-size:11.5px; font-weight:700; letter-spacing:.09em;
   text-transform:uppercase; color:var(--ink-3);
@@ -1412,7 +1431,7 @@ button.foco-opt .swatch{
   background:var(--card); border:1px solid var(--line); border-radius:14px;
   overflow:hidden; box-shadow:var(--shadow);
 }
-.foco-card + .foco-card{margin-top:14px;}
+
 .foco-head{
   padding:17px 18px 15px; border-bottom:2px solid var(--wine-ink);
   display:flex; align-items:flex-start; gap:12px;
@@ -1438,7 +1457,7 @@ button.foco-thumb:focus-visible{outline:2px solid var(--wine-ink); outline-offse
 }
 
 .foto-modal{
-  position:fixed; inset:0; z-index:200; background:var(--overlay);
+  position:fixed; inset:0; z-index:400; background:var(--overlay);
   display:grid; place-items:center; padding:24px; cursor:zoom-out;
 }
 .foto-modal[hidden]{display:none !important;}
@@ -1550,6 +1569,7 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
 .foco-foot .btn{flex:1; font-size:13px;}
 
 @media (max-width:420px){
+  .foco-box-top,.foco-box-busca{padding-left:12px; padding-right:12px;}
   .foco-box-corpo{padding:12px;}
   .foco-code{font-size:24px;}
   .ft-price{font-size:22px;}
@@ -1627,6 +1647,9 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
   }
   let fitRaf = null;
   function fitTablesToScreen(){
+    // Com o modo foco aberto a página está fora de cena: medir aqui daria
+    // largura zero e estragaria o zoom das tabelas.
+    if(document.body.classList.contains('foco-aberto')) return;
     const hdrH = medirHeader();
     const blocks = document.querySelectorAll('.cat-block');
     // Mede sempre sem zoom aplicado, senão a medida vem contaminada
@@ -1817,15 +1840,28 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
 <div class="foco-modal no-print" id="focoModal" hidden>
   <div class="foco-box" role="dialog" aria-modal="true" aria-labelledby="txt-focoTitulo">
     <div class="foco-box-top">
-      <h3 id="txt-focoTitulo">Modo foco</h3>
-      <button class="foco-x" type="button" id="focoFecharBtn">&#10005;</button>
+      <div class="foco-lim foco-top-lim">
+        <span class="foco-top-txt">
+          <h3 id="txt-focoTitulo">Modo foco</h3>
+          <span class="foco-contexto" id="focoContexto"></span>
+        </span>
+        <button class="foco-x" type="button" id="focoFecharBtn">&#10005;</button>
+      </div>
     </div>
     <div class="foco-box-busca">
-      <label for="focoBusca" id="txt-focoBuscaLabel">Buscar item (código ou cor)</label>
-      <input type="text" id="focoBusca" autocomplete="off" placeholder="Ex.: 8J50PE ou Branca">
-      <div class="foco-chosen" id="focoChosen" hidden></div>
+      <div class="foco-lim foco-busca-lim">
+        <label class="foco-campo">
+          <span id="txt-focoBuscaLabel">Buscar item (código ou cor)</span>
+          <input type="text" id="focoBusca" autocomplete="off" placeholder="Ex.: 8J50PE ou Branca">
+        </label>
+        <div class="foco-icms-campo" id="focoIcmsCampo">
+          <span id="txt-focoIcmsLabel">ICMS</span>
+          <div class="segmented" id="focoIcms"></div>
+        </div>
+      </div>
+      <div class="foco-lim"><div class="foco-chosen" id="focoChosen" hidden></div></div>
     </div>
-    <div class="foco-box-corpo" id="focoCorpo"></div>
+    <div class="foco-box-corpo"><div class="foco-lim" id="focoCorpo"></div></div>
   </div>
 </div>
 
@@ -2150,6 +2186,7 @@ const I18N = {
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
     viewModeLabel:"Exibição", viewTable:"Tabela completa", viewItem:"Modo foco",
     focoTitulo:"Modo foco", focoFecharJanela:"Fechar e voltar à tabela",
+    focoContexto:(mod,icms,data)=> mod + ' · ICMS ' + icms + '% · ' + data,
     focoBuscaLabel:"Buscar item (código ou cor)",
     focoBuscaPlaceholder:"Ex.: 8J50PE ou Branca",
     focoHintTitle:"Escolha o item",
@@ -2250,6 +2287,7 @@ const I18N = {
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
     viewModeLabel:"Display", viewTable:"Full table", viewItem:"Focus mode",
     focoTitulo:"Focus mode", focoFecharJanela:"Close and go back to the table",
+    focoContexto:(mod,icms,data)=> mod + ' · ICMS ' + icms + '% · ' + data,
     focoBuscaLabel:"Find an item (code or colour)",
     focoBuscaPlaceholder:"e.g. 8J50PE or White",
     focoHintTitle:"Pick an item",
@@ -2714,6 +2752,7 @@ function applyStaticTexts(){
   document.getElementById('txt-btn-viewItem').textContent = t('viewItem');
   document.getElementById('txt-focoTitulo').textContent = t('focoTitulo');
   document.getElementById('txt-focoBuscaLabel').textContent = t('focoBuscaLabel');
+  document.getElementById('txt-focoIcmsLabel').textContent = t('icmsLabel');
   document.getElementById('focoBusca').placeholder = t('focoBuscaPlaceholder');
   document.getElementById('focoFecharBtn').title = t('focoFecharJanela');
   document.getElementById('focoFecharBtn').setAttribute('aria-label', t('focoFecharJanela'));
@@ -3320,7 +3359,13 @@ function renderFoco(block, cont){
          +  '<span>'+escAttr(t('focoHintText'))+'</span></div>';
   }
 
-  sel.forEach(r=>{ html += focoFicha(r, block); });
+  // As fichas vão numa grade: uma coluna no celular, mais colunas quando a
+  // tela dá espaço — é o que faz a área toda ser aproveitada.
+  if(sel.length){
+    html += '<div class="foco-grade">';
+    sel.forEach(r=>{ html += focoFicha(r, block); });
+    html += '</div>';
+  }
   wrap.innerHTML = html;
   cont.appendChild(wrap);
 }
@@ -3372,6 +3417,31 @@ function bindFoco(block){
 
 // Redesenha só o conteúdo da janela. A tabela atrás não é tocada — ela é
 // atualizada quando a janela fecha.
+// O ICMS vem para dentro da tela: o painel de filtros não está mais à vista.
+function renderFocoIcms(){
+  const campo = document.getElementById('focoIcmsCampo');
+  const wrap = document.getElementById('focoIcms');
+  if(!campo || !wrap) return;
+  const trava = state.audience === 'gerencia' && state.versionMode === 'anterior';
+  campo.hidden = trava;
+  if(trava){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = ['18','17','4'].map(v=>
+    '<button type="button" data-val="'+v+'"'+(v===state.icms ? ' class="active"' : '')+'>'
+    + v + '%</button>').join('');
+  wrap.querySelectorAll('button').forEach(b=>{
+    b.onclick = ()=>{
+      if(b.dataset.val === state.icms) return;
+      state.icms = b.dataset.val;
+      document.querySelectorAll('#icmsSeg button').forEach(x=>
+        x.classList.toggle('active', x.dataset.val === state.icms));
+      state.cats = {};
+      state.simPrices = {}; state.simComms = {}; state.simMargins = {};
+      if(state.audience === 'gerencia'){ state.coefVersion = roleOf(state.coefVersion) + state.icms; }
+      atualizaFoco();
+    };
+  });
+}
+
 function atualizaFoco(){
   const modal = document.getElementById('focoModal');
   if(!modal) return;
@@ -3379,6 +3449,15 @@ function atualizaFoco(){
   document.body.classList.toggle('foco-aberto', !!state.focoOn);
   if(!state.focoOn) return;
   const block = currentBlock();
+  // Sem o painel de filtros à vista, o cabeçalho diz em que tabela estamos.
+  const ctx = document.getElementById('focoContexto');
+  if(ctx){
+    const mod = state.audience === 'gerencia' ? t('ger') : t('repr');
+    const icms = (state.audience === 'gerencia' && state.versionMode === 'anterior')
+      ? '18' : state.icms;
+    ctx.textContent = t('focoContexto')(mod, icms, block.date);
+  }
+  renderFocoIcms();
   renderFocoChips(block);
   const corpo = document.getElementById('focoCorpo');
   corpo.innerHTML = '';
@@ -3399,6 +3478,8 @@ function abrirFocoJanela(){
 // com o que a simulação deixou gravado.
 function fecharFocoJanela(){
   state.focoOn = false;
+  document.body.classList.remove('foco-aberto');
+  document.getElementById('focoModal').hidden = true;
   document.getElementById('focoCorpo').innerHTML = '';
   render();
 }
@@ -3811,10 +3892,6 @@ document.querySelectorAll('#viewModeSeg button').forEach(btn=>{
   };
 });
 document.getElementById('focoFecharBtn').onclick = fecharFocoJanela;
-// Clicar fora da caixa fecha; dentro, não.
-document.getElementById('focoModal').onclick = (ev)=>{
-  if(ev.target.id === 'focoModal') fecharFocoJanela();
-};
 document.getElementById('focoBusca').addEventListener('input', (e)=>{
   state.focoBusca = e.target.value;
   atualizaFoco();
