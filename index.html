@@ -1303,6 +1303,141 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
   }
   td.commission-value.cost-col{background:transparent !important; color:#6B6A6F !important;}
 }
+
+/* ===== Visualizar um item =========================================
+   Consulta rápida de um produto só. A tabela inteira sai da tela e
+   fica a ficha do item, em corpo grande — é o modo de uso no celular,
+   onde a tabela precisa ser encolhida para caber. */
+.foco-wrap{max-width:560px; margin:0 auto;}
+.foco-hint{
+  background:var(--card); border:1px dashed var(--line); border-radius:14px;
+  padding:30px 22px; text-align:center; display:grid; gap:7px; justify-items:center;
+}
+.foco-hint .ico{width:26px; height:26px; color:var(--ink-3); margin-bottom:2px;}
+.foco-hint b{font-size:13.5px; font-weight:800; color:var(--ink); letter-spacing:.01em;}
+.foco-hint span{font-size:12.5px; color:var(--ink-2); line-height:1.5; max-width:40ch;}
+
+.foco-pick{display:grid; gap:8px;}
+.foco-pick-title{
+  margin:0 0 2px; font-size:10.5px; font-weight:700; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+button.foco-opt{
+  display:flex; align-items:center; gap:9px; width:100%; text-align:left;
+  background:var(--card); border:1px solid var(--line); border-radius:11px;
+  padding:13px 14px; cursor:pointer; font:inherit; color:var(--ink);
+}
+button.foco-opt:hover{border-color:var(--wine-ink); background:var(--sunk);}
+button.foco-opt .swatch{
+  display:inline-block; width:11px; height:11px; border-radius:50%; flex:none;
+  border:1px solid var(--line); box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+}
+.fo-code{font-family:"Archivo Narrow",Archivo,Arial,sans-serif; font-size:15px; font-weight:800;}
+.fo-color{font-size:12px; color:var(--ink-2);}
+.fo-cat{margin-left:auto; font-size:9.5px; font-weight:700; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--ink-3); white-space:nowrap;}
+
+.foco-card{
+  background:var(--card); border:1px solid var(--line); border-radius:14px;
+  overflow:hidden; box-shadow:var(--shadow);
+}
+.foco-head{padding:17px 18px 15px; border-bottom:2px solid var(--wine-ink);}
+.foco-cat{font-size:9.5px; font-weight:700; letter-spacing:.11em;
+  text-transform:uppercase; color:var(--wine-ink);}
+.foco-code{
+  font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  font-size:30px; font-weight:800; line-height:1.05; letter-spacing:.005em;
+  color:var(--ink); margin:5px 0 11px;
+}
+.foco-chips{display:flex; flex-wrap:wrap; gap:6px;}
+.foco-chip{
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--sunk); border:1px solid var(--line); border-radius:999px;
+  padding:4px 10px; font-size:11px; font-weight:700; color:var(--ink-2);
+  letter-spacing:.03em;
+}
+.foco-chip .swatch{
+  display:inline-block; width:9px; height:9px; border-radius:50%;
+  border:1px solid var(--line); box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+}
+.foco-chip.alerta{background:transparent; border-color:var(--s2); color:var(--s2);}
+
+.foco-tier{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:12px 18px; border-bottom:1px solid var(--line-2);
+}
+.foco-tier:last-child{border-bottom:0;}
+.ft-l{display:flex; flex-direction:column; gap:2px; min-width:0;}
+.ft-name{font-size:11px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--ink-2);}
+.ft-sub{font-size:11px; color:var(--ink-3);}
+.ft-price{
+  font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  font-size:27px; font-weight:800; line-height:1; color:var(--wine-ink);
+  white-space:nowrap;
+}
+
+.foco-cost{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 18px; background:var(--sunk); border-top:1px solid var(--line);
+  font-size:10.5px; font-weight:700; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--cost-ink);
+}
+.foco-cost b{font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  font-size:17px; font-weight:800; letter-spacing:0; text-transform:none; color:var(--ink-2);}
+
+.foco-sim{padding:14px 18px 16px; border-top:1px solid var(--line); background:var(--sim-bg);}
+.foco-sim-head{display:flex; align-items:center; justify-content:space-between;
+  gap:10px; flex-wrap:wrap; margin-bottom:11px;}
+.foco-sim-title{font-size:10.5px; font-weight:700; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-2);}
+button.foco-mode{
+  font:inherit; font-size:11px; font-weight:700; cursor:pointer;
+  background:var(--card); color:var(--ink-2);
+  border:1px solid var(--line); border-radius:7px; padding:5px 10px;
+}
+button.foco-mode + button.foco-mode{margin-left:5px;}
+button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff;}
+.foco-sim-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.fs-field{display:flex; flex-direction:column; gap:4px;}
+.fs-field span{font-size:9.5px; font-weight:700; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--ink-3);}
+.fs-field input{
+  font:inherit; font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  font-size:16px; font-weight:700; text-align:center; color:var(--ink);
+  background:var(--card); border:1px solid var(--line); border-radius:8px;
+  padding:9px 8px; width:100%; box-sizing:border-box; appearance:textfield;
+  -moz-appearance:textfield;
+}
+.fs-field input:focus{outline:2px solid var(--sim-sel); outline-offset:-1px;}
+.fs-field input::-webkit-outer-spin-button,
+.fs-field input::-webkit-inner-spin-button{appearance:none; margin:0;}
+.foco-sim-out{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  margin-top:11px; padding:11px 14px; background:var(--card);
+  border:1px solid var(--line); border-radius:10px;
+  font-size:10.5px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+.foco-sim-out b{
+  font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  font-size:23px; font-weight:800; letter-spacing:0; text-transform:none;
+  color:var(--sim-sel);
+}
+.foco-sim-out b.negative{color:var(--neg);}
+.foco-foot{padding:12px 18px; border-top:1px solid var(--line); display:flex; gap:8px;}
+.foco-foot .btn{flex:1;}
+
+@media (max-width:420px){
+  .foco-code{font-size:25px;}
+  .ft-price{font-size:23px;}
+  .foco-tier{padding:11px 14px;}
+  .foco-head,.foco-sim,.foco-cost,.foco-foot{padding-left:14px; padding-right:14px;}
+}
+@media print{
+  .foco-foot, .foco-sim{display:none !important;}
+  .foco-card{box-shadow:none;}
+}
 </style>
 </head>
 <body>
@@ -1325,6 +1460,7 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
   <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M9.9 5.8A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3 3.9"/><path d="M6.4 7.7A17 17 0 0 0 2.5 12S6 18.5 12 18.5a9.3 9.3 0 0 0 3.8-.8"/><path d="M10 10a2.8 2.8 0 0 0 4 4"/><path d="m4 4 16 16"/></symbol>
   <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5.5"/><path d="m6.5 11 5.5-5.5 5.5 5.5"/></symbol>
   <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v13.5"/><path d="m6.5 13 5.5 5.5 5.5-5.5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></symbol>
   <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4.5h5.5V10"/><path d="M19.5 4.5 11 13"/><path d="M18 14.5V19a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H10"/></symbol>
 </svg>
 
@@ -1439,7 +1575,7 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
         <span class="field-label" id="txt-moduleLabel">Módulo</span>
         <div class="segmented" id="audienceSeg">
           <button data-val="representante" class="active" id="txt-btn-repr">Representante</button>
-          <button data-val="gerencia" class="locked" id="txt-btn-ger">Gerência</button>
+          <button data-val="gerencia" class="locked" id="txt-btn-ger">Gerencial</button>
         </div>
       </div>
       <div class="field" id="versionModeGroup" style="display:none;">
@@ -1448,7 +1584,7 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
           <button data-val="vigente" class="active" id="txt-btn-vigente">Vigente (MAR/26)</button>
           <button data-val="anterior" id="txt-btn-anterior">Anterior (JAN/26)</button>
         </div>
-        <span class="field-hint" id="txt-versionHint">Disponível apenas no módulo Gerência.</span>
+        <span class="field-hint" id="txt-versionHint">Disponível apenas no módulo Gerencial.</span>
       </div>
     </div>
   </section>
@@ -1503,13 +1639,6 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
     <div class="panel-title-row">
       <h3 class="panel-title" id="txt-filtersTitle">Filtros</h3>
       <div class="filters-actions">
-        <div class="sim-ctl" id="simCtl" style="display:none;">
-          <button class="btn btn-ghost sim-ctl-toggle" id="simCtlToggle"><svg class="ico" aria-hidden="true"><use href="#i-chevron"></use></svg><span id="txt-simCtlLabel">Simulação</span></button>
-          <span class="sim-mode-switch" id="simCtlMode">
-            <button class="sim-mode-opt" data-mode="margemPeloPreco" id="txt-simCtlA">Margem pelo preço</button>
-            <button class="sim-mode-opt" data-mode="precoPelaMargem" id="txt-simCtlB">Preço pela margem</button>
-          </span>
-        </div>
         <button class="btn btn-outline" id="pdfFullBtn"><svg class="ico" aria-hidden="true"><use href="#i-print"></use></svg><span id="txt-pdfFullBtn">Gerar tabela completa em PDF</span></button>
         <button class="btn btn-outline" id="pdfBtn"><svg class="ico" aria-hidden="true"><use href="#i-print"></use></svg><span id="txt-pdfBtn">Gerar PDF</span></button>
       </div>
@@ -1525,13 +1654,24 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
       </div>
     </div>
     <div class="field-row" style="margin-top:16px;">
-      <div class="field grow">
+      <div class="field grow" id="catField">
         <span class="field-label" id="txt-categoryLabel">Categoria</span>
         <div class="chipset" id="catChips"></div>
       </div>
       <div class="field">
         <span class="field-label" id="txt-versionLabel2">Versão</span>
         <div class="status-pill" id="versionNote"></div>
+      </div>
+    </div>
+    <!-- Exibição: tabela inteira ou um item só. No modo "um item" a tabela
+         some e a busca logo abaixo passa a ser o seletor da ficha. -->
+    <div class="field-row" style="margin-top:16px;">
+      <div class="field">
+        <span class="field-label" id="txt-viewModeLabel">Exibição</span>
+        <div class="segmented" id="viewModeSeg">
+          <button data-val="tabela" class="active" id="txt-btn-viewTable">Tabela completa</button>
+          <button data-val="item" id="txt-btn-viewItem">Visualizar um item</button>
+        </div>
       </div>
     </div>
     <!-- A busca é o último controle do painel: fica encostada nas tabelas,
@@ -1555,7 +1695,7 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
 <!-- Password modal -->
 <div class="modal-overlay no-print" id="pwModal" hidden>
   <div class="modal-box">
-    <h3 id="txt-pwTitle"><svg class="ico" aria-hidden="true"><use href="#i-lock"></use></svg>Acesso restrito — Gerência</h3>
+    <h3 id="txt-pwTitle"><svg class="ico" aria-hidden="true"><use href="#i-lock"></use></svg>Acesso restrito — Gerencial</h3>
     <p id="txt-pwText">Esta área contém margens comerciais sensíveis. Informe a senha do módulo de gerência para continuar.</p>
     <input type="password" id="pwInput" class="input-box" placeholder="Senha">
     <p class="pw-error" id="pwError">Senha incorreta. Tente novamente.</p>
@@ -1566,7 +1706,7 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
   </div>
 </div>
 
-<script id="app-data" type="application/json">{"meta":{"moeda":"R$ (BRL)","frete":"C.I.F.: SC>SC mín. R$3.000,00 | SC>Sul/Sudeste mín. R$5.000,00 | Demais regiões: F.O.B.","impostos_inclusos":"ICMS, PIS/COFINS","impostos_a_incluir":"IPI, quando incidir","prazo_pgto":"60 dias (média)","usd_brl":5.1065},"meta_en":{"frete":"C.I.F.: SC>SC min. R$3,000.00 | SC>South/Southeast min. R$5,000.00 | Other regions: F.O.B.","impostos_inclusos":"ICMS, PIS/COFINS","impostos_a_incluir":"IPI, when applicable","prazo_pgto":"60 days (average)"},"products":[{"cat":"8. Malhas","code":"8J50PE 0100","color":"Branca","ipi":0.0325},{"cat":"8. Malhas","code":"8J45PAEA9 0100","color":"Branca","ipi":0.0325},{"cat":"8. Malhas","code":"8J45PAEA9 9800","color":"Preta","ipi":0.0325},{"cat":"8. Malhas","code":"8I55PAEA9 0100","color":"Branca","ipi":0.0325},{"cat":"8. Malhas","code":"8I55PAEA9 9800","color":"Preta","ipi":0.0325},{"cat":"8. Malhas","code":"8I60PAW 0100","color":"Branca","ipi":0.0325},{"cat":"8. Malhas","code":"8J65PAEA9 0100","color":"Branca","ipi":0.0325},{"cat":"8. Malhas","code":"8J65PAEA9 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FA30PAEA 0000","color":"Branco Óptico","ipi":0.0325},{"cat":"7. Tecidas","code":"7FA30PAEA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FA45PAEA 0000","color":"Branco Óptico","ipi":0.0325},{"cat":"7. Tecidas","code":"7FA45PAEA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FA55PAEA 0000","color":"Branco Óptico","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB45PAEA 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB45PAEA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB55PAEA 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB55PAEA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB70PAEA 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB70PAEA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB90PA 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB90PA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FC45PAEA 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7FC45PAEA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FE40PA 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7FE40PA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP120HP 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP140HP 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP120HPF 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP140HPF 0100","color":"Branca","ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A30PE 0100","color":"Branca","ipi":0},{"cat":"6. Nãotecidas","code":"6A60PE 0100","color":"Branca","ipi":0},{"cat":"6. Nãotecidas","code":"6A25PAEA 0100","color":"Branca","ipi":0},{"cat":"6. Nãotecidas","code":"6A25PAEA 4800","color":"Grafite","ipi":0},{"cat":"6. Nãotecidas","code":"6A30PAEA 0100","color":"Branca","ipi":0},{"cat":"6. Nãotecidas","code":"6A30PAEA 4800","color":"Grafite","ipi":0},{"cat":"6. Nãotecidas","code":"6A40PAEA 0100","color":"Branca","ipi":0},{"cat":"6. Nãotecidas","code":"6A40PAEA 4800","color":"Grafite","ipi":0},{"cat":"6. Nãotecidas","code":"6A60PAEA 0100","color":"Branca","ipi":0},{"cat":"6. Nãotecidas","code":"6A60PAEA 4800","color":"Grafite","ipi":0},{"cat":"9. Especiais","code":"WENFUSE15 0100","color":"Branca","ipi":0},{"cat":"9. Especiais","code":"SOLVY 0100","color":"Branca","ipi":0},{"cat":"7. Tecidas","code":"7FB40PAEA 0100","color":"Branca","ipi":0},{"cat":"7. Tecidas","code":"7FB40PAEA 9800","color":"Preta","ipi":0}],"params":{"repr18":{"label":"Representante","label_en":"Sales rep","icms":0.18,"pis":0.0925,"date":"MAR/26","note":"Tabela vigente","note_en":"Current price list","margins":[null,null,null,null],"commissions":[null,null,null,null]},"ger18":{"label":"Gerência","label_en":"Management","icms":0.18,"pis":0.0925,"date":"MAR/26","note":"Faturamento dentro do estado","note_en":"In-state invoicing","margins":[null,null,null,null,null],"commissions":[null,null,null,null,null]},"repr17":{"label":"Representante","label_en":"Sales rep","icms":0.17,"pis":0.0925,"date":"MAR/26","note":"Tabela vigente","note_en":"Current price list","margins":[null,null,null,null],"commissions":[null,null,null,null]},"ger17":{"label":"Gerência","label_en":"Management","icms":0.17,"pis":0.0925,"date":"MAR/26","note":"Faturamento dentro do estado","note_en":"In-state invoicing","margins":[null,null,null,null,null],"commissions":[null,null,null,null,null]},"repr4":{"label":"Representante","label_en":"Sales rep","icms":0.04,"pis":0.0925,"date":"MAR/26","note":"Tabela vigente","note_en":"Current price list","margins":[null,null,null,null],"commissions":[null,null,null,null]},"ger4":{"label":"Gerência","label_en":"Management","icms":0.04,"pis":0.0925,"date":"MAR/26","note":"Faturamento dentro do estado","note_en":"In-state invoicing","margins":[null,null,null,null,null],"commissions":[null,null,null,null,null]}},"legacy":{"repr18_jan26":{"label":"Representante","label_en":"Sales rep","date":"JAN/26","note":"Faturamento SP→SP (tabela anterior)","note_en":"SP→SP invoicing (previous table)","margins":[null,null,null,null],"commissions":[null,null,null,null],"rows":[{"cat":"8. Malhas","code":"8J45PAEA9 0100","color":"Branca","prices":[7.53,6.76,6.14,5.62],"ipi":0.0325},{"cat":"8. Malhas","code":"8J45PAEA9 9800","color":"Preta","prices":[7.16,6.43,5.84,5.34],"ipi":0.0325},{"cat":"8. Malhas","code":"8I55PAEA9 0100","color":"Branca","prices":[7.53,6.76,6.14,5.62],"ipi":0.0325},{"cat":"8. Malhas","code":"8I55PAEA9 9800","color":"Preta","prices":[9.36,8.41,7.63,6.99],"ipi":0.0325},{"cat":"8. Malhas","code":"8J65PAEA9 0100","color":"Branca","prices":[9.55,8.58,7.78,7.12],"ipi":0.0325},{"cat":"8. Malhas","code":"8J65PAEA9 9800","color":"Preta","prices":[9.55,8.58,7.78,7.12],"ipi":0.0325},{"cat":"8. Malhas","code":"8J65PAEA9 0100","color":"Branca","prices":[12.1,10.87,9.86,9.03],"ipi":0.0325},{"cat":"8. Malhas","code":"8J65PAEA9 9800","color":"Preta","prices":[12.56,11.28,10.24,9.37],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA30PA 0000","color":"Branca","prices":[7.71,6.93,6.29,5.75],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA30PA 9800","color":"Branca","prices":[7.71,6.93,6.29,5.75],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA45PA 0000","color":"Preta","prices":[8.63,7.75,7.03,6.44],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA45PA 9800","color":"Branca","prices":[8.63,7.75,7.03,6.44],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA30PAEA 0000","color":"Branco Óptico","prices":[9.18,8.25,7.48,6.85],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA30PAEA 9800","color":"Preta","prices":[8.63,7.75,7.03,6.44],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA45PAEA 0000","color":"Branco Óptico","prices":[9.18,8.25,7.48,6.85],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA45PAEA 9800","color":"Preta","prices":[8.63,7.75,7.03,6.44],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA55PAEA 0000","color":"Branco Óptico","prices":[9.0,8.08,7.33,6.71],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB40PAEA 0100","color":"Branca","prices":[10.83,9.73,8.83,8.08],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB40PAEA 9800","color":"Preta","prices":[11.2,10.06,9.13,8.36],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB55PAEA 0100","color":"Branca","prices":[12.48,11.21,10.18,9.32],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB55PAEA 9800","color":"Preta","prices":[13.03,11.71,10.62,9.73],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB70PAEA 0100","color":"Branca","prices":[9.32,8.37,7.6,6.96],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB70PAEA 9800","color":"Preta","prices":[9.67,8.69,7.88,7.22],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FC45PAEA 0100","color":"Branca","prices":[6.79,6.1,5.54,5.07],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FC45PAEA 9800","color":"Preta","prices":[7.16,6.43,5.84,5.34],"ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP120HP 0100","color":"Branco Óptico","prices":[21.48,19.29,17.51,16.03],"ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP140HP 0100","color":"Preta","prices":[22.21,19.95,18.11,16.58],"ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP120HPF 0100","color":"Branco Óptico","prices":[21.85,19.62,17.81,16.3],"ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP140HPF 0100","color":"Preta","prices":[22.4,20.12,18.26,16.71],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A30PE 0100","color":"Branco Óptico","prices":[3.49,3.13,2.84,2.6],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A60PE 0100","color":"Branca","prices":[4.96,4.45,4.04,3.7],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A25PAEA 0100","color":"Preta","prices":[0,0,0,0],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A25PAEA 4800","color":"Branca","prices":[4.46,4.01,3.64,3.33],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A30PAEA 0100","color":"Preta","prices":[4.93,4.43,4.02,3.68],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A30PAEA 4800","color":"Preta","prices":[4.93,4.43,4.02,3.68],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A40PAEA 0100","color":"Branca","prices":[6.08,5.46,4.96,4.54],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A40PAEA 4800","color":"Preta","prices":[6.08,5.46,4.96,4.54],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A60PAEA 0100","color":"Branca","prices":[7.7,6.92,6.28,5.75],"ipi":0},{"cat":"6. Nãotecidas","code":"6A60PAEA 4800","color":"Branca","prices":[7.7,6.92,6.28,5.75],"ipi":0.0325},{"cat":"9. Especiais","code":"WENFUSE15 0100","color":"Preta","prices":[9.0,8.08,7.33,6.71],"ipi":0.0325},{"cat":"9. Especiais","code":"SOLVY 0100","color":"Branca","prices":[6.06,5.44,4.94,4.52],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB40PAEA 0100","color":"Preta","prices":[0,0,0,0],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB40PAEA 9800","color":"Branca","prices":[0,0,0,0],"ipi":0.0325}]}}}</script>
+<script id="app-data" type="application/json">{"meta":{"moeda":"R$ (BRL)","frete":"C.I.F.: SC>SC mín. R$3.000,00 | SC>Sul/Sudeste mín. R$5.000,00 | Demais regiões: F.O.B.","impostos_inclusos":"ICMS, PIS/COFINS","impostos_a_incluir":"IPI, quando incidir","prazo_pgto":"60 dias (média)","usd_brl":5.1065},"meta_en":{"frete":"C.I.F.: SC>SC min. R$3,000.00 | SC>South/Southeast min. R$5,000.00 | Other regions: F.O.B.","impostos_inclusos":"ICMS, PIS/COFINS","impostos_a_incluir":"IPI, when applicable","prazo_pgto":"60 days (average)"},"products":[{"cat":"8. Malhas","code":"8J50PE 0100","color":"Branca","ipi":0.0325},{"cat":"8. Malhas","code":"8J45PAEA9 0100","color":"Branca","ipi":0.0325},{"cat":"8. Malhas","code":"8J45PAEA9 9800","color":"Preta","ipi":0.0325},{"cat":"8. Malhas","code":"8I55PAEA9 0100","color":"Branca","ipi":0.0325},{"cat":"8. Malhas","code":"8I55PAEA9 9800","color":"Preta","ipi":0.0325},{"cat":"8. Malhas","code":"8I60PAW 0100","color":"Branca","ipi":0.0325},{"cat":"8. Malhas","code":"8J65PAEA9 0100","color":"Branca","ipi":0.0325},{"cat":"8. Malhas","code":"8J65PAEA9 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FA30PAEA 0000","color":"Branco Óptico","ipi":0.0325},{"cat":"7. Tecidas","code":"7FA30PAEA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FA45PAEA 0000","color":"Branco Óptico","ipi":0.0325},{"cat":"7. Tecidas","code":"7FA45PAEA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FA55PAEA 0000","color":"Branco Óptico","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB45PAEA 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB45PAEA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB55PAEA 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB55PAEA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB70PAEA 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB70PAEA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB90PA 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7FB90PA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FC45PAEA 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7FC45PAEA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7FE40PA 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7FE40PA 9800","color":"Preta","ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP120HP 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP140HP 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP120HPF 0100","color":"Branca","ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP140HPF 0100","color":"Branca","ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A30PE 0100","color":"Branca","ipi":0},{"cat":"6. Nãotecidas","code":"6A60PE 0100","color":"Branca","ipi":0},{"cat":"6. Nãotecidas","code":"6A25PAEA 0100","color":"Branca","ipi":0},{"cat":"6. Nãotecidas","code":"6A25PAEA 4800","color":"Grafite","ipi":0},{"cat":"6. Nãotecidas","code":"6A30PAEA 0100","color":"Branca","ipi":0},{"cat":"6. Nãotecidas","code":"6A30PAEA 4800","color":"Grafite","ipi":0},{"cat":"6. Nãotecidas","code":"6A40PAEA 0100","color":"Branca","ipi":0},{"cat":"6. Nãotecidas","code":"6A40PAEA 4800","color":"Grafite","ipi":0},{"cat":"6. Nãotecidas","code":"6A60PAEA 0100","color":"Branca","ipi":0},{"cat":"6. Nãotecidas","code":"6A60PAEA 4800","color":"Grafite","ipi":0},{"cat":"9. Especiais","code":"WENFUSE15 0100","color":"Branca","ipi":0},{"cat":"9. Especiais","code":"SOLVY 0100","color":"Branca","ipi":0},{"cat":"7. Tecidas","code":"7FB40PAEA 0100","color":"Branca","ipi":0},{"cat":"7. Tecidas","code":"7FB40PAEA 9800","color":"Preta","ipi":0}],"params":{"repr18":{"label":"Representante","label_en":"Sales rep","icms":0.18,"pis":0.0925,"date":"MAR/26","note":"Tabela vigente","note_en":"Current price list","margins":[null,null,null,null],"commissions":[null,null,null,null]},"ger18":{"label":"Gerencial","label_en":"Management","icms":0.18,"pis":0.0925,"date":"MAR/26","note":"Faturamento dentro do estado","note_en":"In-state invoicing","margins":[null,null,null,null,null],"commissions":[null,null,null,null,null]},"repr17":{"label":"Representante","label_en":"Sales rep","icms":0.17,"pis":0.0925,"date":"MAR/26","note":"Tabela vigente","note_en":"Current price list","margins":[null,null,null,null],"commissions":[null,null,null,null]},"ger17":{"label":"Gerencial","label_en":"Management","icms":0.17,"pis":0.0925,"date":"MAR/26","note":"Faturamento dentro do estado","note_en":"In-state invoicing","margins":[null,null,null,null,null],"commissions":[null,null,null,null,null]},"repr4":{"label":"Representante","label_en":"Sales rep","icms":0.04,"pis":0.0925,"date":"MAR/26","note":"Tabela vigente","note_en":"Current price list","margins":[null,null,null,null],"commissions":[null,null,null,null]},"ger4":{"label":"Gerencial","label_en":"Management","icms":0.04,"pis":0.0925,"date":"MAR/26","note":"Faturamento dentro do estado","note_en":"In-state invoicing","margins":[null,null,null,null,null],"commissions":[null,null,null,null,null]}},"legacy":{"repr18_jan26":{"label":"Representante","label_en":"Sales rep","date":"JAN/26","note":"Faturamento SP→SP (tabela anterior)","note_en":"SP→SP invoicing (previous table)","margins":[null,null,null,null],"commissions":[null,null,null,null],"rows":[{"cat":"8. Malhas","code":"8J45PAEA9 0100","color":"Branca","prices":[7.53,6.76,6.14,5.62],"ipi":0.0325},{"cat":"8. Malhas","code":"8J45PAEA9 9800","color":"Preta","prices":[7.16,6.43,5.84,5.34],"ipi":0.0325},{"cat":"8. Malhas","code":"8I55PAEA9 0100","color":"Branca","prices":[7.53,6.76,6.14,5.62],"ipi":0.0325},{"cat":"8. Malhas","code":"8I55PAEA9 9800","color":"Preta","prices":[9.36,8.41,7.63,6.99],"ipi":0.0325},{"cat":"8. Malhas","code":"8J65PAEA9 0100","color":"Branca","prices":[9.55,8.58,7.78,7.12],"ipi":0.0325},{"cat":"8. Malhas","code":"8J65PAEA9 9800","color":"Preta","prices":[9.55,8.58,7.78,7.12],"ipi":0.0325},{"cat":"8. Malhas","code":"8J65PAEA9 0100","color":"Branca","prices":[12.1,10.87,9.86,9.03],"ipi":0.0325},{"cat":"8. Malhas","code":"8J65PAEA9 9800","color":"Preta","prices":[12.56,11.28,10.24,9.37],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA30PA 0000","color":"Branca","prices":[7.71,6.93,6.29,5.75],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA30PA 9800","color":"Branca","prices":[7.71,6.93,6.29,5.75],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA45PA 0000","color":"Preta","prices":[8.63,7.75,7.03,6.44],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA45PA 9800","color":"Branca","prices":[8.63,7.75,7.03,6.44],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA30PAEA 0000","color":"Branco Óptico","prices":[9.18,8.25,7.48,6.85],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA30PAEA 9800","color":"Preta","prices":[8.63,7.75,7.03,6.44],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA45PAEA 0000","color":"Branco Óptico","prices":[9.18,8.25,7.48,6.85],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA45PAEA 9800","color":"Preta","prices":[8.63,7.75,7.03,6.44],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FA55PAEA 0000","color":"Branco Óptico","prices":[9.0,8.08,7.33,6.71],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB40PAEA 0100","color":"Branca","prices":[10.83,9.73,8.83,8.08],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB40PAEA 9800","color":"Preta","prices":[11.2,10.06,9.13,8.36],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB55PAEA 0100","color":"Branca","prices":[12.48,11.21,10.18,9.32],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB55PAEA 9800","color":"Preta","prices":[13.03,11.71,10.62,9.73],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB70PAEA 0100","color":"Branca","prices":[9.32,8.37,7.6,6.96],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB70PAEA 9800","color":"Preta","prices":[9.67,8.69,7.88,7.22],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FC45PAEA 0100","color":"Branca","prices":[6.79,6.1,5.54,5.07],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FC45PAEA 9800","color":"Preta","prices":[7.16,6.43,5.84,5.34],"ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP120HP 0100","color":"Branco Óptico","prices":[21.48,19.29,17.51,16.03],"ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP140HP 0100","color":"Preta","prices":[22.21,19.95,18.11,16.58],"ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP120HPF 0100","color":"Branco Óptico","prices":[21.85,19.62,17.81,16.3],"ipi":0.0325},{"cat":"7. Tecidas","code":"7GCP140HPF 0100","color":"Preta","prices":[22.4,20.12,18.26,16.71],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A30PE 0100","color":"Branco Óptico","prices":[3.49,3.13,2.84,2.6],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A60PE 0100","color":"Branca","prices":[4.96,4.45,4.04,3.7],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A25PAEA 0100","color":"Preta","prices":[0,0,0,0],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A25PAEA 4800","color":"Branca","prices":[4.46,4.01,3.64,3.33],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A30PAEA 0100","color":"Preta","prices":[4.93,4.43,4.02,3.68],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A30PAEA 4800","color":"Preta","prices":[4.93,4.43,4.02,3.68],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A40PAEA 0100","color":"Branca","prices":[6.08,5.46,4.96,4.54],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A40PAEA 4800","color":"Preta","prices":[6.08,5.46,4.96,4.54],"ipi":0.0325},{"cat":"6. Nãotecidas","code":"6A60PAEA 0100","color":"Branca","prices":[7.7,6.92,6.28,5.75],"ipi":0},{"cat":"6. Nãotecidas","code":"6A60PAEA 4800","color":"Branca","prices":[7.7,6.92,6.28,5.75],"ipi":0.0325},{"cat":"9. Especiais","code":"WENFUSE15 0100","color":"Preta","prices":[9.0,8.08,7.33,6.71],"ipi":0.0325},{"cat":"9. Especiais","code":"SOLVY 0100","color":"Branca","prices":[6.06,5.44,4.94,4.52],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB40PAEA 0100","color":"Preta","prices":[0,0,0,0],"ipi":0.0325},{"cat":"7. Tecidas","code":"7FB40PAEA 9800","color":"Branca","prices":[0,0,0,0],"ipi":0.0325}]}}}</script>
 
 <script type="module">
 // A Central de Acesso (guard.js, no <head>) cuida do login e entrega um
@@ -1806,7 +1946,11 @@ const state = {
   // Bloco "Orçamento": recolhido por padrão (só título + botão de expandir).
   quoteOpen: false,
   // Módulo "Visualizar simulação": recolhido por padrão.
-  simOpen: false
+  simOpen: false,
+  // "Visualizar um item": esconde a tabela inteira e mostra a ficha grande
+  // de um produto só, escolhido pela busca.
+  focoOn: false,
+  focoCode: null
 };
 
 const PARAM_KEY = {
@@ -1822,14 +1966,21 @@ const I18N = {
   pt:{
     title:"Lista de Preços", subtitle:"Wendell Global Interlining",
     profileTitle:"Perfil de acesso", moduleLabel:"Módulo",
-    repr:"Representante", ger:"Gerência",
-    statusRepr:"Módulo representante — margens ocultas", statusGer:"Módulo gerência — margens visíveis",
+    repr:"Representante", ger:"Gerencial",
+    statusRepr:"Módulo representante — margens ocultas", statusGer:"Módulo gerencial — margens visíveis",
     versionLabel:"Versão", versionVigente:"Vigente (MAR/26)", versionAnterior:"Anterior (JAN/26)",
-    versionHint:"Disponível apenas no módulo Gerência.",
+    versionHint:"Disponível apenas no módulo Gerencial.",
     filtersTitle:"Filtros", icmsLabel:"ICMS", searchLabel:"Buscar produtos (código ou cor)",
     searchPlaceholder:"Ex.: 8J50PE, 7FB90PA, Branca — separe por vírgula", categoryLabel:"Categoria", allCat:"Todas",
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
+    viewModeLabel:"Exibição", viewTable:"Tabela completa", viewItem:"Visualizar um item",
+    focoHintTitle:"Visualização de um item",
+    focoHintText:"Digite o código ou a cor no campo de busca abaixo. A tabela completa fica oculta até você escolher o item.",
+    focoNoMatch:"Nenhum item encontrado para essa busca.",
+    focoPickTitle:(n)=> n + " itens encontrados — escolha um",
+    focoChange:"Trocar item", focoClearSim:"Limpar simulação",
+    focoComm:"Comissão", focoMargin:"Margem", focoHidden:"Oculto para o representante",
     quoteTitle:"Orçamento — selecione itens e colunas",
     quoteBtn:"Gerar orçamento com itens selecionados",
     quoteClientLabel:"Cliente", quoteClientPlaceholder:"Nome do cliente (opcional)",
@@ -1857,13 +2008,13 @@ const I18N = {
     quoteEmpty:"Selecione ao menos um item para gerar o orçamento.",
     quoteDocTitle:"Orçamento", quoteClientPrefix:"Cliente:",
     simResetBtn:"Limpar simulação",
-    simNote:"Colunas de simulação (6 e 7) — visíveis só na Gerência e não saem no PDF.",
+    simNote:"Colunas de simulação (6 e 7) — visíveis só no módulo Gerencial e não saem no PDF.",
     emptyState:"Nenhum item encontrado para os filtros selecionados.",
     freightLabel:"Frete", taxIncludedLabel:"Impostos inclusos", taxToAddLabel:"Impostos a incluir",
     paymentLabel:"Prazo médio de pgto", commissionsLabel:"Comissões por tabela", usdLabel:"USD/BRL (referência)",
     footerNote:"Wendell Global Interlining · Tabelas de preços de uso interno — gerado a partir da planilha comercial · consultar sempre a versão mais recente",
-    pwTitle:"Acesso restrito — Gerência",
-    pwText:"Esta área contém margens comerciais sensíveis. Informe a senha do módulo de gerência para continuar.",
+    pwTitle:"Acesso restrito — Gerencial",
+    pwText:"Esta área contém margens comerciais sensíveis. Informe a senha do módulo gerencial para continuar.",
     pwPlaceholder:"Senha", pwError:"Senha incorreta. Tente novamente.", cancel:"Cancelar", enter:"Entrar",
     pdfBtn:"Gerar tabela em PDF com itens selecionados",
     pdfEmpty:"Marque ao menos um item para gerar a tabela em PDF.",
@@ -1916,6 +2067,13 @@ const I18N = {
     searchPlaceholder:"e.g. 8J50PE, 7FB90PA, White — comma separated", categoryLabel:"Category", allCat:"All",
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
+    viewModeLabel:"Display", viewTable:"Full table", viewItem:"Single item",
+    focoHintTitle:"Single-item view",
+    focoHintText:"Type the code or colour in the search field below. The full table stays hidden until you pick an item.",
+    focoNoMatch:"No item found for this search.",
+    focoPickTitle:(n)=> n + " items found — pick one",
+    focoChange:"Change item", focoClearSim:"Clear simulation",
+    focoComm:"Commission", focoMargin:"Margin", focoHidden:"Hidden from the sales rep",
     quoteTitle:"Quote — select items and columns",
     quoteBtn:"Generate quote with selected items",
     quoteClientLabel:"Customer", quoteClientPlaceholder:"Customer name (optional)",
@@ -2336,6 +2494,9 @@ function applyStaticTexts(){
   document.getElementById('txt-searchLabel').textContent = t('searchLabel');
   document.getElementById('searchInput').placeholder = t('searchPlaceholder');
   document.getElementById('txt-categoryLabel').textContent = t('categoryLabel');
+  document.getElementById('txt-viewModeLabel').textContent = t('viewModeLabel');
+  document.getElementById('txt-btn-viewTable').textContent = t('viewTable');
+  document.getElementById('txt-btn-viewItem').textContent = t('viewItem');
   document.getElementById('txt-pdfBtn').textContent = t('pdfBtn');
   document.getElementById('txt-pdfFullBtn').textContent = t('pdfFullBtn');
   document.getElementById('themeBtn').textContent = t('theme');
@@ -2407,22 +2568,18 @@ function renderControls(){
   const pageEl = document.querySelector('main.page');
   if(pageEl) pageEl.classList.toggle('wide', !!state.simOpen && isGer);
 
-  // Controle de simulação fora da tabela — no celular a tabela é reduzida
-  // para caber na tela, e o botão dentro do cabeçalho fica pequeno demais
-  // para tocar. Este atalho fica sempre em tamanho normal.
-  const ctl = document.getElementById('simCtl');
-  const showCtl = isGer && state.versionMode !== 'anterior';
-  ctl.style.display = showCtl ? 'flex' : 'none';
-  if(showCtl){
-    document.getElementById('simCtlToggle').innerHTML =
-      (state.simOpen ? '<svg class="ico" aria-hidden="true"><use href="#i-chevron-down"></use></svg>' : '<svg class="ico" aria-hidden="true"><use href="#i-chevron"></use></svg>')
-      + '<span>' + t('simGroupLabel') + '</span>';
-    document.getElementById('simCtlMode').style.display = state.simOpen ? 'inline-flex' : 'none';
-    document.getElementById('txt-simCtlA').textContent = t('simModeMarginFromPrice');
-    document.getElementById('txt-simCtlB').textContent = t('simModePriceFromMargin');
-    document.getElementById('txt-simCtlA').classList.toggle('on', state.simMode !== 'precoPelaMargem');
-    document.getElementById('txt-simCtlB').classList.toggle('on', state.simMode === 'precoPelaMargem');
-  }
+  // "Visualizar um item": sem tabela na tela, os botões de PDF e o bloco de
+  // orçamento — que agem sobre a tabela — saem do ar. O filtro de categoria
+  // também sai: aqui a busca varre o catálogo inteiro.
+  const foco = !!state.focoOn;
+  document.querySelectorAll('#viewModeSeg button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.val === (foco ? 'item' : 'tabela'));
+  });
+  const catField = document.getElementById('catField');
+  if(catField) catField.hidden = foco;
+  document.getElementById('pdfBtn').hidden = foco;
+  document.getElementById('pdfFullBtn').hidden = foco;
+  document.getElementById('quotePanel').hidden = foco;
 }
 
 function collectCategories(block){
@@ -2769,6 +2926,183 @@ function bindSelection(block, codigosEmTela){
   });
 }
 
+// ---------- Visualizar um item ----------
+// A busca do painel de filtros é o seletor: um resultado abre direto, vários
+// viram lista. Enquanto nada for escolhido, não há tabela na tela.
+function focoCandidatos(block){
+  const q = (state.search || '').trim().toLowerCase();
+  if(!q) return [];
+  const terms = q.split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean);
+  if(!terms.length) return [];
+  return block.rows.filter(r=>{
+    const code = r.code.toLowerCase(), color = (r.color||'').toLowerCase();
+    return terms.some(x => code.includes(x) || color.includes(x));
+  });
+}
+function focoSwatch(color){
+  const hex = COLOR_HEX[(color||'').toLowerCase()] || '#D9D6D1';
+  return '<span class="swatch" style="background:'+hex+'"></span>';
+}
+function focoSaida(sv, byMargin){
+  if(byMargin) return sv.impossible ? t('simImpossible') : fmtBRL(sv.price);
+  return (sv.margin !== null && sv.margin !== undefined) ? fmtPct(sv.margin) : '—';
+}
+function focoItemAtual(block){
+  const cands = focoCandidatos(block);
+  let row = null;
+  if(state.focoCode) row = cands.find(r=>r.code === state.focoCode) || null;
+  // Busca que resolve num item só abre a ficha direto — um toque a menos.
+  if(!row && cands.length === 1) row = cands[0];
+  state.focoCode = row ? row.code : null;
+  return { row: row, cands: cands };
+}
+
+function renderFoco(block, cont){
+  const { row, cands } = focoItemAtual(block);
+  const wrap = document.createElement('div');
+  wrap.className = 'foco-wrap';
+
+  if(!row){
+    if(!(state.search||'').trim()){
+      wrap.innerHTML = '<div class="foco-hint">'
+        + '<svg class="ico" aria-hidden="true"><use href="#i-search"></use></svg>'
+        + '<b>'+escAttr(t('focoHintTitle'))+'</b>'
+        + '<span>'+escAttr(t('focoHintText'))+'</span></div>';
+    } else if(!cands.length){
+      wrap.innerHTML = '<div class="foco-hint">'
+        + '<svg class="ico" aria-hidden="true"><use href="#i-search"></use></svg>'
+        + '<b>'+escAttr(t('focoNoMatch'))+'</b>'
+        + '<span>'+escAttr(t('focoHintText'))+'</span></div>';
+    } else {
+      let html = '<div class="foco-pick"><p class="foco-pick-title">'
+               + escAttr(t('focoPickTitle')(cands.length)) + '</p>';
+      cands.forEach(r=>{
+        html += '<button class="foco-opt" type="button" data-code="'+escAttr(r.code)+'">'
+             +  focoSwatch(r.color)
+             +  '<span class="fo-code">'+escAttr(r.code)+'</span>'
+             +  '<span class="fo-color">'+escAttr(colorLabel(r.color||'—'))+'</span>'
+             +  '<span class="fo-cat">'+escAttr(catLabel(r.cat))+'</span></button>';
+      });
+      wrap.innerHTML = html + '</div>';
+    }
+    cont.appendChild(wrap);
+    return;
+  }
+
+  const isGer = state.audience === 'gerencia';
+  const icmsTxt = (isGer && state.versionMode === 'anterior') ? '18' : state.icms;
+  let html = '<div class="foco-card">'
+    + '<div class="foco-head">'
+    +   '<div class="foco-cat">'+escAttr(catLabel(row.cat))+'</div>'
+    +   '<h2 class="foco-code">'+escAttr(row.code)+'</h2>'
+    +   '<div class="foco-chips">'
+    +     '<span class="foco-chip">'+focoSwatch(row.color)+escAttr(colorLabel(row.color||'—'))+'</span>'
+    +     '<span class="foco-chip">'+t('ipiCol')+' '
+    +       ((row.ipi!==null && row.ipi!==undefined) ? fmtPct(row.ipi) : '—')+'</span>'
+    +     '<span class="foco-chip">ICMS '+icmsTxt+'%</span>'
+    +     (row.visivel === false
+        ? '<span class="foco-chip alerta">'+escAttr(t('focoHidden'))+'</span>' : '')
+    +   '</div>'
+    + '</div>';
+
+  // As tabelas disponíveis, uma por linha e em corpo grande. A comissão
+  // acompanha cada tabela nos dois módulos; a margem, só no Gerencial.
+  block.margins.forEach((m,i)=>{
+    const c = block.commissions[i];
+    let sub = (c!==null && c!==undefined) ? (t('focoComm')+' '+fmtPct(c)) : '';
+    if(isGer && m !== null && m !== undefined){
+      sub += (sub ? ' · ' : '') + t('focoMargin')+' '+fmtPct(m);
+    }
+    html += '<div class="foco-tier"><span class="ft-l">'
+         +  '<span class="ft-name">'+t('tableCol')+' '+(i+1)+'</span>'
+         +  (sub ? '<span class="ft-sub">'+sub+'</span>' : '')
+         +  '</span><span class="ft-price">'+fmtBRL(row.prices[i])+'</span></div>';
+  });
+
+  // Custo e simulação são do módulo Gerencial. No Representante a ficha
+  // termina nas tabelas — o custo não chega nem ao navegador dele.
+  if(isGer && !block.isLegacy){
+    html += '<div class="foco-cost"><span>'+t('costCol')+'</span><b>'+fmtCost(row.cost)+'</b></div>';
+    const sv = simValues(row, block);
+    const byMargin = (state.simMode === 'precoPelaMargem');
+    const mTxt = (sv.margin !== null && sv.margin !== undefined)
+      ? (sv.margin*100).toFixed(2) : '0.00';
+    const pTxt = (sv.price !== null && sv.price > 0) ? sv.price.toFixed(2) : '0.00';
+    html += '<div class="foco-sim">'
+      + '<div class="foco-sim-head"><span class="foco-sim-title">'+t('simGroupLabel')+'</span>'
+      +   '<span>'
+      +     '<button class="foco-mode'+(!byMargin?' on':'')+'" type="button" data-mode="margemPeloPreco">'+t('simModeMarginFromPrice')+'</button>'
+      +     '<button class="foco-mode'+(byMargin?' on':'')+'" type="button" data-mode="precoPelaMargem">'+t('simModePriceFromMargin')+'</button>'
+      +   '</span></div>'
+      + '<div class="foco-sim-grid">'
+      +   '<label class="fs-field"><span>'+(byMargin ? t('simMarginInCol') : t('simPriceCol'))+'</span>'
+      +     '<input type="number" class="foco-in" data-kind="'+(byMargin?'margin':'price')+'"'
+      +     ' step="'+(byMargin?'0.1':'0.01')+'" value="'+(byMargin ? mTxt : pTxt)+'"></label>'
+      +   '<label class="fs-field"><span>'+t('simCommCol')+'</span>'
+      +     '<input type="number" class="foco-in" data-kind="comm" step="0.1" min="0"'
+      +     ' value="'+(sv.comm*100).toFixed(2)+'"></label>'
+      + '</div>'
+      + '<div class="foco-sim-out"><span>'+(byMargin ? t('simPriceOutCol') : t('simMarginCol'))+'</span>'
+      +   '<b id="focoOut">'+focoSaida(sv, byMargin)+'</b></div>'
+      + '</div>';
+  }
+
+  html += '<div class="foco-foot">'
+       +  '<button class="btn btn-ghost" type="button" id="focoTrocar">'+t('focoChange')+'</button>'
+       +  (isGer && !block.isLegacy
+          ? '<button class="btn btn-ghost" type="button" id="focoSimClear">'+t('focoClearSim')+'</button>' : '')
+       +  '</div></div>';
+  wrap.innerHTML = html;
+  cont.appendChild(wrap);
+}
+
+function bindFoco(block){
+  document.querySelectorAll('button.foco-opt').forEach(b=>{
+    b.onclick = ()=>{ state.focoCode = b.dataset.code; render(); };
+  });
+  const trocar = document.getElementById('focoTrocar');
+  if(trocar) trocar.onclick = ()=>{
+    state.focoCode = null;
+    state.search = '';
+    const si = document.getElementById('searchInput');
+    if(si){ si.value = ''; si.focus(); }
+    render();
+  };
+  document.querySelectorAll('button.foco-mode').forEach(b=>{
+    b.onclick = ()=>{ state.simMode = b.dataset.mode; render(); };
+  });
+  const row = block.rows.find(r=>r.code === state.focoCode);
+  if(!row) return;
+  const limpar = document.getElementById('focoSimClear');
+  if(limpar) limpar.onclick = ()=>{
+    delete state.simPrices[row.code];
+    delete state.simMargins[row.code];
+    delete state.simComms[row.code];
+    render();
+  };
+  // Recalcula só o resultado, sem re-render — senão o campo perde o foco
+  // no meio da digitação.
+  document.querySelectorAll('input.foco-in').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const kind = inp.dataset.kind;
+      const store = kind === 'comm' ? state.simComms
+                  : (kind === 'margin' ? state.simMargins : state.simPrices);
+      const raw = String(inp.value).replace(',', '.').trim();
+      const val = parseFloat(raw);
+      if(raw === '' || isNaN(val)) delete store[row.code];
+      else store[row.code] = (kind === 'price') ? val : val/100;
+      const sv = simValues(row, block);
+      const byMargin = (state.simMode === 'precoPelaMargem');
+      const out = document.getElementById('focoOut');
+      if(out){
+        out.textContent = focoSaida(sv, byMargin);
+        out.classList.toggle('negative',
+          byMargin ? sv.impossible : (sv.margin !== null && sv.margin < 0));
+      }
+    });
+  });
+}
+
 function render(){
   applyStaticTexts();
   renderControls();
@@ -2805,6 +3139,9 @@ function render(){
   // Tanto o orçamento quanto a "tabela em PDF" saem apenas com os itens
   // marcados: são dois documentos diferentes da MESMA seleção.
   const soMarcados = quote || state.tableMode;
+  // "Visualizar um item" é modo de tela: na hora de imprimir (orçamento ou
+  // tabela em PDF) a tabela volta normalmente.
+  const focoAtivo = !!state.focoOn && !quote && !state.tableMode;
 
   let rows = block.rows;
   if(soMarcados){
@@ -2857,7 +3194,9 @@ function render(){
       + (state.tableMode ? ' · ' + rows.length + ' ' + t('selectedSuffix') : '');
   }
 
-  if(rows.length === 0){
+  if(focoAtivo){
+    renderFoco(block, cont);
+  } else if(rows.length === 0){
     cont.innerHTML = '<div class="panel"><div class="empty-state">'+t('emptyState')+'</div></div>';
   } else {
     Object.keys(grouped).forEach(catName=>{
@@ -3072,12 +3411,16 @@ function render(){
   `;
   document.getElementById('content').appendChild(foot);
 
-  // Fora do orçamento, liga os controles de seleção da tabela
-  if(!state.quoteMode && !state.tableMode) bindSelection(block, codigosEmTela);
-  // Os inputs de simulação só existem com o módulo aberto
-  if(showSim) bindSimInputs(block);
-  // Olho e setas da Gerência
-  if(showAdm) bindAdmControls();
+  if(focoAtivo){
+    bindFoco(block);
+  } else {
+    // Fora do orçamento, liga os controles de seleção da tabela
+    if(!state.quoteMode && !state.tableMode) bindSelection(block, codigosEmTela);
+    // Os inputs de simulação só existem com o módulo aberto
+    if(showSim) bindSimInputs(block);
+    // Olho e setas da Gerência
+    if(showAdm) bindAdmControls();
+  }
 
   if(typeof fitTablesToScreen === 'function') fitTablesToScreen();
 }
@@ -3245,7 +3588,23 @@ document.querySelectorAll('#icmsSeg button').forEach(btn=>{
 });
 document.getElementById('searchInput').addEventListener('input', (e)=>{
   state.search = e.target.value;
+  // Mudou a busca, mudou o item da ficha: a escolha anterior é refeita a
+  // partir do que casar agora.
+  state.focoCode = null;
   render();
+});
+document.querySelectorAll('#viewModeSeg button').forEach(btn=>{
+  btn.onclick = ()=>{
+    const umItem = btn.dataset.val === 'item';
+    if(state.focoOn === umItem) return;
+    state.focoOn = umItem;
+    state.focoCode = null;
+    render();
+    if(umItem){
+      const si = document.getElementById('searchInput');
+      if(si) si.focus();
+    }
+  };
 });
 
 // ---------- PDF (impressão) ----------
@@ -3282,13 +3641,6 @@ function showAdminMsg(msg, ok){
 }
 
 // ---------- Botões do orçamento ----------
-document.getElementById('simCtlToggle').onclick = ()=>{
-  state.simOpen = !state.simOpen;
-  render();
-};
-document.querySelectorAll('#simCtlMode .sim-mode-opt').forEach(btn=>{
-  btn.onclick = ()=>{ state.simMode = btn.dataset.mode; render(); };
-});
 document.getElementById('quoteClient').addEventListener('input', (e)=>{
   state.quoteClient = e.target.value;
 });
