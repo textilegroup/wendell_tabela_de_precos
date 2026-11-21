@@ -1369,15 +1369,30 @@ button.foco-x:hover{background:#fff; color:var(--wine); border-color:#fff;}
 .foco-icms-campo{flex:none;}
 .foco-icms-campo[hidden]{display:none !important;}
 .foco-box-corpo{
-  flex:1; min-height:0; padding:14px;
+  flex:1; min-width:0; min-height:0; padding:14px;
   overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch;
 }
-.foco-wrap{max-width:none; margin:0;}
-/* As fichas ocupam a área toda: uma coluna no celular, mais colunas
-   conforme a tela dá espaço. */
-.foco-grade{display:grid; gap:14px; grid-template-columns:1fr; align-items:start;}
-@media (min-width:780px){ .foco-grade{grid-template-columns:repeat(2,minmax(0,1fr));} }
-@media (min-width:1260px){ .foco-grade{grid-template-columns:repeat(3,minmax(0,1fr));} }
+.foco-wrap{max-width:100%; margin:0; min-width:0;}
+.foco-box, .foco-box-top, .foco-box-busca{min-width:0;}
+.foco-tier, .foco-sim, .foco-sim-grid, .foco-cost{min-width:0;}
+/* Uma ficha por linha, sempre, ocupando a largura inteira. Várias fichas
+   ficam em sequência na vertical — nunca lado a lado. */
+.foco-grade{display:grid; gap:14px; grid-template-columns:minmax(0,1fr); align-items:start;}
+.foco-card{max-width:100%; min-width:0;}
+/* O corpo tem uma régua mais curta que o resto: uma ficha de 1400px de
+   largura não se lê. No celular isso não chega a valer. */
+.foco-box-corpo .foco-lim{max-width:900px;}
+/* Celular: de ponta a ponta. */
+@media (max-width:560px){
+  .foco-box-corpo{padding:0;}
+  .foco-grade{gap:10px;}
+  .foco-card{border-radius:0; border-left:0; border-right:0;}
+  .foco-pick{padding:12px 12px 0;}
+  .foco-hint{margin:12px;}
+}
+@media (max-width:359px){
+  .foco-sim-grid{grid-template-columns:minmax(0,1fr);}
+}
 .foco-hint{
   background:var(--card); border:1px dashed var(--line); border-radius:14px;
   padding:30px 22px; text-align:center; display:grid; gap:7px; justify-items:center;
@@ -1570,7 +1585,6 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
 
 @media (max-width:420px){
   .foco-box-top,.foco-box-busca{padding-left:12px; padding-right:12px;}
-  .foco-box-corpo{padding:12px;}
   .foco-code{font-size:24px;}
   .ft-price{font-size:22px;}
   .foco-tier{padding:11px 13px;}
