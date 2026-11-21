@@ -1378,6 +1378,14 @@ button.foco-thumb{
 button.foco-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
 button.foco-thumb:hover{border-color:var(--wine-ink);}
 button.foco-thumb:focus-visible{outline:2px solid var(--wine-ink); outline-offset:2px;}
+/* Item sem foto: o quadrado continua lá, pontilhado, dizendo que cabe uma. */
+.foco-thumb-vazio{
+  flex:none; width:74px; height:74px; border-radius:8px; background:transparent;
+  border:1px dashed color-mix(in srgb, var(--ink-3) 55%, var(--line));
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:700; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink-3);
+}
 
 .foto-modal{
   position:fixed; inset:0; z-index:200; background:var(--overlay);
@@ -1403,7 +1411,7 @@ button.foto-fechar{
 }
 button.foto-fechar:hover{background:var(--wine); border-color:var(--wine);}
 @media (max-width:420px){
-  button.foco-thumb{width:62px; height:62px;}
+  button.foco-thumb, .foco-thumb-vazio{width:62px; height:62px;}
 }
 .foco-cat{font-size:10px; font-weight:700; letter-spacing:.11em;
   text-transform:uppercase; color:var(--wine-ink);}
@@ -2062,6 +2070,7 @@ const I18N = {
                                    : " itens encontrados — toque para adicionar"),
     focoRemove:"Tirar este item", focoClearSim:"Limpar simulação",
     fotoAmpliar:"Ampliar a foto do produto", fotoFechar:"Fechar",
+    fotoVazia:"foto", fotoSemFoto:"Sem foto cadastrada para este item",
     focoComm:"Comissão", focoMargin:"Margem", focoHidden:"Oculto para o representante",
     quoteTitle:"Orçamento — selecione itens e colunas",
     quoteBtn:"Gerar orçamento com itens selecionados",
@@ -2156,6 +2165,7 @@ const I18N = {
     focoPickTitle:(n)=> n + (n===1 ? " item found — tap to add" : " items found — tap to add"),
     focoRemove:"Remove this item", focoClearSim:"Clear simulation",
     fotoAmpliar:"Enlarge the product photo", fotoFechar:"Close",
+    fotoVazia:"photo", fotoSemFoto:"No photo on file for this item",
     focoComm:"Commission", focoMargin:"Margin", focoHidden:"Hidden from the sales rep",
     quoteTitle:"Quote — select items and columns",
     quoteBtn:"Generate quote with selected items",
@@ -3108,7 +3118,8 @@ function focoFicha(row, block){
          + ' data-code="'+escAttr(row.code)+'" title="'+escAttr(t('fotoAmpliar'))+'"'
          + ' aria-label="'+escAttr(t('fotoAmpliar'))+'">'
          + '<img src="'+escAttr(row.foto)+'" alt="'+escAttr(row.code)+'" loading="lazy"></button>'
-       : '')
+       : '<span class="foco-thumb-vazio" title="'+escAttr(t('fotoSemFoto'))+'">'
+         + escAttr(t('fotoVazia')) + '</span>')
     + '</div>';
 
   // As tabelas disponíveis, uma por linha e em corpo grande. A comissão
