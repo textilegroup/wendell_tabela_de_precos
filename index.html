@@ -1313,6 +1313,8 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
   position:fixed; inset:0; z-index:300; background:var(--bg);
   display:flex; flex-direction:column;
   height:100vh; height:100dvh;   /* dvh: não pula com a barra do navegador */
+  /* só rolagem vertical: sem pinça e sem zoom de toque duplo aqui dentro */
+  touch-action:pan-y;
 }
 .foco-modal[hidden]{display:none !important;}
 /* Tela exclusiva: o resto do sistema sai de cena, não fica por baixo. */
@@ -1334,10 +1336,10 @@ body.foco-aberto .hub-footer{display:none !important;}
 .foco-top-lim{display:flex; align-items:center; gap:12px;}
 .foco-top-txt{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
 .foco-box-top h3{
-  margin:0; font-size:13.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+  margin:0; font-size:15px; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
 }
 .foco-contexto{
-  font-size:12.5px; font-weight:600; letter-spacing:.03em;
+  font-size:13.5px; font-weight:600; letter-spacing:.02em;
   color:rgba(255,255,255,.78); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 button.foco-x{
@@ -1356,17 +1358,18 @@ button.foco-x:hover{background:#fff; color:var(--wine); border-color:#fff;}
 .foco-campo > span,
 .foco-icms-campo > span{
   display:block; margin-bottom:5px;
-  font-size:11.5px; font-weight:700; letter-spacing:.09em;
+  font-size:12.5px; font-weight:700; letter-spacing:.08em;
   text-transform:uppercase; color:var(--ink-3);
 }
 .foco-campo input{
-  width:100%; box-sizing:border-box; font:inherit; font-size:17px;
+  width:100%; box-sizing:border-box; font:inherit; font-size:19px;
   color:var(--ink); background:var(--card);
   border:1px solid var(--line); border-radius:9px; padding:10px 12px;
 }
 .foco-campo input:focus{outline:2px solid var(--wine-ink); outline-offset:-1px;}
 /* O painel de filtros fica fora de cena nesta tela, então o ICMS vem junto. */
 .foco-icms-campo{flex:none;}
+#focoIcms button{font-size:14.5px; padding:8px 15px;}
 .foco-icms-campo[hidden]{display:none !important;}
 .foco-box-corpo{
   flex:1; min-width:0; min-height:0; padding:14px;
@@ -1398,8 +1401,8 @@ button.foco-x:hover{background:#fff; color:var(--wine); border-color:#fff;}
   padding:30px 22px; text-align:center; display:grid; gap:7px; justify-items:center;
 }
 .foco-hint .ico{width:26px; height:26px; color:var(--ink-3); margin-bottom:2px;}
-.foco-hint b{font-size:16.5px; font-weight:800; color:var(--ink); letter-spacing:.01em;}
-.foco-hint span{font-size:15px; color:var(--ink-2); line-height:1.5; max-width:40ch;}
+.foco-hint b{font-size:18.5px; font-weight:800; color:var(--ink); letter-spacing:.01em;}
+.foco-hint span{font-size:16.5px; color:var(--ink-2); line-height:1.5; max-width:40ch;}
 
 /* Itens já escolhidos: minicards com ✕, logo abaixo da busca */
 .foco-chosen{display:flex; flex-wrap:wrap; gap:6px; margin-top:9px;}
@@ -1408,7 +1411,7 @@ button.foco-x:hover{background:#fff; color:var(--wine); border-color:#fff;}
   background:var(--sunk); border:1px solid var(--line); border-radius:999px;
   padding:4px 5px 4px 11px;
   font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
-  font-size:15px; font-weight:800; color:var(--ink);
+  font-size:16.5px; font-weight:800; color:var(--ink);
 }
 .fc-chip .swatch{
   display:inline-block; width:9px; height:9px; border-radius:50%; flex:none;
@@ -1424,7 +1427,7 @@ button.fc-x:hover{background:var(--wine); color:#fff;}
 
 .foco-pick{display:grid; gap:8px; margin-bottom:14px; max-width:720px;}
 .foco-pick-title{
-  margin:0 0 2px; font-size:12.5px; font-weight:700; letter-spacing:.09em;
+  margin:0 0 2px; font-size:13.5px; font-weight:700; letter-spacing:.08em;
   text-transform:uppercase; color:var(--ink-3);
 }
 button.foco-opt{
@@ -1437,9 +1440,9 @@ button.foco-opt .swatch{
   display:inline-block; width:11px; height:11px; border-radius:50%; flex:none;
   border:1px solid var(--line); box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
 }
-.fo-code{font-family:"Archivo Narrow",Archivo,Arial,sans-serif; font-size:18px; font-weight:800;}
-.fo-color{font-size:14px; color:var(--ink-2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.fo-cat{margin-left:auto; font-size:11px; font-weight:700; letter-spacing:.07em;
+.fo-code{font-family:"Archivo Narrow",Archivo,Arial,sans-serif; font-size:20px; font-weight:800;}
+.fo-color{font-size:15.5px; color:var(--ink-2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.fo-cat{margin-left:auto; font-size:12px; font-weight:700; letter-spacing:.06em;
   text-transform:uppercase; color:var(--ink-3); white-space:nowrap;}
 
 .foco-card{
@@ -1497,19 +1500,19 @@ button.foto-fechar:hover{background:var(--wine); border-color:var(--wine);}
 @media (max-width:420px){
   button.foco-thumb, .foco-thumb-vazio{width:62px; height:62px;}
 }
-.foco-cat{font-size:11.5px; font-weight:700; letter-spacing:.11em;
+.foco-cat{font-size:12.5px; font-weight:700; letter-spacing:.1em;
   text-transform:uppercase; color:var(--wine-ink); display:block;}
 .foco-code{
   font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
-  font-size:33px; font-weight:800; line-height:1.05; letter-spacing:.005em;
+  font-size:38px; font-weight:800; line-height:1.02; letter-spacing:0;
   color:var(--ink); margin:5px 0 11px; overflow-wrap:anywhere;
 }
 .foco-chips{display:flex; flex-wrap:wrap; gap:6px;}
 .foco-chip{
   display:inline-flex; align-items:center; gap:6px;
   background:var(--sunk); border:1px solid var(--line); border-radius:999px;
-  padding:5px 11px; font-size:13.5px; font-weight:700; color:var(--ink-2);
-  letter-spacing:.03em;
+  padding:5px 11px; font-size:15px; font-weight:700; color:var(--ink-2);
+  letter-spacing:.02em;
 }
 .foco-chip .swatch{
   display:inline-block; width:9px; height:9px; border-radius:50%;
@@ -1523,31 +1526,31 @@ button.foto-fechar:hover{background:var(--wine); border-color:var(--wine);}
 }
 .foco-tier:last-child{border-bottom:0;}
 .ft-l{display:flex; flex-direction:column; gap:2px; min-width:0;}
-.ft-name{font-size:15px; font-weight:700; letter-spacing:.06em;
+.ft-name{font-size:17px; font-weight:700; letter-spacing:.05em;
   text-transform:uppercase; color:var(--ink-2);}
-.ft-sub{font-size:14px; color:var(--ink-3); line-height:1.35;}
+.ft-sub{font-size:15.5px; color:var(--ink-3); line-height:1.3;}
 .ft-price{
   font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
-  font-size:31px; font-weight:800; line-height:1; color:var(--wine-ink);
+  font-size:35px; font-weight:800; line-height:1; color:var(--wine-ink);
   white-space:nowrap;
 }
 
 .foco-cost{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   padding:11px 18px; background:var(--sunk); border-top:1px solid var(--line);
-  font-size:13.5px; font-weight:700; letter-spacing:.08em;
+  font-size:15px; font-weight:700; letter-spacing:.07em;
   text-transform:uppercase; color:var(--cost-ink);
 }
 .foco-cost b{font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
-  font-size:22px; font-weight:800; letter-spacing:0; text-transform:none; color:var(--ink-2);}
+  font-size:25px; font-weight:800; letter-spacing:0; text-transform:none; color:var(--ink-2);}
 
 .foco-sim{padding:14px 18px 16px; border-top:1px solid var(--line); background:var(--sim-bg);}
 .foco-sim-head{display:flex; align-items:center; justify-content:space-between;
   gap:10px; flex-wrap:wrap; margin-bottom:11px;}
-.foco-sim-title{font-size:13.5px; font-weight:700; letter-spacing:.08em;
+.foco-sim-title{font-size:15px; font-weight:700; letter-spacing:.07em;
   text-transform:uppercase; color:var(--ink-2);}
 button.foco-mode{
-  font:inherit; font-size:13.5px; font-weight:700; cursor:pointer;
+  font:inherit; font-size:15px; font-weight:700; cursor:pointer;
   background:var(--card); color:var(--ink-2);
   border:1px solid var(--line); border-radius:7px; padding:5px 10px;
 }
@@ -1555,11 +1558,11 @@ button.foco-mode + button.foco-mode{margin-left:5px;}
 button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff;}
 .foco-sim-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .fs-field{display:flex; flex-direction:column; gap:4px; min-width:0;}
-.fs-field span{font-size:12.5px; font-weight:700; letter-spacing:.05em;
+.fs-field span{font-size:13.5px; font-weight:700; letter-spacing:.04em;
   text-transform:uppercase; color:var(--ink-3);}
 .fs-field input{
   font:inherit; font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
-  font-size:22px; font-weight:700; text-align:center; color:var(--ink);
+  font-size:25px; font-weight:700; text-align:center; color:var(--ink);
   background:var(--card); border:1px solid var(--line); border-radius:8px;
   padding:9px 8px; width:100%; box-sizing:border-box; appearance:textfield;
   -moz-appearance:textfield;
@@ -1571,30 +1574,32 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   margin-top:11px; padding:10px 14px; background:var(--card);
   border:1px solid var(--line); border-radius:10px;
-  font-size:13.5px; font-weight:700; letter-spacing:.06em;
+  font-size:15px; font-weight:700; letter-spacing:.05em;
   text-transform:uppercase; color:var(--ink-3);
 }
 .foco-sim-out b{
   font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
-  font-size:30px; font-weight:800; letter-spacing:0; text-transform:none;
+  font-size:34px; font-weight:800; letter-spacing:0; text-transform:none;
   color:var(--sim-sel);
 }
 .foco-sim-out b.negative{color:var(--neg);}
 .foco-foot{padding:12px 18px; border-top:1px solid var(--line); display:flex;}
-.foco-foot .btn{flex:1; font-size:14.5px; padding:10px 13px;}
+.foco-foot .btn{flex:1; font-size:16px; padding:11px 13px;}
 
 @media (max-width:420px){
   .foco-box-top,.foco-box-busca{padding-left:12px; padding-right:12px;}
-  .foco-code{font-size:28px;}
-  .ft-price{font-size:27px;}
-  .ft-name{font-size:14px;}
-  .ft-sub{font-size:13px;}
+  .foco-code{font-size:32px;}
+  .ft-price{font-size:30px;}
+  .ft-name{font-size:16px;}
+  .ft-sub{font-size:14.5px;}
   .foco-tier{padding:11px 13px;}
   .foco-head,.foco-sim,.foco-cost,.foco-foot{padding-left:13px; padding-right:13px;}
 }
 @media (max-width:359px){
-  .foco-code{font-size:25px;}
-  .ft-price{font-size:24px;}
+  .foco-code{font-size:28px;}
+  .ft-price{font-size:27px;}
+  .ft-name{font-size:15px;}
+  .ft-sub{font-size:13.5px;}
 }
 @media print{
   .foco-modal{display:none !important;}
@@ -3485,18 +3490,21 @@ function atualizaFoco(){
   bindFoco(block);
 }
 
-// Devolve a tela ao tamanho natural. Mexer no meta viewport é o único
-// jeito de pedir isso ao navegador do celular: ele reajusta a escala e,
-// logo depois, o valor original volta — senão o usuário perderia a pinça
-// para ampliar quando quisesse.
-function zerarZoom(){
-  const mv = document.querySelector('meta[name="viewport"]');
-  if(!mv) return;
-  const original = mv.getAttribute('content');
-  mv.setAttribute('content',
-    'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-  setTimeout(()=>{ mv.setAttribute('content', original); }, 400);
+// Zoom no modo foco: travado enquanto a tela estiver aberta. Mexer no meta
+// viewport é o único jeito de falar de escala com o navegador do celular —
+// abrir volta a tela ao tamanho natural e prende nele; fechar devolve a
+// pinça para o resto do sistema, onde a tabela é densa e ampliar ajuda.
+const META_VIEWPORT = document.querySelector('meta[name="viewport"]');
+const VIEWPORT_ORIGINAL = META_VIEWPORT ? META_VIEWPORT.getAttribute('content') : '';
+function travarZoom(travar){
+  if(!META_VIEWPORT) return;
+  META_VIEWPORT.setAttribute('content', travar
+    ? 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'
+    : VIEWPORT_ORIGINAL);
 }
+// O Safari do iPhone ignora user-scalable; a pinça dele é barrada aqui.
+document.addEventListener('gesturestart', (ev)=>{ if(state.focoOn) ev.preventDefault(); });
+document.addEventListener('gesturechange', (ev)=>{ if(state.focoOn) ev.preventDefault(); });
 
 function abrirFocoJanela(){
   state.focoOn = true;
@@ -3509,7 +3517,7 @@ function abrirFocoJanela(){
   if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
   renderControls();
   atualizaFoco();
-  zerarZoom();
+  travarZoom(true);
   const corpo = document.querySelector('.foco-box-corpo');
   if(corpo) corpo.scrollTop = 0;
 }
@@ -3517,6 +3525,7 @@ function abrirFocoJanela(){
 // com o que a simulação deixou gravado.
 function fecharFocoJanela(){
   state.focoOn = false;
+  travarZoom(false);
   document.body.classList.remove('foco-aberto');
   document.getElementById('focoModal').hidden = true;
   document.getElementById('focoCorpo').innerHTML = '';
