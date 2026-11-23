@@ -565,6 +565,32 @@ th.cost-col{
 }
 td.commission-value.cost-col{background:transparent; color:var(--cost-ink);}
 
+/* ===== COGS (só Gerencial, só na tela) =====
+   Qual fonte da tabela de custos está valendo para o item e a que taxa de
+   USD ela foi montada. Não entra no PDF: a tabela impressa é calibrada
+   para uma página. */
+td.cogs-col{
+  text-align:right; white-space:nowrap; line-height:1.15;
+  color:var(--cost-ink); background:transparent;
+  border-left:1px solid var(--cost-border);
+}
+th.cogs-col{
+  color:var(--cost-ink); background:transparent;
+  border-left:1px solid var(--cost-border); font-weight:700;
+}
+.price-table th.cogs-col{min-width:72px;}
+b.cogs-fonte{
+  display:block; font-size:10.5px; font-weight:800; letter-spacing:.02em;
+  color:var(--ink-2);
+}
+span.cogs-usd{
+  display:block; margin-top:1px;
+  font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  font-size:9.5px; font-weight:600; color:var(--ink-3);
+}
+.cogs-sem{color:var(--ink-3); opacity:.7;}
+td.commission-value.cogs-col{background:transparent; color:var(--cost-ink);}
+
 /* ===== Simulação (só Gerência, nunca no PDF) ===== */
 .sim-col{
   background:transparent;
@@ -580,6 +606,16 @@ th.sim-col{
   font-size:9px; white-space:normal !important; line-height:1.25;
 }
 th.sim-col .tier-pct{font-size:9.5px;}
+/* "Simular comissão" e a coluna de saída não têm o que esticar: o campo
+   de comissão é curto e a saída é um número só. Largura presa, para a
+   tabela devolver o espaço às colunas de preço. */
+.price-table th.sim-col.sim-comm-col{width:76px; min-width:0; max-width:76px;}
+.price-table th.sim-col.sim-out-col{width:80px; min-width:0; max-width:80px;}
+td.sim-comm-col{padding-left:3px !important; padding-right:3px !important;}
+td.sim-comm-col input.sim-input{width:36px; padding:4px 2px;}
+td.sim-comm-col .sim-pct{font-size:9px; margin-left:1px;}
+td.sim-comm-col button.sim-clear{margin-left:1px; width:13px; height:13px; font-size:8px;}
+td.sim-out{padding-left:4px !important; padding-right:6px !important;}
 /* A coluna que abriga a chave de modo precisa caber a chave inteira. */
 .price-table th.sim-col.sim-group-head{width:auto; min-width:158px;}
 .price-table th.sim-col.sim-group-head.collapsed{width:44px; min-width:0;}
@@ -2020,6 +2056,11 @@ async function loadFromSupabase(){
         cost: Number(p.cost), ipi: Number(p.ipi),
         // Foto cadastrada no Wendell Custos; aqui é só exibição.
         foto: p.foto || null,
+        // Qual fonte da tabela de custos está valendo para este item
+        // (COGS1, COGS2, LANDED3, ESPECIAL...) e a taxa de USD com que
+        // ela foi montada. Ambas vêm do Wendell Custos.
+        fonte: p.fonte || null,
+        usd: (p.usd === null || p.usd === undefined) ? null : Number(p.usd),
         // wgi_precos_ger devolve TODOS os produtos, com a marca de visibilidade;
         // wgi_precos_repr já vem filtrado pelo servidor.
         visivel: p.visivel !== false
@@ -2223,6 +2264,8 @@ const I18N = {
     filtersTitle:"Filtros", icmsLabel:"ICMS", searchLabel:"Buscar produtos (código ou cor)",
     searchPlaceholder:"Ex.: 8J50PE, 7FB90PA, Branca — separe por vírgula", categoryLabel:"Categoria", allCat:"Todas",
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
+    cogsCol:"COGS",
+    cogsTip:"Fonte de custo eleita na tabela de custos e a taxa de USD com que ela foi montada. Lançadas no Wendell Custos; não saem no PDF.",
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
     viewModeLabel:"Exibição", viewTable:"Tabela completa", viewItem:"Modo foco",
     focoTitulo:"Modo foco", focoFecharJanela:"Voltar para a tabela completa",
@@ -2326,6 +2369,8 @@ const I18N = {
     filtersTitle:"Filters", icmsLabel:"State VAT (ICMS)", searchLabel:"Search products (code or color)",
     searchPlaceholder:"e.g. 8J50PE, 7FB90PA, White — comma separated", categoryLabel:"Category", allCat:"All",
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
+    cogsCol:"COGS",
+    cogsTip:"Cost source chosen in the cost list and the USD rate it was built at. Entered in Wendell Custos; not included in the PDF.",
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
     viewModeLabel:"Display", viewTable:"Full table", viewItem:"Focus mode",
     focoTitulo:"Focus mode", focoFecharJanela:"Back to the full table",
@@ -2495,6 +2540,8 @@ function currentBlock(){
         .map(prod=>({
         cat: prod.cat, code: prod.code, color: prod.color, ipi: prod.ipi,
         foto: prod.foto || null,
+        fonte: prod.fonte || null,
+        usd: (prod.usd === null || prod.usd === undefined) ? null : prod.usd,
         visivel: prod.visivel !== false,
         cost: prod.cost, // necessário para calcular a margem da simulação
         prices: p.margins.map((m,i)=>computePrice(prod.cost, p.icms, p.pis, m, p.commissions[i]))
@@ -2770,6 +2817,19 @@ function fmtCost(v){
   const locale = state.lang==='en' ? 'en-US' : 'pt-BR';
   return 'R$ ' + v.toLocaleString(locale, {minimumFractionDigits:3, maximumFractionDigits:3});
 }
+// Fonte de custo do item e a taxa de USD com que ela foi montada. A taxa
+// é lançada no Wendell Custos; enquanto não houver, fica o traço — melhor
+// do que inventar um câmbio.
+function cogsCell(r){
+  if(!r.fonte) return '<span class="cogs-sem">—</span>';
+  const locale = state.lang==='en' ? 'en-US' : 'pt-BR';
+  const taxa = (r.usd !== null && r.usd !== undefined && r.usd > 0)
+    ? 'USD ' + r.usd.toLocaleString(locale, {minimumFractionDigits:4, maximumFractionDigits:4})
+    : 'USD —';
+  return '<b class="cogs-fonte">'+escAttr(r.fonte)+'</b>'
+       + '<span class="cogs-usd'+((r.usd>0)?'':' cogs-sem')+'">'+taxa+'</span>';
+}
+
 function fmtPct(v){
   const locale = state.lang==='en' ? 'en-US' : 'pt-BR';
   return (v*100).toLocaleString(locale, {maximumFractionDigits:2}) + '%';
@@ -3592,6 +3652,8 @@ function render(){
   const showSim = simAvailable && state.simOpen;
   // Coluna de custo: informação interna da Gerência — nunca no orçamento.
   const showCost = showMargin && !quote;
+  // Mesma regra para a fonte do custo (qual COGS saiu da tabela de custos).
+  const showCogs = showCost;
   // No orçamento não entram margens nem comissões — é documento para o
   // cliente, não material interno.
   const showMarginPct = showMargin && !quote;
@@ -3712,8 +3774,8 @@ function render(){
                 +  '<span class="tier-pct">'+inLabel+'</span></th>';
           // Sem numeração de tabela aqui — é simulação, não uma tabela fixa;
           // só o rótulo do que a coluna representa.
-          thead += '<th class="sim-col">'+t('simCommCol')+'</th>';
-          thead += '<th class="sim-col">'+outLabel+'</th>';
+          thead += '<th class="sim-col sim-comm-col">'+t('simCommCol')+'</th>';
+          thead += '<th class="sim-col sim-out-col">'+outLabel+'</th>';
         } else {
           thead += '<th class="sim-col sim-group-head collapsed">'
                 +  '<button class="sim-group-btn" title="'+escAttr(t('simGroupOpenTip'))+'" aria-label="'+escAttr(t('simGroupOpenTip'))+'"><svg class="ico sm" aria-hidden="true"><use href="#i-chevron"></use></svg><span class="sgl">'+t('simGroupLabel')+'</span></button></th>';
@@ -3721,6 +3783,9 @@ function render(){
       }
       // Custo: só na Gerência e nunca no orçamento do cliente. Fica logo
       // antes do IPI, em cinza claro, porque é apenas informativo.
+      if(showCogs){
+        thead += '<th class="cogs-col no-print" title="'+escAttr(t('cogsTip'))+'">'+t('cogsCol')+'</th>';
+      }
       if(showCost){ thead += '<th class="cost-col">'+t('costCol')+'</th>'; }
       thead += '<th class="ipi-col">'+t('ipiCol')+'</th></tr></thead>';
       table.innerHTML = thead;
@@ -3793,7 +3858,7 @@ function render(){
                 +  clearBtn(r.code, 'price', sv.pChanged);
           }
           tds += '</td>';
-          tds += '<td class="sim-col'+dimCls+'" data-label="'+t('simCommCol')+'">'
+          tds += '<td class="sim-col sim-comm-col'+dimCls+'" data-label="'+t('simCommCol')+'">'
               +  '<input type="number" step="0.1" min="0" class="sim-input sim-comm'+(sv.cChanged?' changed':'')+'"'
               +  ' data-code="'+escAttr(r.code)+'" value="'+(sv.comm*100).toFixed(2)+'"><span class="sim-pct">%</span>'
               +  clearBtn(r.code, 'comm', sv.cChanged)
@@ -3820,6 +3885,9 @@ function render(){
         }
         // Grupo recolhido: uma célula vazia segura o lugar das três colunas
         if(simAvailable && !state.simOpen){ tds += '<td class="sim-col"></td>'; }
+        if(showCogs){
+          tds += '<td class="cogs-col no-print" data-label="'+t('cogsCol')+'">'+cogsCell(r)+'</td>';
+        }
         if(showCost){
           tds += '<td class="cost-col" data-label="'+t('costCol')+'">'+fmtCost(r.cost)+'</td>';
         }
@@ -3847,6 +3915,7 @@ function render(){
         const n = state.simOpen ? 3 : 1;
         for(let k=0;k<n;k++) cTds += '<td class="sim-col commission-value">—</td>';
       }
+      if(showCogs) cTds += '<td class="commission-value cogs-col no-print">—</td>';
       if(showCost) cTds += '<td class="commission-value cost-col">—</td>';
       cTds += '<td class="commission-value ipi-col">—</td>';
       commissionRow.innerHTML = cTds;
