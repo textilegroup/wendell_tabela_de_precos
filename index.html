@@ -384,6 +384,12 @@ table.coef-table input:focus{outline:2px solid var(--s2); outline-offset:-1px;}
 td.coef-yellow{background:var(--edit-bg-ok);}
 td.coef-yellow input{background:var(--edit-bg-ok);}
 td.coef-readonly{background:var(--sunk); color:var(--ink-2); font-weight:600;}
+/* Markup: só leitura, mas é o número que resume a coluna — fica em
+   destaque, na fonte dos números. */
+td.coef-markup{
+  font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  font-size:13.5px; font-weight:800; color:var(--ink);
+}
 @media (max-width:560px){
   table.coef-table th, table.coef-table td{padding:4px 2px; font-size:10.5px;}
   table.coef-table thead th{font-size:8.5px;}
@@ -1342,13 +1348,21 @@ body.foco-aberto .hub-footer{display:none !important;}
   font-size:14.5px; font-weight:600; letter-spacing:.02em;
   color:rgba(255,255,255,.78); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
-button.foco-x{
-  flex:none; width:34px; height:34px; border-radius:50%; padding:0; cursor:pointer;
-  border:1px solid rgba(255,255,255,.4); background:rgba(0,0,0,.18); color:#fff;
-  font:700 14px/1 Archivo,Arial,sans-serif;
-  display:flex; align-items:center; justify-content:center;
+button.foco-voltar{
+  flex:none; display:flex; align-items:center; gap:7px; cursor:pointer;
+  padding:9px 15px 9px 12px; border-radius:9px;
+  border:1px solid rgba(255,255,255,.45); background:rgba(0,0,0,.18); color:#fff;
+  font:inherit; font-size:14.5px; font-weight:700; letter-spacing:.02em;
+  white-space:nowrap;
 }
-button.foco-x:hover{background:#fff; color:var(--wine); border-color:#fff;}
+button.foco-voltar .ico{width:16px; height:16px; flex:none;}
+button.foco-voltar:hover{background:#fff; color:var(--wine); border-color:#fff;}
+/* Em tela estreita fica só "Voltar": o resto do rótulo roubaria a linha
+   inteira do cabeçalho. */
+@media (max-width:520px){
+  .fv-longo{display:none;}
+  button.foco-voltar{padding:8px 13px 8px 10px; font-size:14px;}
+}
 .foco-box-busca{
   flex:none; padding:12px 14px; background:var(--card);
   border-bottom:1px solid var(--line);
@@ -1829,10 +1843,6 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
         <span class="field-label" id="txt-categoryLabel">Categoria</span>
         <div class="chipset" id="catChips"></div>
       </div>
-      <div class="field">
-        <span class="field-label" id="txt-versionLabel2">Versão</span>
-        <div class="status-pill" id="versionNote"></div>
-      </div>
     </div>
     <!-- Exibição: a tabela inteira, ou a consulta por item — que abre
          uma janela própria, com busca e fichas dentro dela. -->
@@ -1872,7 +1882,10 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
           <h3 id="txt-focoTitulo">Modo foco</h3>
           <span class="foco-contexto" id="focoContexto"></span>
         </span>
-        <button class="foco-x" type="button" id="focoFecharBtn">&#10005;</button>
+        <button class="foco-voltar" type="button" id="focoFecharBtn">
+          <svg class="ico" aria-hidden="true"><use href="#i-chevron-left"></use></svg>
+          <span class="fv-txt"><span id="txt-focoVoltar">Voltar</span><span class="fv-longo" id="txt-focoVoltarLongo"> p/ tabela completa</span></span>
+        </button>
       </div>
     </div>
     <div class="foco-box-busca">
@@ -2212,7 +2225,8 @@ const I18N = {
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
     viewModeLabel:"Exibição", viewTable:"Tabela completa", viewItem:"Modo foco",
-    focoTitulo:"Modo foco", focoFecharJanela:"Fechar e voltar à tabela",
+    focoTitulo:"Modo foco", focoFecharJanela:"Voltar para a tabela completa",
+    focoVoltar:"Voltar", focoVoltarLongo:"p/ tabela completa",
     focoContexto:(mod,icms,data)=> mod + ' · ICMS ' + icms + '% · ' + data,
     focoBuscaLabel:"Buscar item (código ou cor)",
     focoBuscaPlaceholder:"Ex.: 8J50PE ou Branca",
@@ -2287,8 +2301,9 @@ const I18N = {
     coefQuemVe:"Tabelas 1 a 4: Representante · 5: só Gerencial",
     coefHint:"Ajuste margem, comissão, ICMS e PIS/COFINS de cada ICMS. O markup é o mesmo nas duas visões — o Representante enxerga as tabelas 1 a 4 e a 5 fica só no Gerencial. Os preços são recalculados automaticamente.",
     coefAjuste:"Ajuste", coefMargem:"Margem", coefComissao:"Comissão", coefVartabs:"Var. entre tabelas",
+    coefMarkup:"Markup aplicado",
     coefIcms:"ICMS", coefPis:"PIS/COFINS",
-    coefAjusteHint:"\"Ajuste\" não é aplicado na fórmula de preço atual — mantido apenas como referência da planilha original.",
+    coefAjusteHint:"\"Ajuste\" não é aplicado na fórmula de preço atual — mantido apenas como referência da planilha original. \"Markup aplicado\" é o multiplicador que leva do custo ao preço de cada tabela: 1 ÷ (1 − impostos − comissão − margem).",
     coefReset:"Restaurar valores originais desta versão",
     coefSave:"Salvar alterações",
     coefResetConfirm:"Restaurar os valores originais desta versão? As alterações feitas nela serão perdidas.",
@@ -2313,7 +2328,8 @@ const I18N = {
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
     viewModeLabel:"Display", viewTable:"Full table", viewItem:"Focus mode",
-    focoTitulo:"Focus mode", focoFecharJanela:"Close and go back to the table",
+    focoTitulo:"Focus mode", focoFecharJanela:"Back to the full table",
+    focoVoltar:"Back", focoVoltarLongo:"to the full table",
     focoContexto:(mod,icms,data)=> mod + ' · ICMS ' + icms + '% · ' + data,
     focoBuscaLabel:"Find an item (code or colour)",
     focoBuscaPlaceholder:"e.g. 8J50PE or White",
@@ -2387,8 +2403,9 @@ const I18N = {
     coefQuemVe:"Tables 1 to 4: sales rep · 5: Management only",
     coefHint:"Adjust margin, commission, ICMS and PIS/COFINS for each ICMS rate. The markup is the same in both views — the sales rep sees tables 1 to 4 and table 5 stays in Management. Every price is recalculated automatically.",
     coefAjuste:"Adjustment", coefMargem:"Margin", coefComissao:"Commission", coefVartabs:"Var. between tables",
+    coefMarkup:"Applied markup",
     coefIcms:"ICMS", coefPis:"PIS/COFINS",
-    coefAjusteHint:"\"Adjustment\" is not applied in the current price formula — kept only as a reference from the original spreadsheet.",
+    coefAjusteHint:"\"Adjustment\" is not applied in the current price formula — kept only as a reference from the original spreadsheet. \"Applied markup\" is the multiplier from cost to the price of each table: 1 ÷ (1 − taxes − commission − margin).",
     coefReset:"Restore this version's original values",
     coefSave:"Save changes",
     coefResetConfirm:"Restore the original values for this version? Changes made to it will be lost.",
@@ -2506,6 +2523,15 @@ function coefAtual(key){
   return (COEF_PEND && COEF_PEND.key === key) ? COEF_PEND.params : DATA.params[key];
 }
 
+function computeMarkups(key){
+  const p = coefAtual(key);
+  const base = p.icms + p.pis*(1-p.icms);
+  return p.margins.map((m,i)=>{
+    const den = 1 - (base + (p.commissions[i]||0) + m);
+    return den > 0.0001 ? 1/den : null;
+  });
+}
+
 function computeVarTabs(key){
   const p = coefAtual(key);
   const base = p.icms + p.pis*(1-p.icms);
@@ -2592,19 +2618,28 @@ function renderCoefPanel(){
   for(let i=0;i<n;i++){ thead += '<th>'+t('tableCol')+' '+(i+1)+'</th>'; }
   thead += '</tr></thead>';
 
+  const markups = computeMarkups(key);
+  const mkFmt = v => (v === null)
+    ? '—'
+    : v.toLocaleString(locale, {minimumFractionDigits:3, maximumFractionDigits:3}) + '×';
+
   let rowAjuste = '<tr><th>'+t('coefAjuste')+'</th>';
   let rowMargem = '<tr><th>'+t('coefMargem')+'</th>';
   let rowComissao = '<tr><th>'+t('coefComissao')+'</th>';
+  let rowMarkup = '<tr><th>'+t('coefMarkup')+'</th>';
   let rowVarTabs = '<tr><th>'+t('coefVartabs')+'</th>';
   for(let i=0;i<n;i++){
     rowAjuste += '<td>'+coefInput(pctInput(p.adjust[i]), 'coef-in', 'data-field="adjust" data-index="'+i+'"')+'</td>';
     rowMargem += '<td class="coef-yellow">'+coefInput(pctInput(p.margins[i]), 'coef-in', 'data-field="margins" data-index="'+i+'"')+'</td>';
     rowComissao += '<td>'+coefInput(pctInput(p.commissions[i]), 'coef-in', 'data-field="commissions" data-index="'+i+'"')+'</td>';
+    rowMarkup += '<td class="coef-readonly coef-markup">'+mkFmt(markups[i])+'</td>';
     rowVarTabs += '<td class="coef-readonly">'+pctFmt(varTabs[i])+'%</td>';
   }
-  rowAjuste += '</tr>'; rowMargem += '</tr>'; rowComissao += '</tr>'; rowVarTabs += '</tr>';
+  rowAjuste += '</tr>'; rowMargem += '</tr>'; rowComissao += '</tr>';
+  rowMarkup += '</tr>'; rowVarTabs += '</tr>';
 
-  table.innerHTML = cols + thead + '<tbody>' + rowMargem + rowComissao + rowAjuste + rowVarTabs + '</tbody>';
+  table.innerHTML = cols + thead + '<tbody>' + rowMargem + rowComissao + rowAjuste
+                  + rowMarkup + rowVarTabs + '</tbody>';
 
   // ICMS e PIS/COFINS são os mesmos para toda a versão: ficam numa faixa
   // acima da tabela, e não em uma coluna lateral (economiza largura).
@@ -2765,7 +2800,6 @@ function applyStaticTexts(){
   document.getElementById('txt-btn-repr').textContent = t('repr');
   document.getElementById('txt-btn-ger').textContent = t('ger');
   document.getElementById('txt-versionLabel').textContent = t('versionLabel');
-  document.getElementById('txt-versionLabel2').textContent = t('versionLabel');
   document.getElementById('txt-btn-vigente').textContent = t('versionVigente');
   document.getElementById('txt-btn-anterior').textContent = t('versionAnterior');
   document.getElementById('txt-versionHint').textContent = t('versionHint');
@@ -2781,6 +2815,8 @@ function applyStaticTexts(){
   document.getElementById('txt-focoBuscaLabel').textContent = t('focoBuscaLabel');
   document.getElementById('txt-focoIcmsLabel').textContent = t('icmsLabel');
   document.getElementById('focoBusca').placeholder = t('focoBuscaPlaceholder');
+  document.getElementById('txt-focoVoltar').textContent = t('focoVoltar');
+  document.getElementById('txt-focoVoltarLongo').textContent = ' ' + t('focoVoltarLongo');
   document.getElementById('focoFecharBtn').title = t('focoFecharJanela');
   document.getElementById('focoFecharBtn').setAttribute('aria-label', t('focoFecharJanela'));
   document.getElementById('txt-pdfBtn').textContent = t('pdfBtn');
@@ -3543,7 +3579,6 @@ function render(){
   renderCatChips(block);
   renderQuoteCount();
 
-  document.getElementById('versionNote').textContent = block.date + ' · ' + block.note;
 
   const showMargin = state.audience === 'gerencia';
   const quote = state.quoteMode;
