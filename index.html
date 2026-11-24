@@ -590,7 +590,7 @@ span.usd-conv{
   font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
   font-size:10px; font-weight:700; letter-spacing:0; color:var(--neg);
 }
-td.sim-col span.usd-conv{text-align:right;}
+td.sim-col span.usd-conv, td.cost-col span.usd-conv{text-align:right;}
 /* Chave liga/desliga da simulação de taxa. Desligada, o controle inteiro
    fica apagado; ligada, ganha cor e abre o campo da taxa. */
 .usd-ctl{
@@ -1601,17 +1601,6 @@ button.foto-fechar{
   display:flex; align-items:center; justify-content:center;
 }
 button.foto-fechar:hover{background:var(--wine); border-color:var(--wine);}
-/* Gerência: enviar, trocar e remover a foto do produto */
-button.foco-thumb-vazio{font-family:inherit; cursor:pointer; padding:0;}
-button.foco-thumb-vazio:hover{border-color:var(--wine-ink); color:var(--wine-ink);}
-.foco-thumb.busy, .foco-thumb-vazio.busy{opacity:.45; pointer-events:none;}
-.foto-acoes{display:flex; gap:8px; justify-content:center;}
-.foto-acoes[hidden]{display:none !important;}
-.foto-acoes button{
-  font:700 12px/1 Archivo,Arial,sans-serif; padding:8px 14px; border-radius:8px; cursor:pointer;
-  background:rgba(0,0,0,.35); color:#fff; border:1px solid rgba(255,255,255,.35);
-}
-.foto-acoes button:hover{background:var(--wine); border-color:var(--wine);}
 @media (max-width:420px){
   button.foco-thumb, .foco-thumb-vazio{width:62px; height:62px;}
 }
@@ -2027,14 +2016,8 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
   <figure>
     <img id="fotoGrande" src="" alt="">
     <figcaption id="fotoLegenda"></figcaption>
-    <!-- Só Gerência: trocar ou remover a foto -->
-    <div class="foto-acoes" id="fotoAcoes" hidden>
-      <button type="button" id="fotoTrocar"></button>
-      <button type="button" id="fotoRemover"></button>
-    </div>
   </figure>
 </div>
-<input type="file" id="fotoArquivo" accept="image/jpeg,image/png,image/webp" hidden>
 
 <!-- Password modal -->
 <div class="modal-overlay no-print" id="pwModal" hidden>
@@ -2376,11 +2359,6 @@ const I18N = {
     focoRemove:"Tirar este item", focoClearSim:"Limpar simulação",
     fotoAmpliar:"Ampliar a foto do produto", fotoFechar:"Fechar",
     fotoVazia:"foto", fotoSemFoto:"Sem foto cadastrada para este item",
-    fotoEnviar:"Enviar foto deste item", fotoTrocar:"Trocar foto", fotoRemover:"Remover foto",
-    fotoRemConf:(c)=>"Remover a foto de "+c+"?",
-    fotoTipo:"Envie uma imagem JPG, PNG ou WEBP.", fotoGrande:"Imagem grande demais (máximo 15 MB).",
-    fotoEnviando:"Enviando a foto…", fotoOk:(c)=>"Foto de "+c+" gravada.",
-    fotoRemOk:(c)=>"Foto de "+c+" removida.", fotoErro:"Não foi possível gravar a foto: ",
     focoComm:"Comissão", focoMargin:"Margem", focoHidden:"Oculto para o representante",
     quoteTitle:"Orçamento — selecione itens e colunas",
     quoteBtn:"Gerar orçamento com itens selecionados",
@@ -2490,11 +2468,6 @@ const I18N = {
     focoRemove:"Remove this item", focoClearSim:"Clear simulation",
     fotoAmpliar:"Enlarge the product photo", fotoFechar:"Close",
     fotoVazia:"photo", fotoSemFoto:"No photo on file for this item",
-    fotoEnviar:"Upload a photo for this item", fotoTrocar:"Replace photo", fotoRemover:"Remove photo",
-    fotoRemConf:(c)=>"Remove the photo of "+c+"?",
-    fotoTipo:"Upload a JPG, PNG or WEBP image.", fotoGrande:"Image too large (15 MB max).",
-    fotoEnviando:"Uploading the photo…", fotoOk:(c)=>"Photo of "+c+" saved.",
-    fotoRemOk:(c)=>"Photo of "+c+" removed.", fotoErro:"Could not save the photo: ",
     focoComm:"Commission", focoMargin:"Margin", focoHidden:"Hidden from the sales rep",
     quoteTitle:"Quote — select items and columns",
     quoteBtn:"Generate quote with selected items",
@@ -2945,6 +2918,22 @@ function converteUsd(valor, r){
 function tagUsd(valor, r){
   const v = converteUsd(valor, r);
   return v === null ? '' : '<span class="usd-conv">' + fmtBRL(v) + '</span>';
+}
+function tagUsdPct(v){
+  return (v === null || v === undefined) ? '' : '<span class="usd-conv">' + fmtPct(v) + '</span>';
+}
+// O custo é o que de fato muda quando o câmbio muda: é ele que foi montado
+// em dólar. Os preços das tabelas seguem o mesmo fator, porque preço é
+// custo × markup e o markup não se mexe.
+function custoUsd(r){
+  return converteUsd(r ? r.cost : null, r);
+}
+// Margem resultante com o custo simulado: mesmo preço, custo outro. É a
+// conta inversa do markup, igual à da coluna, só trocando o custo.
+function margemUsd(r, block, sv){
+  const c = custoUsd(r);
+  if(c === null || sv.price === null || sv.price === undefined) return null;
+  return marginFromPrice(c, block.icms, block.pis, sv.price, sv.comm);
 }
 
 function cogsCell(r){
@@ -3539,12 +3528,8 @@ function focoFicha(row, block){
          + ' data-code="'+escAttr(row.code)+'" title="'+escAttr(t('fotoAmpliar'))+'"'
          + ' aria-label="'+escAttr(t('fotoAmpliar'))+'">'
          + '<img src="'+escAttr(row.foto)+'" alt="'+escAttr(row.code)+'" loading="lazy"></button>'
-       : (MODO_GER
-          // Gerência: o quadrado vazio vira botão de enviar foto
-          ? '<button class="foco-thumb-vazio" type="button" data-code="'+escAttr(row.code)+'"'
-            + ' title="'+escAttr(t('fotoEnviar'))+'">' + escAttr(t('fotoVazia')) + '</button>'
-          : '<span class="foco-thumb-vazio" title="'+escAttr(t('fotoSemFoto'))+'">'
-            + escAttr(t('fotoVazia')) + '</span>'))
+       : '<span class="foco-thumb-vazio" title="'+escAttr(t('fotoSemFoto'))+'">'
+         + escAttr(t('fotoVazia')) + '</span>')
     + '</div>';
 
   // As tabelas disponíveis, uma por linha e em corpo grande. A comissão
@@ -3648,9 +3633,6 @@ function bindFoco(block){
   });
   document.querySelectorAll('button.foco-thumb').forEach(b=>{
     b.onclick = ()=>{ abrirFoto(b.dataset.foto, b.dataset.code); };
-  });
-  document.querySelectorAll('button.foco-thumb-vazio').forEach(b=>{
-    b.onclick = ()=>{ FOTO_ALVO = b.dataset.code; fotoArquivo.click(); };
   });
   document.querySelectorAll('button.foco-mode').forEach(b=>{
     b.onclick = ()=>{ state.focoModes[b.dataset.code] = b.dataset.mode; atualizaFoco(); };
@@ -4004,8 +3986,7 @@ function render(){
           } else {
             tds += '<input type="number" step="0.01" min="0" class="sim-input'+(sv.pChanged?' changed':'')+'"'
                 +  ' data-code="'+escAttr(r.code)+'" value="'+(sv.price>0 ? sv.price.toFixed(2) : '0.00')+'">'
-                +  clearBtn(r.code, 'price', sv.pChanged)
-                +  tagUsd(sv.price, r);
+                +  clearBtn(r.code, 'price', sv.pChanged);
           }
           tds += '</td>';
           tds += '<td class="sim-col sim-comm-col'+dimCls+'" data-label="'+t('simCommCol')+'">'
@@ -4031,7 +4012,8 @@ function render(){
             tds += '<td class="sim-col sim-out'+outputDimCls+(anyChanged?' changed':'')
                 +  ((sv.margin!==null && sv.margin<0)?' negative':'')+'"'
                 +  ' data-code="'+escAttr(r.code)+'" data-label="'+t('simMarginCol')+'">'
-                +  (sv.margin!==null ? fmtPct(sv.margin) : '—')+'</td>';
+                +  (sv.margin!==null ? fmtPct(sv.margin) : '—')
+                +  tagUsdPct(margemUsd(r, block, sv))+'</td>';
           }
         }
         // Grupo recolhido: uma célula vazia segura o lugar das três colunas
@@ -4040,7 +4022,9 @@ function render(){
           tds += '<td class="cogs-col no-print" data-label="'+t('cogsCol')+'">'+cogsCell(r)+'</td>';
         }
         if(showCost){
-          tds += '<td class="cost-col" data-label="'+t('costCol')+'">'+fmtCost(r.cost)+'</td>';
+          tds += '<td class="cost-col" data-label="'+t('costCol')+'">'+fmtCost(r.cost)
+              +  (custoUsd(r) === null ? '' : '<span class="usd-conv">'+fmtCost(custoUsd(r))+'</span>')
+              +  '</td>';
         }
         tds += '<td class="ipi ipi-col" data-label="'+t('ipiCol')+'">'+(r.ipi!==null && r.ipi!==undefined ? fmtPct(r.ipi) : '—')+'</td>';
         tr.innerHTML = tds;
@@ -4142,15 +4126,14 @@ function bindSimInputs(block){
       cell.classList.toggle('negative', sv.margin !== null && sv.margin < 0);
     }
     cell.classList.toggle('changed', sv.pChanged || sv.cChanged || sv.mChanged);
-    // O preço em vermelho da simulação acompanha o que está sendo digitado.
-    const tr = cell.closest('tr');
-    if(tr){
-      tr.querySelectorAll('td.sim-col span.usd-conv').forEach(el=>{
-        const v = (state.simMode === 'precoPelaMargem' && sv.impossible)
-          ? null : converteUsd(sv.price, row);
-        if(v === null){ el.textContent = ''; } else { el.textContent = fmtBRL(v); }
-      });
-    }
+    // O vermelho da coluna de saída acompanha o que está sendo digitado:
+    // preço convertido quando a saída é preço, margem com o custo simulado
+    // quando a saída é margem. Vem depois porque o textContent acima apaga
+    // o conteúdo inteiro da célula, o span junto.
+    const tag = (state.simMode === 'precoPelaMargem')
+      ? (sv.impossible ? '' : tagUsd(sv.price, row))
+      : tagUsdPct(margemUsd(row, block, sv));
+    if(tag) cell.insertAdjacentHTML('beforeend', tag);
   }
 
   // ✕ de cada campo: apaga só aquele valor e volta ao padrão. Se o item
@@ -4232,14 +4215,9 @@ document.addEventListener('keydown', (ev)=>{
 // ---------- Foto ampliada ----------
 const fotoModal = document.getElementById('fotoModal');
 function abrirFoto(url, code){
-  FOTO_ALVO = code || '';
   document.getElementById('fotoGrande').src = url;
   document.getElementById('fotoGrande').alt = code || '';
   document.getElementById('fotoLegenda').textContent = code || '';
-  // Gerência ganha os botões de trocar e remover
-  document.getElementById('fotoAcoes').hidden = !MODO_GER;
-  document.getElementById('fotoTrocar').textContent = t('fotoTrocar');
-  document.getElementById('fotoRemover').textContent = t('fotoRemover');
   fotoModal.hidden = false;
 }
 function fecharFoto(){
@@ -4252,85 +4230,6 @@ fotoModal.onclick = (ev)=>{ if(ev.target === fotoModal) fecharFoto(); };
 document.addEventListener('keydown', (ev)=>{
   if(ev.key === 'Escape' && !fotoModal.hidden) fecharFoto();
 });
-
-// ---------- Fotos: enviar, trocar e remover (só Gerência) ----------
-// A imagem vai para o bucket wgi-fotos e a tabela wgi_produto_foto liga o
-// código do catálogo (wgi_products.code) ao link. Representante só vê.
-const FOTO_BUCKET = 'wgi-fotos';
-const fotoArquivo = document.getElementById('fotoArquivo');
-let FOTO_ALVO = '';
-
-// Atualiza a foto na memória e redesenha, sem recarregar a página.
-function fotoAplica(code, url){
-  (DATA.products || []).forEach(p=>{ if(p.code === code) p.foto = url || null; });
-  if(state.focoOn) atualizaFoco(); else render();
-}
-// Reduz para no máximo 1200 px no lado maior, JPG 80% (fica leve no celular).
-async function fotoEncolhe(file){
-  const url = URL.createObjectURL(file);
-  try{
-    const img = await new Promise((ok, no)=>{ const i = new Image(); i.onload = ()=>ok(i); i.onerror = no; i.src = url; });
-    const k = Math.min(1, 1200 / Math.max(img.naturalWidth, img.naturalHeight));
-    const c = document.createElement('canvas');
-    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
-    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
-    x.drawImage(img, 0, 0, c.width, c.height);
-    return await new Promise(ok=>c.toBlob(ok, 'image/jpeg', 0.8));
-  } finally { URL.revokeObjectURL(url); }
-}
-function fotoOcupado(code, on){
-  document.querySelectorAll('.foco-thumb, .foco-thumb-vazio').forEach(b=>{
-    if(b.dataset.code === code) b.classList.toggle('busy', on);
-  });
-}
-async function fotoEnviar(code, arquivo){
-  if(!MODO_GER || !code || !arquivo) return;
-  if(['image/jpeg','image/png','image/webp'].indexOf(arquivo.type) < 0){ toast(escAttr(t('fotoTipo')), true); return; }
-  if(arquivo.size > 15*1024*1024){ toast(escAttr(t('fotoGrande')), true); return; }
-  fotoOcupado(code, true);
-  toast(escAttr(t('fotoEnviando')));
-  try{
-    const blob = await fotoEncolhe(arquivo);
-    const slug = code.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-    const caminho = slug + '-' + Date.now() + '.jpg';   // nome novo a cada troca: sem cache velho
-    const up = await supabase.storage.from(FOTO_BUCKET).upload(caminho, blob, {contentType:'image/jpeg', upsert:false});
-    if(up.error) throw up.error;
-    const url = supabase.storage.from(FOTO_BUCKET).getPublicUrl(caminho).data.publicUrl;
-    const ant = await supabase.from('wgi_produto_foto').select('caminho').eq('code', code).maybeSingle();
-    const anterior = ant && ant.data && ant.data.caminho;
-    const gr = await supabase.from('wgi_produto_foto').upsert(
-      {code, url, caminho, atualizado_em: new Date().toISOString()}, {onConflict:'code'});
-    if(gr.error){ await supabase.storage.from(FOTO_BUCKET).remove([caminho]); throw gr.error; }
-    // só depois que a nova está gravada é que a antiga sai
-    if(anterior && anterior !== caminho) await supabase.storage.from(FOTO_BUCKET).remove([anterior]);
-    fotoAplica(code, url);
-    if(!fotoModal.hidden) abrirFoto(url, code);
-    toast(escAttr(t('fotoOk')(code)));
-  } catch(err){
-    toast(escAttr(t('fotoErro') + (err && err.message ? err.message : err)), true);
-  } finally { fotoOcupado(code, false); }
-}
-async function fotoRemover(code){
-  if(!MODO_GER || !code) return;
-  if(!confirm(t('fotoRemConf')(code))) return;
-  try{
-    const ant = await supabase.from('wgi_produto_foto').select('caminho').eq('code', code).maybeSingle();
-    const d = await supabase.from('wgi_produto_foto').delete().eq('code', code);
-    if(d.error) throw d.error;
-    if(ant && ant.data && ant.data.caminho) await supabase.storage.from(FOTO_BUCKET).remove([ant.data.caminho]);
-    fecharFoto();
-    fotoAplica(code, null);
-    toast(escAttr(t('fotoRemOk')(code)));
-  } catch(err){
-    toast(escAttr(t('fotoErro') + (err && err.message ? err.message : err)), true);
-  }
-}
-fotoArquivo.onchange = (ev)=>{
-  const f = ev.target.files[0]; ev.target.value = '';
-  if(f && FOTO_ALVO) fotoEnviar(FOTO_ALVO, f);
-};
-document.getElementById('fotoTrocar').onclick = ()=>{ fotoArquivo.click(); };
-document.getElementById('fotoRemover').onclick = ()=>{ fotoRemover(FOTO_ALVO); };
 
 // ---------- language ----------
 document.querySelectorAll('#langToggle button').forEach(btn=>{
