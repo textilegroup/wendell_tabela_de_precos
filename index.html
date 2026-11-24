@@ -583,6 +583,59 @@ b.cogs-fonte{
   display:block; font-size:10.5px; font-weight:800; letter-spacing:.02em;
   color:var(--ink-2);
 }
+/* Preço recalculado pela taxa informada. Vermelho e menor: é simulação,
+   não é o preço em vigor. Nunca no papel. */
+span.usd-conv{
+  display:block; margin-top:1px;
+  font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:0; color:var(--neg);
+}
+td.sim-col span.usd-conv{text-align:right;}
+/* Chave liga/desliga da simulação de taxa. Desligada, o controle inteiro
+   fica apagado; ligada, ganha cor e abre o campo da taxa. */
+.usd-ctl{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  opacity:.5; transition:opacity .15s;
+}
+.usd-ctl.on{opacity:1;}
+.usd-ctl[hidden]{display:none !important;}
+.usd-switch{display:inline-flex; align-items:center; gap:8px; cursor:pointer;}
+.usd-switch input{position:absolute; width:1px; height:1px; opacity:0;}
+.usd-track{
+  flex:none; width:34px; height:19px; border-radius:999px; padding:2px;
+  background:var(--line); border:1px solid var(--line);
+  display:inline-flex; align-items:center; transition:background .15s, border-color .15s;
+}
+.usd-knob{
+  width:13px; height:13px; border-radius:50%; background:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.28); transition:transform .15s;
+}
+.usd-ctl.on .usd-track{background:var(--neg); border-color:var(--neg);}
+.usd-ctl.on .usd-knob{transform:translateX(15px);}
+.usd-switch input:focus-visible + .usd-track{outline:2px solid var(--neg); outline-offset:2px;}
+.usd-rotulo{
+  font-size:11.5px; font-weight:700; letter-spacing:.04em;
+  color:var(--ink-2); white-space:nowrap;
+}
+.usd-ctl.on .usd-rotulo{color:var(--neg);}
+.usd-campo{display:flex; align-items:center; gap:6px;}
+.usd-campo[hidden]{display:none !important;}
+.usd-campo span{
+  font-size:9.5px; font-weight:700; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-3); white-space:nowrap;
+}
+.usd-campo input{
+  width:80px; font:inherit; font-size:13px; font-weight:700; text-align:center;
+  font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
+  color:var(--neg); background:var(--card);
+  border:1px solid var(--neg); border-radius:7px; padding:6px 7px;
+}
+.usd-campo input:focus{outline:2px solid var(--neg); outline-offset:-1px;}
+/* sem as setinhas do input numérico: o campo fica mais limpo e estreito */
+.usd-campo input{appearance:textfield; -moz-appearance:textfield;}
+.usd-campo input::-webkit-outer-spin-button,
+.usd-campo input::-webkit-inner-spin-button{appearance:none; margin:0;}
+
 span.cogs-usd{
   display:block; margin-top:1px;
   font-family:"Archivo Narrow",Archivo,Arial,sans-serif;
@@ -1236,6 +1289,7 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
      bordas colapsadas — o line-height 1.4 da tela custaria uma folha extra. */
   body{background:#fff; line-height:1.2;}
   .no-print{display:none !important;}
+  span.usd-conv{display:none !important;}
   .wgi-header{
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
     background:var(--wine) !important; padding:6px 10px; position:static;
@@ -1678,6 +1732,7 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
   <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M9.9 5.8A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3 3.9"/><path d="M6.4 7.7A17 17 0 0 0 2.5 12S6 18.5 12 18.5a9.3 9.3 0 0 0 3.8-.8"/><path d="M10 10a2.8 2.8 0 0 0 4 4"/><path d="m4 4 16 16"/></symbol>
   <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5.5"/><path d="m6.5 11 5.5-5.5 5.5 5.5"/></symbol>
   <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v13.5"/><path d="m6.5 13 5.5 5.5 5.5-5.5"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11.5a8 8 0 0 0-14-5"/><path d="M4 12.5a8 8 0 0 0 14 5"/><path d="M4 3.5v5h5"/><path d="M20 20.5v-5h-5"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></symbol>
   <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4.5h5.5V10"/><path d="M19.5 4.5 11 13"/><path d="M18 14.5V19a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H10"/></symbol>
 </svg>
@@ -1860,6 +1915,20 @@ button.foco-mode.on{background:var(--wine); border-color:var(--wine); color:#fff
     <div class="panel-title-row">
       <h3 class="panel-title" id="txt-filtersTitle">Filtros</h3>
       <div class="filters-actions">
+        <!-- Simular outra taxa de USD/BRL: recalcula cada preço pela taxa
+             do COGS do item. Fica acima da tabela, antes da Simulação, e
+             só existe no Gerencial, onde essa taxa existe. -->
+        <div class="usd-ctl" id="usdField" hidden>
+          <label class="usd-switch">
+            <input type="checkbox" id="usdChk">
+            <span class="usd-track" aria-hidden="true"><span class="usd-knob"></span></span>
+            <span class="usd-rotulo" id="txt-usdBtn">Simular taxa USD/BRL</span>
+          </label>
+          <label class="usd-campo" id="usdCampo" hidden>
+            <span id="txt-usdCampoLabel">Nova taxa</span>
+            <input type="number" id="usdInput" step="0.0001" min="0" placeholder="5,2000">
+          </label>
+        </div>
         <button class="btn btn-outline" id="pdfFullBtn"><svg class="ico" aria-hidden="true"><use href="#i-print"></use></svg><span id="txt-pdfFullBtn">Gerar tabela completa em PDF</span></button>
         <button class="btn btn-outline" id="pdfBtn"><svg class="ico" aria-hidden="true"><use href="#i-print"></use></svg><span id="txt-pdfBtn">Gerar PDF</span></button>
       </div>
@@ -2235,6 +2304,10 @@ const state = {
   quoteOpen: false,
   // Módulo "Visualizar simulação": recolhido por padrão.
   simOpen: false,
+  // Nova taxa de USD/BRL para simular: o preço de cada item é recalculado
+  // pela taxa do COGS dele. Vazio = nada em vermelho na tela.
+  usdOn: false,
+  usdNova: null,
   // Consulta por item: janela própria, com busca e fichas dentro. A busca
   // dela é separada da busca da tabela — uma não mexe na outra. focoCodes
   // guarda a ordem de entrada; focoModes, o modo de simulação de cada card.
@@ -2266,6 +2339,11 @@ const I18N = {
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
     cogsCol:"COGS",
     cogsTip:"Fonte de custo eleita na tabela de custos e a taxa de USD com que ela foi montada. Lançadas no Wendell Custos; não saem no PDF.",
+    usdBtn:"Simular taxa USD/BRL",
+    usdCampo:"Nova taxa", usdTip:"Recalcula cada preço pela taxa do COGS do item e pela nova taxa informada",
+    usdLegenda:(t)=> "Em vermelho, abaixo de cada preço: o mesmo preço à taxa USD/BRL "
+      + t + " — item a item, pela taxa do COGS de cada um. Não sai no PDF.",
+    usdLegendaTitulo:"Conversão simulada",
     simPriceCol:"Simular preço", simCommCol:"Simular comissão", simMarginCol:"Margem resultante",
     viewModeLabel:"Exibição", viewTable:"Tabela completa", viewItem:"Modo foco",
     focoTitulo:"Modo foco", focoFecharJanela:"Voltar para a tabela completa",
@@ -2371,6 +2449,11 @@ const I18N = {
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
     cogsCol:"COGS",
     cogsTip:"Cost source chosen in the cost list and the USD rate it was built at. Entered in Wendell Custos; not included in the PDF.",
+    usdBtn:"Simulate USD/BRL rate",
+    usdCampo:"New rate", usdTip:"Recalculates each price using the item's COGS rate and the new rate",
+    usdLegenda:(t)=> "In red, under each price: the same price at the USD/BRL rate "
+      + t + " — item by item, using each one's COGS rate. Not included in the PDF.",
+    usdLegendaTitulo:"Simulated conversion",
     simPriceCol:"Simulate price", simCommCol:"Simulate commission", simMarginCol:"Resulting margin",
     viewModeLabel:"Display", viewTable:"Full table", viewItem:"Focus mode",
     focoTitulo:"Focus mode", focoFecharJanela:"Back to the full table",
@@ -2820,6 +2903,23 @@ function fmtCost(v){
 // Fonte de custo do item e a taxa de USD com que ela foi montada. A taxa
 // é lançada no Wendell Custos; enquanto não houver, fica o traço — melhor
 // do que inventar um câmbio.
+// Preço convertido: tira o câmbio com que o custo do item foi montado e
+// põe o informado. Sem taxa no item (ESPECIAL, item fora da lista de
+// custos) não há o que converter.
+function usdAtiva(){
+  return !!(state.usdOn && state.usdNova > 0 && state.audience === 'gerencia');
+}
+function converteUsd(valor, r){
+  if(!usdAtiva()) return null;
+  if(valor === null || valor === undefined) return null;
+  if(!r || !r.usd || r.usd <= 0) return null;
+  return valor / r.usd * state.usdNova;
+}
+function tagUsd(valor, r){
+  const v = converteUsd(valor, r);
+  return v === null ? '' : '<span class="usd-conv">' + fmtBRL(v) + '</span>';
+}
+
 function cogsCell(r){
   if(!r.fonte) return '<span class="cogs-sem">—</span>';
   const locale = state.lang==='en' ? 'en-US' : 'pt-BR';
@@ -2949,6 +3049,20 @@ function renderControls(){
   // Página larga só quando as colunas de simulação estão abertas
   const pageEl = document.querySelector('main.page');
   if(pageEl) pageEl.classList.toggle('wide', !!state.simOpen && isGer);
+
+  // Nova taxa de USD/BRL: só no Gerencial, que é onde a taxa de cada item
+  // existe. No Representante o campo nem aparece.
+  const usdF = document.getElementById('usdField');
+  if(usdF){
+    usdF.hidden = !isGer;
+    if(!isGer && state.usdOn){ state.usdOn = false; state.usdNova = null; }
+    usdF.classList.toggle('on', !!state.usdOn);
+    usdF.title = t('usdTip');
+    document.getElementById('usdChk').checked = !!state.usdOn;
+    document.getElementById('txt-usdBtn').textContent = t('usdBtn');
+    document.getElementById('txt-usdCampoLabel').textContent = t('usdCampo');
+    document.getElementById('usdCampo').hidden = !state.usdOn;
+  }
 
   // O segmentado só mostra se a janela de consulta está aberta ou não —
   // ela cobre a tela, então nada precisa ser escondido aqui atrás.
@@ -3816,7 +3930,8 @@ function render(){
             tds += '<td class="price pick-cell'+(on?' picked':'')+'"'
                 +  ' data-code="'+escAttr(r.code)+'" data-col="'+i+'"'
                 +  ' data-comm="'+escAttr(cTxt)+'"'
-                +  ' data-label="'+tierLabels[i]+'">'+fmtBRL(r.prices[i])+'</td>';
+                +  ' data-label="'+tierLabels[i]+'">'+fmtBRL(r.prices[i])
+                +  tagUsd(r.prices[i], r)+'</td>';
           });
         }
         // Colunas de simulação. A chave no cabeçalho decide quem é entrada:
@@ -3855,7 +3970,8 @@ function render(){
           } else {
             tds += '<input type="number" step="0.01" min="0" class="sim-input'+(sv.pChanged?' changed':'')+'"'
                 +  ' data-code="'+escAttr(r.code)+'" value="'+(sv.price>0 ? sv.price.toFixed(2) : '0.00')+'">'
-                +  clearBtn(r.code, 'price', sv.pChanged);
+                +  clearBtn(r.code, 'price', sv.pChanged)
+                +  tagUsd(sv.price, r);
           }
           tds += '</td>';
           tds += '<td class="sim-col sim-comm-col'+dimCls+'" data-label="'+t('simCommCol')+'">'
@@ -3873,7 +3989,8 @@ function render(){
                 +  (anyChanged?' changed':'')+(sv.impossible?' negative':'')+'"'
                 +  ' data-code="'+escAttr(r.code)+'" data-col="sim"'
                 +  ' data-label="'+t('simPriceOutCol')+'">'
-                +  (sv.impossible ? t('simImpossible') : fmtBRL(sv.price))+'</td>';
+                +  (sv.impossible ? t('simImpossible') : fmtBRL(sv.price))
+                +  (sv.impossible ? '' : tagUsd(sv.price, r))+'</td>';
           } else {
             // Saída: margem resultante do preço informado — não é preço,
             // portanto nunca é clicável.
@@ -3938,7 +4055,10 @@ function render(){
     <div class="footnote-item"><div class="flabel">${t('taxIncludedLabel')}</div><div class="fval">${metaVal('impostos_inclusos')}</div></div>
     <div class="footnote-item"><div class="flabel">${t('taxToAddLabel')}</div><div class="fval">${metaVal('impostos_a_incluir')}</div></div>
     <div class="footnote-item"><div class="flabel">${t('paymentLabel')}</div><div class="fval">${metaVal('prazo_pgto')}</div></div>
-    <div class="footnote-item usd-item"><div class="flabel">${t('usdLabel')}</div><div class="fval">${DATA.meta.usd_brl.toLocaleString(state.lang==='en'?'en-US':'pt-BR',{minimumFractionDigits:4})}</div></div>
+    ${usdAtiva()
+      ? '<div class="footnote-item usd-item"><div class="flabel">'+t('usdLegendaTitulo')+'</div>'
+        + '<div class="fval">'+t('usdLegenda')(state.usdNova.toLocaleString(state.lang==='en'?'en-US':'pt-BR',{minimumFractionDigits:4}))+'</div></div>'
+      : ''}
   `;
   document.getElementById('content').appendChild(foot);
 
@@ -3988,6 +4108,15 @@ function bindSimInputs(block){
       cell.classList.toggle('negative', sv.margin !== null && sv.margin < 0);
     }
     cell.classList.toggle('changed', sv.pChanged || sv.cChanged || sv.mChanged);
+    // O preço em vermelho da simulação acompanha o que está sendo digitado.
+    const tr = cell.closest('tr');
+    if(tr){
+      tr.querySelectorAll('td.sim-col span.usd-conv').forEach(el=>{
+        const v = (state.simMode === 'precoPelaMargem' && sv.impossible)
+          ? null : converteUsd(sv.price, row);
+        if(v === null){ el.textContent = ''; } else { el.textContent = fmtBRL(v); }
+      });
+    }
   }
 
   // ✕ de cada campo: apaga só aquele valor e volta ao padrão. Se o item
@@ -4159,6 +4288,18 @@ document.querySelectorAll('#icmsSeg button').forEach(btn=>{
     if(state.audience==='gerencia'){ state.coefVersion = roleOf(state.coefVersion) + state.icms; }
     render();
   };
+});
+document.getElementById('usdChk').onchange = (e)=>{
+  state.usdOn = !!e.target.checked;
+  if(!state.usdOn){ state.usdNova = null; document.getElementById('usdInput').value = ''; }
+  render();
+  if(state.usdOn){ document.getElementById('usdInput').focus(); }
+};
+document.getElementById('usdInput').addEventListener('input', (e)=>{
+  const v = parseFloat(String(e.target.value).replace(',', '.'));
+  state.usdNova = (isNaN(v) || v <= 0) ? null : v;
+  render();
+  // O render redesenha a tabela, não o campo — o foco fica onde estava.
 });
 document.getElementById('searchInput').addEventListener('input', (e)=>{
   state.search = e.target.value;
