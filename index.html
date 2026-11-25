@@ -2372,8 +2372,13 @@ const PARAM_KEY = {
   'gerencia-18':'ger18','gerencia-17':'ger17','gerencia-4':'ger4'
 };
 
-const COLOR_HEX = { 'branca':'#F4F1E8','branco óptico':'#FBFBF6','preta':'#2B2A26','grafite':'#5B5B5B' };
-const COLOR_EN = { 'Branca':'White','Preta':'Black','Grafite':'Graphite','Branco Óptico':'Optical White' };
+// As chaves são comparadas em minúsculas; as variações de grafia do
+// off-white entram todas, porque o nome vem digitado na lista de custos.
+const COLOR_HEX = { 'branca':'#F4F1E8','branco óptico':'#FBFBF6',
+                    'off-white':'#E2D2B0','off white':'#E2D2B0','offwhite':'#E2D2B0',
+                    'preta':'#2B2A26','grafite':'#5B5B5B' };
+const COLOR_EN = { 'Branca':'White','Preta':'Black','Grafite':'Graphite',
+                   'Branco Óptico':'Optical White','Off-white':'Off-white' };
 const CAT_EN = { '6. Nãotecidas':'6. Non-wovens', '7. Tecidas':'7. Wovens', '8. Malhas':'8. Knits', '9. Especiais':'9. Specialties' };
 
 const I18N = {
