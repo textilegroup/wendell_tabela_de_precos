@@ -482,7 +482,7 @@ table.price-table{
 .price-table thead th.left{text-align:left;}
 .price-table thead th .tier-pct{
   display:block; font-size:10px; font-weight:700;
-  letter-spacing:.02em; color:var(--cat-accent); margin-top:1px;
+  letter-spacing:.02em; color:var(--ink); margin-top:1px;
 }
 .price-table tbody td{
   padding:5px 10px; text-align:right; white-space:nowrap;
@@ -662,7 +662,7 @@ th.sim-col{
   padding-left:6px !important; padding-right:6px !important;
   font-size:9px; white-space:normal !important; line-height:1.25;
 }
-th.sim-col .tier-pct{font-size:9.5px;}
+th.sim-col .tier-pct{font-size:9.5px; color:var(--cat-accent);}
 /* "Simular comissão" e a coluna de saída não têm o que esticar: o campo
    de comissão é curto e a saída é um número só. Largura presa, para a
    tabela devolver o espaço às colunas de preço. */
@@ -1330,7 +1330,7 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
     border-bottom:.75pt solid #999; letter-spacing:.03em;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  .price-table thead th .tier-pct{font-size:9.5px; margin-top:0; color:#7C1B29 !important;}
+  .price-table thead th .tier-pct{font-size:9.5px; margin-top:0; color:#000 !important;}
   .price-table tbody td{padding:1px 4px; font-size:10.5px; line-height:1.15;
     border-top:.4pt solid #ddd;}
   .price-table tbody tr:first-child td{border-top:0;}
@@ -1402,6 +1402,20 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
     border-left:.4pt solid #bbb;
   }
   td.commission-value.cost-col{background:transparent !important; color:#6B6A6F !important;}
+  /* COGS (só Gerência): a fonte de custo eleita e a taxa de USD em que ela
+     foi montada. Duas linhas curtas, para a coluna roubar pouca largura. */
+  td.cogs-col{
+    font-size:8.5px; font-weight:700; line-height:1.08;
+    color:#6B6A6F !important; background:transparent !important;
+    border-left:.4pt solid #bbb;
+  }
+  th.cogs-col{
+    color:#6B6A6F !important; background:transparent !important;
+    border-left:.4pt solid #bbb;
+  }
+  td.cogs-col b.cogs-fonte{font-size:8.5px; color:#3A3940 !important;}
+  td.cogs-col span.cogs-usd{font-size:7.5px; font-weight:600; color:#6B6A6F !important;}
+  td.commission-value.cogs-col{background:transparent !important; color:#6B6A6F !important;}
 }
 
 /* ===== Consulta por item ==========================================
@@ -2343,7 +2357,7 @@ const I18N = {
     searchPlaceholder:"Ex.: 8J50PE, 7FB90PA, Branca — separe por vírgula", categoryLabel:"Categoria", allCat:"Todas",
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
     cogsCol:"COGS",
-    cogsTip:"Fonte de custo eleita na tabela de custos e a taxa de USD com que ela foi montada. Lançadas no Wendell Custos; não saem no PDF.",
+    cogsTip:"Fonte de custo eleita na tabela de custos e a taxa de USD com que ela foi montada. Lançadas no Wendell Custos.",
     usdBtn:"Simular taxa USD/BRL",
     usdCampo:"Nova taxa", usdTip:"Recalcula cada preço pela taxa do COGS do item e pela nova taxa informada",
     usdLegenda:(t)=> "Em vermelho, abaixo de cada preço: o mesmo preço à taxa USD/BRL "
@@ -2451,7 +2465,7 @@ const I18N = {
     searchPlaceholder:"e.g. 8J50PE, 7FB90PA, White — comma separated", categoryLabel:"Category", allCat:"All",
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
     cogsCol:"COGS",
-    cogsTip:"Cost source chosen in the cost list and the USD rate it was built at. Entered in Wendell Custos; not included in the PDF.",
+    cogsTip:"Cost source chosen in the cost list and the USD rate it was built at. Entered in Wendell Custos.",
     usdBtn:"Simulate USD/BRL rate",
     usdCampo:"New rate", usdTip:"Recalculates each price using the item's COGS rate and the new rate",
     usdLegenda:(t)=> "In red, under each price: the same price at the USD/BRL rate "
@@ -3929,7 +3943,7 @@ function render(){
       // Custo: só na Gerência e nunca no orçamento do cliente. Fica logo
       // antes do IPI, em cinza claro, porque é apenas informativo.
       if(showCogs){
-        thead += '<th class="cogs-col no-print" title="'+escAttr(t('cogsTip'))+'">'+t('cogsCol')+'</th>';
+        thead += '<th class="cogs-col" title="'+escAttr(t('cogsTip'))+'">'+t('cogsCol')+'</th>';
       }
       if(showCost){ thead += '<th class="cost-col">'+t('costCol')+'</th>'; }
       thead += '<th class="ipi-col">'+t('ipiCol')+'</th></tr></thead>';
@@ -4034,7 +4048,7 @@ function render(){
         // Grupo recolhido: uma célula vazia segura o lugar das três colunas
         if(simAvailable && !state.simOpen){ tds += '<td class="sim-col"></td>'; }
         if(showCogs){
-          tds += '<td class="cogs-col no-print" data-label="'+t('cogsCol')+'">'+cogsCell(r)+'</td>';
+          tds += '<td class="cogs-col" data-label="'+t('cogsCol')+'">'+cogsCell(r)+'</td>';
         }
         if(showCost){
           tds += '<td class="cost-col" data-label="'+t('costCol')+'">'+fmtCost(r.cost)
@@ -4065,7 +4079,7 @@ function render(){
         const n = state.simOpen ? 3 : 1;
         for(let k=0;k<n;k++) cTds += '<td class="sim-col commission-value">—</td>';
       }
-      if(showCogs) cTds += '<td class="commission-value cogs-col no-print">—</td>';
+      if(showCogs) cTds += '<td class="commission-value cogs-col">—</td>';
       if(showCost) cTds += '<td class="commission-value cost-col">—</td>';
       cTds += '<td class="commission-value ipi-col">—</td>';
       commissionRow.innerHTML = cTds;
