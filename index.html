@@ -1293,7 +1293,16 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
      bordas colapsadas — o line-height 1.4 da tela custaria uma folha extra. */
   body{background:#fff; line-height:1.2;}
   .no-print{display:none !important;}
-  span.usd-conv{display:none !important;}
+  /* Simulação de câmbio no papel: o valor simulado desce sob o número
+     vigente, em vermelho e menor — mesma leitura da tela. */
+  span.usd-conv{
+    display:block !important; margin-top:0; line-height:1;
+    font-size:8px; font-weight:700; letter-spacing:0;
+    color:#A33A2A !important;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .usd-print-tag{color:#A33A2A !important; white-space:nowrap;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;}
   .wgi-header{
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
     background:var(--wine) !important; padding:6px 10px; position:static;
@@ -1344,6 +1353,23 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
   td.color-cell{font-size:10px;}
   td.color-cell .swatch{width:7px; height:7px; margin-right:4px;}
   td.price{font-size:12px;}   /* os números — maior fonte da tabela */
+  /* Com a simulação ligada a tabela tem o dobro de números. Tudo encolhe
+     um degrau para a folha continuar sendo uma só. */
+  body.usd-simulando .price-table tbody td{padding-top:0; padding-bottom:0;
+    line-height:1.08;}
+  body.usd-simulando td.price{font-size:9.5px;}
+  body.usd-simulando td.code{font-size:9px;}
+  body.usd-simulando td.color-cell{font-size:8.5px;}
+  body.usd-simulando td.cost-col{font-size:8px;}
+  body.usd-simulando td.cogs-col{font-size:7.5px; line-height:1;}
+  body.usd-simulando td.cogs-col b.cogs-fonte{font-size:7.5px;}
+  body.usd-simulando td.cogs-col span.cogs-usd{font-size:6.5px;}
+  body.usd-simulando td.ipi{font-size:8px;}
+  body.usd-simulando span.usd-conv{font-size:7.5px;}
+  body.usd-simulando .price-table thead th{font-size:7.5px; padding:1.2px 4px;}
+  body.usd-simulando .price-table thead th .tier-pct{font-size:8.5px;}
+  body.usd-simulando .cat-heading h2{font-size:10.5px;}
+  body.usd-simulando tr.commission-row td{font-size:9px; padding:1px 4px;}
   tr.commission-row td{font-size:10.5px; padding:1.4px 4px; line-height:1.15;}
   tr.commission-row td.commission-label{font-size:8.5px;}
   tr{break-inside:avoid;}
@@ -1360,6 +1386,7 @@ body.coef-foco .coef-tabs{pointer-events:none; opacity:.45;}
   .footnote-item.usd-item{display:none !important;}
   /* As colunas de simulação existem só na tela da Gerência — nunca no PDF. */
   .sim-col{display:none !important;}
+  .sim-col span.usd-conv{display:none !important;}
   .sim-legend{display:none !important;}
   .col-pick{display:none !important;}
   /* Na tela o card tem a largura da tabela; no papel ele ocupa a folha. */
@@ -2357,6 +2384,7 @@ const I18N = {
     searchPlaceholder:"Ex.: 8J50PE, 7FB90PA, Branca — separe por vírgula", categoryLabel:"Categoria", allCat:"Todas",
     tableCol:"Tabela", codeCol:"Código", colorCol:"Cor", ipiCol:"IPI", costCol:"Custo", itemsSuffix:"itens",
     cogsCol:"COGS",
+    usdPrintTag:"SIMULAÇÃO USD/BRL",
     cogsTip:"Fonte de custo eleita na tabela de custos e a taxa de USD com que ela foi montada. Lançadas no Wendell Custos.",
     usdBtn:"Simular taxa USD/BRL",
     usdCampo:"Nova taxa", usdTip:"Recalcula cada preço pela taxa do COGS do item e pela nova taxa informada",
@@ -2465,6 +2493,7 @@ const I18N = {
     searchPlaceholder:"e.g. 8J50PE, 7FB90PA, White — comma separated", categoryLabel:"Category", allCat:"All",
     tableCol:"Table", codeCol:"Code", colorCol:"Color", ipiCol:"Excise tax (IPI)", costCol:"Cost", itemsSuffix:"items",
     cogsCol:"COGS",
+    usdPrintTag:"USD/BRL SIMULATION",
     cogsTip:"Cost source chosen in the cost list and the USD rate it was built at. Entered in Wendell Custos.",
     usdBtn:"Simulate USD/BRL rate",
     usdCampo:"New rate", usdTip:"Recalculates each price using the item's COGS rate and the new rate",
@@ -3793,6 +3822,9 @@ function fecharFocoJanela(){
 function render(){
   applyStaticTexts();
   renderControls();
+  // Com a simulação ligada cada preço passa a ter dois números: o PDF
+  // troca de calibração para continuar cabendo na folha.
+  document.body.classList.toggle('usd-simulando', usdAtiva());
 
   const block = currentBlock();
   renderCatChips(block);
@@ -3876,7 +3908,14 @@ function render(){
     document.getElementById('printSummary').innerHTML =
       t('title') + ' &nbsp;<span class="icms-badge">ICMS ' + icmsTxt + '</span>&nbsp; · '
       + modTxt + ' · ' + block.date + ' · ' + block.note
-      + (state.tableMode ? ' · ' + rows.length + ' ' + t('selectedSuffix') : '');
+      + (state.tableMode ? ' · ' + rows.length + ' ' + t('selectedSuffix') : '')
+      // Sem isto o leitor vê dois números por célula e não sabe de onde
+      // saiu o segundo.
+      + (usdAtiva()
+          ? ' <span class="usd-print-tag">· ' + t('usdPrintTag') + ' '
+            + state.usdNova.toLocaleString(state.lang==='en'?'en-US':'pt-BR',
+                {minimumFractionDigits:4, maximumFractionDigits:4}) + '</span>'
+          : '');
   }
 
   if(rows.length === 0){
